@@ -125,14 +125,10 @@ leave it empty; delete only the specific temporary student ids you create.
     in-browser tests at θ 160–205 all inside the band ✓; phone screenshots reviewed and 4 layout fixes made.
     Bugs found and fixed: duplicate-digit tiles, identical picture choices (validator now checks both).
 
-## Status at the end of the old session (2026-10-25, Phase 5)
+## Status at the end of the old session (2026-10-25)
 
-Published: hub, hubdemo, mathquest2, mapmath2, mapmath4. Built, tested, committed but NOT yet published: mapread2,
-mapread4, mapread8 (+ shared core fixes since the last publish; all 8 apps re-played at 375px after them).
-Was RUNNING: `tools/voice_all.sh mapread8 4` → `node tools/voicecheck.js mapread8` → `make_videos.py mapread8`.
-Check: `tail -2 /tmp/voice-mapread8-0.log`, `ls apps/mapread8/videos/*.mp4 | wc -l` (expect 7),
-`node tools/voicecheck.js mapread8` (expect "every line has a recorded voice"). If incomplete, re-run that chain
-(cached clips are reused). The user said "publish when done" for Phase 5.
+Phase 5 DONE and PUBLISHED: mapread2, mapread4, mapread8 (with the shared core fixes). Live check passed (sw cache
+names match, gh-pages == dist). Nothing is running. Next: Phase 6 (Algebra 1 Quest) — ask before publishing.
 
 ## PENDING — next steps, in order
 
@@ -145,7 +141,7 @@ Check: `tail -2 /tmp/voice-mapread8-0.log`, `ls apps/mapread8/videos/*.mp4 | wc 
    grades 3–5 (section letter + continued list number). The same publish shipped shared fixes to all apps (avatar
    grid, MAP history table scroll); Math Quest 2 and MAP Math 2 were re-played in the browser first.
    Not done: nobody has listened to the g4 voice or watched the 6 videos end to end — ask the family.
-3. Phase 5: MAP Reading 2 / 4 / 8 — BUILT 2026-10-25 (publish pending at time of writing; see git log).
+3. Phase 5: MAP Reading 2 / 4 / 8 — DONE and PUBLISHED 2026-10-25.
    - Shared: apps/mapread2/data/readkit.js (RK: passages, mc/ev(hot evidence)/multi/order(pop) specs, passLevel,
      shortLevel, genLevel, solo; sentence splitter handles titles, a.m./p.m., play headings, parentheses). Reading
      figures (pageFig, listFig, diagramFig) live in core Fig. core/modes/fluency.js = fluency practice (timed silent
