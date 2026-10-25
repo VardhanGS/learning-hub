@@ -10,7 +10,8 @@ TMP="$(mktemp -d)"
 trap 'git worktree remove --force "$TMP" >/dev/null 2>&1 || true' EXIT
 if git show-ref --verify --quiet refs/heads/gh-pages; then git worktree add -q "$TMP" gh-pages
 else git worktree add -q --orphan -b gh-pages "$TMP"; fi
-rsync -a --delete --exclude '.git' --exclude '_test' dist/ "$TMP"/
+# --checksum: compare contents, not size + time (a same-size sw.js written in the same second was once skipped)
+rsync -a --checksum --delete --exclude '.git' --exclude '_test' dist/ "$TMP"/
 git -C "$TMP" add -A
 git -C "$TMP" commit -q -m "$MSG" || { echo "Nothing to publish."; exit 0; }
 GH_TOKEN="$(gh auth token -u VardhanGS)" git -C "$TMP" \
