@@ -162,6 +162,7 @@
   const NAV = [['home', '🏠', 'Home'], ...(FEAT.studio ? [['studio', '🖍️', 'Write']] : []), ['videos', '🎬', 'Videos'], ['progress', '📈', 'Progress'], ['settings', '⚙️', 'Settings']];
 
   function render() {
+    window.HUB_QUIET = !!(Q && Q.mode === 'test' && view.name === 'quiz');
     const noUser = !profiles.length || !P;
     const open = ['classCreate', 'classPick', 'dashboard', 'studentView'].includes(view.name);
     if (view.name === 'welcome' || (noUser && !open)) { app.innerHTML = screenWelcome() + modalHTML(); AFTER.welcome(); return; }
@@ -246,7 +247,8 @@
           </div>
         </section>
 
-        <h2 class="sec">Choose a subject</h2>
+        ${MODES.map((m) => (m.homeTop ? m.homeTop() : '')).join('')}
+        <h2 class="sec">${MODES.some((m) => m.homeTop) ? 'Goal Area Practice' : 'Choose a subject'}</h2>
         <section class="subjects">
           ${SUBJ().map((s) => {
             const m = mastery(s);
@@ -378,6 +380,52 @@
   }
 
   const cur = () => Q.qs[Q.i];
+
+  // ---- test mode (MAP-style practice tests) ----
+  // Like the real test: one try per question, no feedback, the answer locks when you press Next, no sounds,
+  // and no read-aloud unless a grown-up turns it on (MAP Growth 2–5 has text-to-speech only when a school assigns it).
+  // t = {title, total, next(Q) -> question, onAnswer(q, ok, Q), finish(Q) -> screen name}
+  function startTest(t) {
+    Q = { mode: 'test', test: t, qs: [], i: 0, points: 0, xp: 0, log: [], st: freshSt(), started: Date.now(), qStarted: Date.now() };
+    const q = t.next(Q);
+    if (!q) { go('home'); return; }
+    Q.qs.push(prep(q));
+    go('quiz');
+  }
+  function submitTest() {
+    const q = cur(), st = Q.st;
+    if (st.done) return;
+    st.done = true;
+    const ok = isCorrect(q, st);
+    Q.log.push({ q, ok, secs: Math.round((Date.now() - Q.qStarted) / 1000) });
+    Q.test.onAnswer(q, ok, Q);
+    if (Q.log.length >= Q.test.total) { go(Q.test.finish(Q)); return; }
+    const nq = Q.test.next(Q);
+    if (!nq) { go(Q.test.finish(Q)); return; }
+    Q.qs.push(prep(nq)); Q.i++; Q.st = freshSt(); Q.qStarted = Date.now(); calcOpen = false;
+    render(); window.scrollTo(0, 0);
+  }
+  const testAudio = () => !!settings.testAudio;
+
+  // ---- a simple on-screen calculator, shown on questions marked calc: true (as on MAP, only some questions) ----
+  let calcOpen = false, calcExpr = '';
+  function calcHTML() {
+    const keys = ['7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '−', '0', '.', '=', '+'];
+    return `<div class="calc" role="group" aria-label="Calculator"><div class="calc-disp">${esc(calcExpr || '0')}</div>
+      <div class="calc-keys">${keys.map((k) => `<button class="kp-key" data-act="calcKey" data-k="${k}">${k}</button>`).join('')}<button class="kp-key alt wide" data-act="calcKey" data-k="C">Clear</button></div></div>`;
+  }
+  function calcPress(k) {
+    if (k === 'C') calcExpr = '';
+    else if (k === '=') {
+      try {
+        const js = calcExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+        if (!/^[\d+\-*/. ]+$/.test(js)) throw new Error('bad');
+        const v = Function(`return (${js})`)();
+        calcExpr = Number.isFinite(v) ? String(+v.toFixed(6)) : 'Error';
+      } catch { calcExpr = 'Error'; }
+    } else calcExpr = (calcExpr === 'Error' ? '' : calcExpr) + k;
+    render();
+  }
   const PRAISE = Voice.PRAISE;
 
   function answerText(q) {
@@ -394,6 +442,8 @@
       case 'line': return lineLabel(q, lineIndex(q, q.a));
       case 'shade': return `Shade ${q.a} of the ${q.parts} equal parts.`;
       case 'clock': return `${q.h}:${String(q.m).padStart(2, '0')}`;
+      case 'hot': return q.a.map((i) => (q.cellNames ? q.cellNames[i] : q.cells[i])).join(', ');
+      case 'pop': return fillTemplate(q, q.accept[0]);
       case 'coins': return `${coinsFor(q).map((k) => Fig.COIN[k].name).join(', ')} (${fmtCents(q.a)})`;
       default: return '';
     }
@@ -413,6 +463,8 @@
       case 'line': return st.chosen === lineIndex(q, q.a);
       case 'shade': return st.sel.length === q.a;
       case 'clock': return (st.h ?? 12) === q.h && (st.m ?? 0) === q.m;
+      case 'hot': return [...st.sel].sort((a, b) => a - b).join(',') === [...q.a].sort((a, b) => a - b).join(',');
+      case 'pop': { const vals = st.picked.map((i) => q.tiles[i]); return vals.length === slotCount(q) && q.accept.some((acc) => acc.join('|') === vals.join('|')); }
       case 'coins': return st.picked.reduce((t, k) => t + Fig.COIN[k].v, 0) === q.a;
       default: return false;
     }
@@ -444,6 +496,7 @@
   const lineLabel = (q, i) => (i < 0 ? '' : N.str(lineVal(q, i), !!q.mixed));
 
   function check() {
+    if (Q.mode === 'test') { submitTest(); return; }
     const q = cur(), st = Q.st;
     if (st.done) return;
     if (q.t === 'num') {
@@ -474,7 +527,8 @@
         if (q.t === 'num') st.typed = '';
         if (q.t === 'multi' || q.t === 'shade') st.sel = [];
         if (q.t === 'line') st.chosen = null;
-        if (q.t === 'coins') st.picked = [];
+        if (q.t === 'coins' || q.t === 'pop') st.picked = [];
+        if (q.t === 'hot') st.sel = [];
         if (q.t === 'sort') { st.wrongItems = q.items.map((it, i) => (st.place[i] !== it.b ? i : -1)).filter((i) => i >= 0); st.wrongItems.forEach((i) => delete st.place[i]); }
         if (q.t === 'build' || q.t === 'order') st.picked = [];
         if (q.t === 'tap') st.sel = [];
@@ -545,9 +599,11 @@
 
   function screenQuiz() {
     const q = cur(), st = Q.st;
-    const title = Q.mode === 'mix' ? 'Daily Mix' : Q.mode === 'review' ? 'Practice Mistakes' : `${skillOf(Q.s, Q.k).name} · ${LEVEL_NAMES[Q.l].long}`;
+    const test = Q.mode === 'test';
+    const title = test ? Q.test.title : Q.mode === 'mix' ? 'Daily Mix' : Q.mode === 'review' ? 'Practice Mistakes' : `${skillOf(Q.s, Q.k).name} · ${LEVEL_NAMES[Q.l].long}`;
     const color = Q.mode === 'skill' ? subj(Q.s).color : 'mix';
-    const pct = ((Q.i + (st.done ? 1 : 0)) / Q.qs.length) * 100;
+    const total = test ? Q.test.total : Q.qs.length;
+    const pct = ((Q.i + (st.done ? 1 : 0)) / total) * 100;
     const passage = q.passage ? `
       <aside class="passage card">
         <div class="passage-head"><span class="kind">${esc(q.passage.kind)}</span><button class="btn small" data-act="readPassage">🔊 Read to me</button></div>
@@ -555,21 +611,22 @@
         ${q.passage.text.split('\n\n').map((p) => `<p>${esc(p)}</p>`).join('')}
       </aside>` : '';
     return `
-      <div class="quiz s-${color}">
+      <div class="quiz s-${color} ${test ? 'testmode' : ''}">
         <header class="quiz-head">
           <button class="icon-btn" data-act="askQuit" aria-label="Leave quest">✕</button>
-          <div class="quiz-title"><b>${esc(title)}</b><span>Question ${Q.i + 1} of ${Q.qs.length}</span></div>
-          ${Q.mode === 'skill' ? '<button class="icon-btn" data-act="showLesson" aria-label="Show the lesson">💡</button>' : ''}<span class="pill">⭐ ${Q.xp} XP</span>
+          <div class="quiz-title"><b>${esc(title)}</b><span>Question ${Q.i + 1} of ${total}</span></div>
+          ${Q.mode === 'skill' ? '<button class="icon-btn" data-act="showLesson" aria-label="Show the lesson">💡</button>' : ''}${test ? (q.calc ? `<button class="icon-btn" data-act="calcToggle" aria-label="Calculator">🧮</button>` : '') : `<span class="pill">⭐ ${Q.xp} XP</span>`}
         </header>
         <div class="progress"><i style="width:${pct}%"></i></div>
         <div class="quiz-body ${q.passage ? 'with-passage' : ''}">
           ${passage}
           <section class="qcard card ${st.msg && st.msg.kind === 'try' ? 'shake' : ''}">
-            ${q.from ? `<span class="from">${esc(q.from)}</span>` : ''}
+            ${q.from && !test ? `<span class="from">${esc(q.from)}</span>` : ''}
             <div class="prompt-row">
               <p class="prompt">${fmt(q.q)}</p>
-              <button class="icon-btn speak" data-act="readQ" aria-label="Read the question aloud">🔊</button>
+              ${!test || testAudio() ? '<button class="icon-btn speak" data-act="readQ" aria-label="Read the question aloud">🔊</button>' : ''}
             </div>
+            ${test && q.calc && calcOpen ? calcHTML() : ''}
             ${q.fig ? `<div class="fig">${q.fig}</div>` : ''}
             ${q.say && q.t !== 'spell' ? `<div class="say-row"><button class="btn say" data-act="sayWord">🔊 Hear the word</button><button class="btn small ghost" data-act="sayWordSlow">🐢 Slow</button></div>` : ''}
             ${renderBody(q, st)}
@@ -591,8 +648,15 @@
   }
 
   function actionBtn(q, st) {
+    if (Q.mode === 'test') {
+      const ready = q.t === 'clock' ? true : actionReady(q, st);
+      return `<button class="btn primary big" data-act="check" ${ready ? '' : 'disabled'}>${Q.log.length + 1 >= Q.test.total ? 'Finish' : 'Next →'}</button>`;
+    }
     if (st.done) return `<button class="btn primary big" data-act="next">${Q.i < Q.qs.length - 1 ? 'Next →' : 'See my score'}</button>`;
     if (q.t === 'mc') return '';
+    return `<button class="btn primary big" data-act="check" ${actionReady(q, st) ? '' : 'disabled'}>Check</button>`;
+  }
+  function actionReady(q, st) {
     let ready = true;
     if (q.t === 'sort') ready = q.items.every((_, i) => st.place[i] != null);
     if (q.t === 'build') ready = st.picked.length > 0;
@@ -602,17 +666,21 @@
     if (q.t === 'multi' || q.t === 'shade') ready = st.sel.length > 0;
     if (q.t === 'line') ready = st.chosen != null;
     if (q.t === 'coins') ready = st.picked.length > 0;
-    return `<button class="btn primary big" data-act="check" ${ready ? '' : 'disabled'}>Check</button>`;
+    if (q.t === 'mc') ready = st.chosen != null;
+    if (q.t === 'hot') ready = st.sel.length > 0;
+    if (q.t === 'pop') ready = st.picked.length === slotCount(q);
+    return ready;
   }
 
   function renderBody(q, st) {
     switch (q.t) {
       case 'mc': {
         const long = q.opts.some((o) => MathText.plain(o).replace(/[⟪⟫]/g, '').length > 18);
-        const tiny = q.opts.every((o) => o.length <= 4);
+        const tiny = q.opts.every((o) => o.length <= 3); // 4+ characters ("2:25", "1000") need the 2-column layout on a phone
         return `<div class="opts ${long ? 'long' : ''} ${tiny ? 'tiny' : ''}">${q.opts.map((o) => {
           let cls = '';
-          if (st.done && o === q.a) cls = 'right';
+          if (Q && Q.mode === 'test' && !st.done) cls = st.chosen === o ? 'sel' : '';
+          else if (st.done && o === q.a) cls = 'right';
           else if (st.done && o === st.chosen && !st.correct) cls = 'wrong';
           else if (st.wrongOpts.includes(o)) cls = 'wrong dim';
           const dis = st.done || st.wrongOpts.includes(o);
@@ -685,6 +753,8 @@
       case 'line': return renderLine(q, st);
       case 'shade': return renderShade(q, st);
       case 'clock': return renderClock(q, st);
+      case 'hot': return renderHot(q, st);
+      case 'pop': return renderPop(q, st);
       case 'coins': return renderCoins(q, st);
       default: return '';
     }
@@ -758,6 +828,31 @@
         <path d="M${pad - 18} ${y} l10 -7 v14 z M${W - pad + 18} ${y} l-10 -7 v14 z" class="nl-arrow"/>
         ${ticks}${marks}${st.done ? '' : hits}
       </svg>`;
+  }
+
+  // ---- hot text: tap numbers, symbols, equations, or pictures (MAP-style) ----
+  function renderHot(q, st) {
+    const cell = (c, i) => {
+      let cls = st.sel.includes(i) ? 'sel' : '';
+      if (st.done && !(Q && Q.mode === 'test')) cls = q.a.includes(i) ? 'right' : st.sel.includes(i) ? 'wrong' : '';
+      const inner = String(c).startsWith('<svg') ? c : fmt(String(c));
+      return `<button class="hot-cell ${String(c).startsWith('<svg') ? 'pic' : ''} ${cls}" data-act="hotPick" data-i="${i}" aria-pressed="${st.sel.includes(i)}" ${st.done ? 'disabled' : ''} aria-label="${esc(q.cellNames ? q.cellNames[i] : String(c).startsWith('<svg') ? `picture ${i + 1}` : c)}">${inner}</button>`;
+    };
+    return `<p class="howto">${q.multi ? 'Tap all that apply. Tap again to undo.' : 'Tap your answer.'}</p><div class="hot hot-${q.layout || 'row'}">${q.cells.map(cell).join('')}</div>`;
+  }
+  // ---- click-and-pop: tap tiles to place them into the boxes of a template like "□ + □ = 15" ----
+  const slotCount = (q) => (q.template.match(/□/g) || []).length;
+  const fillTemplate = (q, vals) => { let k = 0; return q.template.replace(/□/g, () => vals[k++] ?? '□'); };
+  function renderPop(q, st) {
+    let k = 0;
+    const parts = q.template.split(/(□)/).map((part) => {
+      if (part !== '□') return `<span class="pop-text">${fmt(part)}</span>`;
+      const n = k++, ti = st.picked[n];
+      return ti == null ? `<span class="pop-slot empty" aria-label="Empty box"></span>`
+        : `<button class="pop-slot" data-act="unpick" data-p="${n}" ${st.done ? 'disabled' : ''}>${fmt(q.tiles[ti])}</button>`;
+    }).join('');
+    const tray = q.tiles.map((t, i) => (st.picked.includes(i) ? '' : `<button class="tile pop-tile" data-act="popPick" data-i="${i}" ${st.done || st.picked.length >= slotCount(q) ? 'disabled' : ''}>${fmt(t)}</button>`)).join('');
+    return `<div class="pop-line">${parts}</div>${st.done ? '' : `<p class="howto">Tap a tile to place it in the next box. Tap a box to take its tile back.</p><div class="tiles">${tray}</div>`}`;
   }
 
   // ---- set the clock: tap a number for the hour hand, tap (or drag) around the edge for the minute hand ----
@@ -841,7 +936,7 @@
       inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && inp.value.trim()) check(); });
     }
     if (q.t === 'spell' && !Q.st.readOnce) { Q.st.readOnce = true; setTimeout(() => Voice.say(q.say), 300); }
-    else if (settings.autoRead && !Q.st.msg && !Q.st.readOnce) { Q.st.readOnce = true; setTimeout(() => readQuestion(q), 250); }
+    else if (settings.autoRead && !Q.st.msg && !Q.st.readOnce && (Q.mode !== 'test' || testAudio())) { Q.st.readOnce = true; setTimeout(() => readQuestion(q), 250); }
   };
 
   const readQuestion = (q) => Voice.say(Voice.build.question(q));
@@ -961,6 +1056,15 @@
       steps.push({ sel: `.ck-hit[data-k="m"][data-v="${q.m}"]`, apply: (st) => { st.m = q.m; }, sound: 'place' });
     }
     if (q.t === 'coins') coinsFor(q).forEach((k) => steps.push({ sel: `.coin[data-k="${k}"]`, apply: (st) => { st.picked.push(k); }, sound: 'place', after: 420 }));
+    if (q.t === 'hot') q.a.forEach((i) => steps.push({ sel: `.hot-cell[data-i="${i}"]`, apply: (st) => { st.sel.push(i); } }));
+    if (q.t === 'pop') {
+      const used = new Set();
+      q.accept[0].forEach((v) => {
+        const i = q.tiles.findIndex((t, j) => t === v && !used.has(j));
+        used.add(i);
+        steps.push({ sel: `.pop-tile[data-i="${i}"]`, apply: (st) => { st.picked.push(i); }, sound: 'place' });
+      });
+    }
     if (q.t === 'shade') [...Array(q.a)].forEach((_, i) => steps.push({ sel: `.sh-part[data-i="${i}"]`, apply: (st) => { st.sel.push(i); }, after: 420 }));
     return steps;
   }
@@ -1651,10 +1755,12 @@
     mix: () => startRound({ mode: 'mix' }),
     review: () => { if (P.missed.length) startRound({ mode: 'review' }); },
     again: () => startRound({ mode: Q.mode, s: Q.s, k: Q.k, l: Q.l, noExample: true }),
-    askQuit: () => confirmModal('Leave this quest?', 'Your answers in this quest will not be saved.', 'quit', 'Leave'),
-    quit: () => { const back = Q.mode === 'skill' ? ['subject', { s: Q.s }] : ['home', {}]; Q = null; go(...back); },
+    askQuit: () => (Q.mode === 'test' ? confirmModal('Stop the practice test?', 'This test will not be saved. You can start a new one any time.', 'quit', 'Stop test') : confirmModal('Leave this quest?', 'Your answers in this quest will not be saved.', 'quit', 'Leave')),
+    quit: () => { if (Q.mode === 'test') { Q = null; go('home'); return; } const back = Q.mode === 'skill' ? ['subject', { s: Q.s }] : ['home', {}]; Q = null; go(...back); },
 
-    choose: (ds) => { if (Q.st.done) return; SFX.play('tap'); Q.st.chosen = ds.v; check(); },
+    choose: (ds) => { if (Q.st.done) return; SFX.play('tap'); Q.st.chosen = ds.v; if (Q.mode === 'test') render(); else check(); },
+    calcToggle: () => { calcOpen = !calcOpen; render(); },
+    calcKey: (ds) => calcPress(ds.k),
     check: () => check(),
     next: () => { SFX.play('whoosh'); nextQ(); },
     readQ: () => readQuestion(cur()),
@@ -1678,6 +1784,15 @@
     unpick: (ds) => { SFX.play('unplace'); Q.st.picked.splice(+ds.p, 1); render(); },
     clearPick: () => { Q.st.picked = []; render(); },
     key: (ds) => pressKey(ds.k),
+    hotPick: (ds) => {
+      if (Q.st.done) return;
+      const i = +ds.i, q = cur(), s0 = Q.st.sel;
+      SFX.play(s0.includes(i) ? 'unplace' : 'pop');
+      Q.st.sel = s0.includes(i) ? s0.filter((x) => x !== i) : q.multi ? [...s0, i] : [i];
+      if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null;
+      render();
+    },
+    popPick: (ds) => { if (Q.st.done || Q.st.picked.length >= slotCount(cur())) return; SFX.play('place'); Q.st.picked.push(+ds.i); if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null; render(); },
     clockSet: (ds) => { if (Q.st.done) return; Q.st[ds.k] = +ds.v; SFX.play('place'); if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null; render(); },
     coinIn: (ds) => { if (Q.st.done || Q.st.picked.length >= 20) return; Q.st.picked.push(ds.k); SFX.play('place'); if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null; render(); },
     coinOut: (ds) => { if (Q.st.done) return; Q.st.picked.splice(+ds.i, 1); SFX.play('unplace'); render(); },
@@ -1959,7 +2074,8 @@
   // and returns {home(), dashboard(rows), studentView(), screens:{}, after:{}, acts:{}}.
   const API = {
     APP, FEAT, P: () => P, setP: (fn) => fn(P), save, go, render, view: () => view, setModal: (html) => { modal = html; render(); },
-    startRound, store, PFX, esc, fmt, nl, SUBJ, subj, skillOf, LEVEL_NAMES, TR, dayKey, touchDay, checkBadges, confetti, confirmModal, me,
+    startRound, startTest, store, PFX, esc, fmt, nl, SUBJ, subj, skillOf, LEVEL_NAMES, TR, dayKey, touchDay, checkBadges, confetti, confirmModal, me,
+    Q: () => Q, sync: () => { if (me() && me().cloud) queuePush(); }, withData, settings: () => settings, saveSettings, fmtSecs: (n) => fmtSecs(n),
   };
   (window.HubModes || []).forEach((make) => {
     const m = make(API);
@@ -1967,6 +2083,14 @@
     Object.assign(SCREENS, m.screens || {});
     Object.assign(AFTER, m.after || {});
     Object.assign(ACT, m.acts || {});
+  });
+
+  // Videos borrowed from another app (APP.videosFrom) point at that app's subjects; re-file each under the subject
+  // that holds its practice skill here, so it shows up in the right group and its Practice button works.
+  (typeof VIDEOS !== 'undefined' ? VIDEOS : []).forEach((v) => {
+    if (!v.practice || subj(v.practice[0])) return;
+    const home = SUBJECTS.find((x) => x.skills.some((k) => k.id === v.practice[1]));
+    if (home) { v.practice = [home.id, v.practice[1], v.practice[2]]; v.subject = home.id; }
   });
 
   // ---------- boot ----------

@@ -3,11 +3,27 @@
 // Lines with numbers in them (random math questions) are played by joining clips: the phrases around the numbers
 // and each number are recorded separately, then stitched into one sound with short gaps.
 const Voice = (() => {
-  const PRAISE = ['Great job!', 'You got it!', 'Super!', 'Awesome!', 'Way to go!', 'Nice thinking!', 'Correct!', 'Brilliant!'];
+  // The narrator's own words depend on the grade: playful for Grade 2, friendly for Grade 4, a calm coach for Grade 8.
+  const STYLE = (typeof APP !== 'undefined' && APP.voice) || 'g2';
+  const PRAISE = {
+    g2: ['Woo-hoo! You got it!', 'Yes! Super smart!', 'Amazing work!', 'High five!', 'You nailed it!', 'Wow, great thinking!', 'Boom! That is right!', 'Fantastic!', 'You are a math star!', 'Hooray!'],
+    g4: ['Nice work!', 'Exactly right!', 'Great thinking!', 'You got it!', 'Well done!', 'Spot on!', 'Awesome!', 'Correct!'],
+    g8: ['Correct.', 'Nice work.', 'Exactly right.', 'Well reasoned.', 'That is it.', 'Good thinking.'],
+  }[STYLE] || ['Great job!', 'You got it!'];
   const LINES = {
-    watch: 'Now watch me.', yourTurn: 'Now it is your turn!', forExample: 'For example:', howTo: 'That is how you do it.',
-    testVoice: 'Hi! This is how I will read your questions.', nothingYet: 'You have not written anything yet.', answer: 'That is the answer!',
-  };
+    g2: { watch: 'Ooh, watch me do this one!', yourTurn: 'Now it is your turn. You have got this!', forExample: 'Here is an example:', howTo: 'And that is how you do it!',
+      testVoice: 'Hi, friend! I am so happy to learn with you today!', nothingYet: 'You have not written anything yet.', answer: 'That is the answer!' },
+    g4: { watch: 'Watch how I solve this one.', yourTurn: 'Your turn. Give it a try!', forExample: 'For example:', howTo: 'That is how it works.',
+      testVoice: 'Hi! I will read your questions like this.', nothingYet: 'You have not written anything yet.', answer: 'That is the answer.' },
+    g8: { watch: 'Here is a worked example.', yourTurn: 'Now you try one.', forExample: 'For example:', howTo: 'That is the method.',
+      testVoice: 'Hi. This is how I will read your questions.', nothingYet: 'You have not written anything yet.', answer: 'That is the answer.' },
+  }[STYLE];
+  // A short, friendly opener before each lesson (picked by the lesson text, so it is the same every time).
+  const INTROS = {
+    g2: ['Here is a neat trick!', 'Ready? Let us learn something cool!', 'Ooh, this one is fun!', 'Listen closely, math explorer!', 'Guess what? This is easy once you see it!'],
+    g4: ['Here is the big idea.', 'Let us look at how this works.', 'Here is a helpful trick.', 'Ready? Here is the key idea.'],
+    g8: ['Key idea:', 'Here is the concept.', 'The main point:'],
+  }[STYLE] || [];
 
   const clean = (t) => String(t ?? '')
     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '')
@@ -44,7 +60,11 @@ const Voice = (() => {
       if (q.say) parts.push({ text: q.say });
       return parts;
     },
-    lesson(les) { return les ? [les.rule, ...(les.ex ? [LINES.forExample, speakable(les.ex)] : [])] : []; },
+    lesson(les) {
+      if (!les) return [];
+      const intro = INTROS.length ? [INTROS[parseInt(cyrb53(les.rule).slice(-4), 36) % INTROS.length]] : [];
+      return [...intro, les.rule, ...(les.ex ? [LINES.forExample, speakable(les.ex)] : [])];
+    },
     passage(p) { return [p.title, ...p.text.split('\n\n')]; },
     demoEnd(q) { return [q.why || q.hint || LINES.howTo, LINES.yourTurn]; },
   };

@@ -18,6 +18,7 @@ window.APP = {
       ],
     },
   },
+  voice: 'g2', // grade-matched narrator (tools/sweet_voice.py PROFILES)
   speech: { frac: 'ordinal' },
   features: { studio: false, katex: true },
   data: ['common.js', 'add.js', 'place.js', 'measure.js', 'data.js', 'geometry.js', 'lessons.js'],
