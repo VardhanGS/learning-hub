@@ -127,7 +127,8 @@ leave it empty; delete only the specific temporary student ids you create.
 
 ## Status at the end of the old session (2026-10-25)
 
-Phase 6 DONE and PUBLISHED: Algebra 1 Quest at vardhangs.github.io/learning-hub/algebra1/ (live check passed: sw cache names of all 8 apps match dist; hub shows it live; videos served). Next: Phase 7 (MAP Algebra 1) — ask
+Phase 7 DONE and PUBLISHED: MAP Algebra 1. Next: Phase 8 (SAT Prep — verify College Board facts first; ask before
+publishing). Earlier: Phase 6 DONE and PUBLISHED: Algebra 1 Quest at vardhangs.github.io/learning-hub/algebra1/ (live check passed: sw cache names of all 8 apps match dist; hub shows it live; videos served). Next: Phase 7 (MAP Algebra 1) — ask
 before publishing anything new.
 
 ## PENDING — next steps, in order
@@ -176,7 +177,9 @@ before publishing anything new.
      8.NS.A.3; 8.EE.C.8 is systems — those were removed.
    - Not verified: nobody has used the keypad/plot on a real phone or tablet, listened to the g8 algebra voice, or
      watched the 8 videos end to end. RIT tags are hand-set (used in Phase 7).
-5. Phase 7: MAP Algebra 1 — DONE 2026-10-25 (apps/mapalg1).
+5. Phase 7: MAP Algebra 1 — DONE and PUBLISHED 2026-10-25 (apps/mapalg1; vardhangs.github.io/learning-hub/mapalg1/;
+   live check: all 9 apps' sw cache names match dist, hub shows it live, videos served). Algebra 1 Quest was re-voiced
+   in the same publish (superscript speech change; 2,570 clips, voicecheck full). MAP Algebra 1: 2,761 clips, full.
    - 10 new MAP-style skills (30 levels, incl. grade 7–8 review: signed numbers, ratios/percents, roots & scientific
      notation, equations review) + 6 skills reused from Algebra 1 Quest (exponents, lineq, systems, factor, linear,
      quadfn) = 63% new levels; tests draw ≥60% new. Formats: mc, multi, hot text (e.g. "tap the first wrong step"),
