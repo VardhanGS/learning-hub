@@ -138,6 +138,19 @@ const TEXT = {
   iqr: ([xs]) => { const s = xs.slice().sort((a, b) => a - b), n = s.length, med = (a) => (a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2); return String(med(s.slice(Math.ceil(n / 2))) - med(s.slice(0, Math.floor(n / 2)))); },
   outlierMore: ([xs, big]) => { const mean = (a) => a.reduce((p, q) => p + q, 0) / a.length, med = (a) => { const s = a.slice().sort((p, q) => p - q), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; }; const dm = Math.abs(mean([...xs, big]) - mean(xs)), dd = Math.abs(med([...xs, big]) - med(xs)); return dm > dd ? 'the mean' : dd > dm ? 'the median' : 'they change by the same amount'; },
   corrSign: ([pts]) => { const mx = pts.reduce((a, p) => a + p[0], 0) / pts.length, my = pts.reduce((a, p) => a + p[1], 0) / pts.length; let sxy = 0, sx = 0, sy = 0; pts.forEach(([x, y]) => { sxy += (x - mx) * (y - my); sx += (x - mx) ** 2; sy += (y - my) ** 2; }); const r = sx && sy ? sxy / Math.sqrt(sx * sy) : 0; return r > 0.6 ? 'positive correlation' : r < -0.6 ? 'negative correlation' : Math.abs(r) < 0.3 ? 'no clear correlation' : 'unclear'; },
+  // ---- MAP Algebra 1 ----
+  sciNot: ([a, p, op, b, q]) => { let m = op === '×' ? a * b : a / b, e = op === '×' ? p + q : p - q; m = Math.round(m * 1e6) / 1e6; while (m >= 10) { m = Math.round(m * 1e5) / 1e6; e++; } while (m < 1) { m = Math.round(m * 1e7) / 1e6; e--; } const SUPS = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' }; return `${m} × 10${String(e).split('').map((c) => SUPS[c]).join('')}`; },
+  solCount: ([L, Rt]) => { const f = (x) => Alg.evalAt(Alg.parse(L), { x }) - Alg.evalAt(Alg.parse(Rt), { x }); const s = f(1) - f(0); return Math.abs(s) > 1e-9 ? 'exactly one solution' : Math.abs(f(0)) < 1e-9 ? 'infinitely many solutions' : 'no solution'; },
+  sysModel: ([n, a, b, m]) => `x + y = ${n} and ${a}x + ${b}y = ${m}`,
+  maxInt: ([a, b, limit]) => { let n = 0; while (b + a * (n + 1) <= limit) n++; return String(n); },
+  incInt: ([a, h, want]) => `x ${(a > 0) === (want === 'increasing') ? '>' : '<'} ${neg(h)}`,
+  cmpFn: ([m1, b1, xs, ys, feat]) => { const m2 = (ys[1] - ys[0]) / (xs[1] - xs[0]), b2 = ys[xs.indexOf(0)], f = feat === 'rate of change' ? m1 : b1, g = feat === 'rate of change' ? m2 : b2; return f > g ? `f has the greater ${feat}` : f < g ? `g has the greater ${feat}` : 'they are equal'; },
+  crossover: ([k, c]) => { for (let x = 1; x < 50; x++) if (2 ** x > k * x + c) return String(x); return '?'; },
+  // [[row 1: col 1, col 2], [row 2: col 1, col 2]] counts; joint = row 1 & col 1 of everyone; cond = col 1 within row 2
+  twoWay: ([[a, b, c, d], ask]) => { const v = ask === 'joint' ? N.make(a, a + b + c + d) : N.make(c, c + d); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
+  boxRead: ([F, ask]) => String(ask === 'median' ? F[2] : ask === 'IQR' ? F[3] - F[1] : F[4] - F[0]),
+  corrR: ([pts]) => { const n = pts.length, mx = pts.reduce((t, p) => t + p[0], 0) / n, my = pts.reduce((t, p) => t + p[1], 0) / n; let sxy = 0, sx = 0, sy = 0; pts.forEach(([x, y]) => { sxy += (x - mx) * (y - my); sx += (x - mx) ** 2; sy += (y - my) ** 2; }); const r = sx && sy ? sxy / Math.sqrt(sx * sy) : 0; const opts = [0.95, 0.6, 0, -0.6, -0.95]; const best = opts.reduce((a, b) => (Math.abs(b - r) < Math.abs(a - r) ? b : a)); return neg(best); },
+  avgRate: ([e, a, b]) => { const t = Alg.parse(e), v = N.make(Alg.evalAt(t, { x: b }) - Alg.evalAt(t, { x: a }), b - a); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
   radSimp: ([n]) => { let s = 1; for (let k = 2; k * k <= n; k++) if (n % (k * k) === 0) s = k; return `${s}√${n / (s * s)}`; },
   // ---- Grade 4–5 ----
   expanded: ([n]) => String(n).split('').map((d, i, s) => +d * 10 ** (s.length - 1 - i)).filter((v) => v > 0).map(commas).join(' + '),
@@ -375,6 +388,36 @@ function checkItem(where, q, levelStd) {
       // the formula gives every listed term for n = 1, 2, 3, …
       const e = Alg.parse(q.a);
       args[0].forEach((v, i) => { if (Math.abs(Alg.evalAt(e, { n: i + 1 }) - v) > 1e-9) fail(where, q, `${q.a} gives ${Alg.evalAt(e, { n: i + 1 })} for n = ${i + 1}, not ${v}`); });
+    } else if (kind === 'popAlg') {
+      // Try every way to fill the boxes: a fill is right when both sides are equal for every x (and, with gcf, the
+      // number in front is the greatest common factor; with model, the left side matches the story's expression).
+      const [o] = args, k = (q.template.match(/□/g) || []).length, fills = [];
+      const go = (cur, used) => { if (cur.length === k) { fills.push(cur); return; } q.tiles.forEach((t, i) => { if (!used.has(i)) go([...cur, t], new Set([...used, i])); }); };
+      go([], new Set());
+      const correct = (vals) => {
+        let j = 0; const eq = q.template.replace(/□/g, () => vals[j++]), [l, r] = eq.split(' = ');
+        if (o.model) return Alg.equiv(l, o.model[0]) && Alg.equiv(r, o.model[1]);
+        if (!Alg.tryParse(l) || !Alg.tryParse(r) || !Alg.equiv(l, r)) return false;
+        return o.gcf ? Math.abs(Alg.leadNum(l)) === o.gcf : true;
+      };
+      const acc = new Set(q.accept.map((a) => a.join('|')));
+      fills.forEach((f) => { if (correct(f) !== acc.has(f.join('|'))) fail(where, q, `fill ${f.join(',')} is ${correct(f) ? 'right' : 'wrong'} but marked the other way`); });
+      if (!q.accept.length) fail(where, q, 'no accepted answer');
+      q.accept.forEach((ac) => { const left = [...q.tiles]; ac.forEach((v) => { const i = left.indexOf(v); if (i < 0) fail(where, q, `accepted answer ${ac.join(',')} cannot be built from the tiles`); else left.splice(i, 1); }); });
+    } else if (kind === 'errStep') {
+      // the answer is the first line whose solution differs from the line before it
+      const root = (line) => { const [l, r] = line.split('='), f = (x) => Alg.evalAt(Alg.parse(l), { x }) - Alg.evalAt(Alg.parse(r), { x }); return -f(0) / (f(1) - f(0)); };
+      const lines = args[0], first = lines.findIndex((ln, i) => i > 0 && Math.abs(root(ln) - root(lines[i - 1])) > 1e-9);
+      if (first < 0) fail(where, q, 'no step has a mistake');
+      if (q.a.length !== 1 || q.a[0] !== first) fail(where, q, `marked step ${q.a[0] + 1} but the first wrong step is ${first + 1}`);
+      if (q.cells.length !== lines.length) fail(where, q, 'cells and steps differ');
+    } else if (kind === 'hotEquiv') {
+      q.cells.forEach((c, i) => { if (Alg.equiv(c, args[0]) !== q.a.includes(i)) fail(where, q, `${c} is ${Alg.equiv(c, args[0]) ? '' : 'not '}equivalent but marked the other way`); });
+    } else if (kind === 'multiEquiv') {
+      q.opts.forEach((o) => { if (Alg.equiv(o, args[0]) !== q.a.includes(o)) fail(where, q, `${o} is ${Alg.equiv(o, args[0]) ? '' : 'not '}equivalent but marked the other way`); });
+    } else if (kind === 'multiCons') {
+      const [cap, pa, pb, budget] = args;
+      q.opts.forEach((o) => { const [L, S] = o.match(/\d+/g).map(Number), ok = L + S <= cap && pa * L + pb * S <= budget; if (ok !== q.a.includes(o)) fail(where, q, `${o} ${ok ? 'meets' : 'breaks'} the limits but is marked the other way`); });
     } else if (kind === 'literalSolve') {
       // put the answer back in for the target letter: both sides must then agree for every value of the other letters
       const [qq] = args, target = qq.match(/for (\w)\.$/)[1], [L, Rt] = qq.replace(/^Solve /, '').replace(/ for \w\.$/, '').split('=');

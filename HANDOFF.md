@@ -176,8 +176,32 @@ before publishing anything new.
      8.NS.A.3; 8.EE.C.8 is systems — those were removed.
    - Not verified: nobody has used the keypad/plot on a real phone or tablet, listened to the g8 algebra voice, or
      watched the 8 videos end to end. RIT tags are hand-set (used in Phase 7).
-5. Phase 7: MAP Algebra 1 (+ prerequisite review; course-specific goal areas above; not grade-normed — the 2022
-   course norms are not grade-specific).
+5. Phase 7: MAP Algebra 1 — DONE 2026-10-25 (apps/mapalg1).
+   - 10 new MAP-style skills (30 levels, incl. grade 7–8 review: signed numbers, ratios/percents, roots & scientific
+     notation, equations review) + 6 skills reused from Algebra 1 Quest (exponents, lineq, systems, factor, linear,
+     quadfn) = 63% new levels; tests draw ≥60% new. Formats: mc, multi, hot text (e.g. "tap the first wrong step"),
+     click-and-pop (build an equation, complete the square, fill the GCF), text entry, expr, plot. 30 lessons with
+     pictures; 1 own video (map-tips-a1) + Algebra 1 Quest's 8 via videosFrom; g8 voice, speech split.
+   - Norms (VERIFIED from NWEA "2022 norms for MAP Growth course-specific tests in Algebra 1, Algebra 2, and
+     Geometry", teach.mapnwea.org/impl/CSNormsOverview.pdf): user norms, NOT grade-specific, NOT nationally
+     representative, test data 2019–20 through 2021–22. Algebra 1 achievement percentiles 5…95:
+     fall 202 208 212 215 218 220 223 225 227 229 231 233 235 237 240 243 246 250 256;
+     winter 204 210 214 218 221 224 226 228 231 233 235 238 240 242 245 248 252 256 263;
+     spring 204 212 216 220 224 227 229 232 234 237 239 242 245 247 250 254 257 262 269.
+     Growth (conditional mean at the 50th percentile): F→S 8.0 (SD 10.2), F→W 4.1 (SD 7.8), W→S 3.9 (SD 8.8).
+     The app reads percentiles from this table (MapCore.percentile with norm.table) and words every comparison as
+     "students who took the Algebra 1 course test".
+   - Shared changes: map.js `group/groupShort/avgLabel/bandRange/chartLo/normsShort/normsNote/audioNote` config
+     (defaults keep the old apps' wording); fixed a hard-coded "Grade 3 Challenge" message; Fig.boxPlot; speech reads
+     cube roots and superscript powers (10⁻⁹ → "10 to the power of -9"); video page no longer crashes when a
+     borrowed video's practice skill is missing; maptest `simThetas`.
+   - Tests: validate 10k and 100k ✓; mutation 26/26 (one gap found and fixed: two-way tables now recomputed from
+     the counts); maptest 190–270 (bias ≤1.7, band coverage 93–97%, ≥60% new in every test; bank 196–256, middle
+     90% 202–238); demo-solves 15,360/15,360; play-through 1,536 q at 375px (found and fixed: click-and-pop with two
+     equal answer tiles); 6 in-browser MAP tests (θ 205/205/205/215/230/255; one of the three θ=205 runs missed its
+     band, as expected ~7% of the time); report/home light+dark.
+   - Not verified: NWEA's item formats and calculator policy for the Algebra 1 course test; whether the course
+     test has read-aloud; RIT tags are hand-set; the bank has few items above ~245, so very high scores lean low.
 6. Phase 8: SAT Prep (verify College Board facts first).
 
 ## How the code is organized (key facts)
