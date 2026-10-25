@@ -7,9 +7,17 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE = 'af_heart'      # warm, gentle American English female voice
-BLEND = [('af_heart', 0.7), ('af_nicole', 0.3)]  # chosen by the family (sample "D"): af_heart, a little softer
-VOICE_ID = 'heart70-nicole30-s090'  # part of the clip cache key, so changing the voice re-records everything
-SPEED = 0.90            # a touch slower than normal for young listeners
+# The family chose sample "D" (af_heart 70% + af_nicole 30%) and then asked for a livelier, grade-matched voice.
+# Each app picks a profile in its config (voice: 'g2' | 'g4' | 'g8'); the profile id is part of the clip cache key.
+PROFILES = {
+    'g2': {'blend': [('af_heart', 0.7), ('af_nicole', 0.3)], 'speed': 0.97},   # upbeat buddy for young kids
+    'g4': {'blend': [('af_heart', 0.75), ('af_nicole', 0.25)], 'speed': 1.0},  # friendly, a little quicker
+    'g8': {'blend': [('af_heart', 0.8), ('af_sarah', 0.2)], 'speed': 1.05},    # calm, confident coach
+}
+PROFILE = os.environ.get('VOICE_PROFILE', 'g2')
+BLEND = PROFILES[PROFILE]['blend']
+SPEED = PROFILES[PROFILE]['speed']
+VOICE_ID = f"{PROFILE}-" + '-'.join(f"{n.split('_')[1]}{round(w * 100)}" for n, w in BLEND) + f"-s{round(SPEED * 100):03d}"
 SR = 24000
 
 _k = None

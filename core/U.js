@@ -13,6 +13,9 @@
 //   shade {t:'shade', q, shape:'bar'|'circle'|'grid', parts, rows?, a:number of parts to shade}
 //   clock {t:'clock', q, h, m, step?:5|1}                                set the hands
 //   coins {t:'coins', q, a:cents, coins?:['q','d','n','p','b']}          make the amount with coins
+//   hot   {t:'hot', q, cells[], a:[indices], multi?, layout?:'row'|'list'|'grid'}   tap numbers, equations, or
+//         pictures (a cell that starts with <svg is drawn as a picture; cellNames[] names them)    [MAP "hot text"]
+//   pop   {t:'pop', q, template:'□ + □ = 15', tiles[], accept:[[...], ...]}   tap tiles into the boxes [MAP "click-and-pop"]
 // Any question may carry fig (SVG/HTML from Fig.*), meta ({kind, args} so the validator can recompute the answer),
 // and the MAP tags goal, std, rit.
 const U = {

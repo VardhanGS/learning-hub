@@ -49,9 +49,10 @@ def build(app_id):
     os.makedirs(out)
 
     feats = cfg.get('features', {})
-    modes = [f'core/modes/{m}.js' for m in (['map'] if feats.get('map') else []) + (['sat'] if feats.get('sat') else [])]
-    data = [f"data/{f}" for f in cfg.get('data', [])]
-    if os.path.exists(os.path.join(src, 'data', 'videos.js')):
+    modes = [f'core/modes/{m}.js' for m in (['map-core', 'map'] if feats.get('map') else []) + (['sat'] if feats.get('sat') else [])]
+    # 'otherApp:file.js' borrows a content file from another app (copied into this app's data/ folder)
+    data = [f"data/{f.split(':')[-1]}" for f in cfg.get('data', [])]
+    if os.path.exists(os.path.join(src, 'data', 'videos.js')) or cfg.get('videosFrom'):
         data.append('data/videos.js')
     scripts = ['config.js'] + [s if s != 'VOICE_CLIPS' else 'data/voice-clips.js' for s in CORE_JS] + modes + data + ['core/app.js']
 
@@ -62,6 +63,20 @@ def build(app_id):
             copy(os.path.join(ROOT, s), os.path.join(out, s))
     copy(os.path.join(CORE, 'styles.css'), os.path.join(out, 'core', 'styles.css'))
     copytree(os.path.join(src, 'data'), os.path.join(out, 'data'))
+    for f in cfg.get('data', []):
+        if ':' in f:
+            other, name = f.split(':')
+            copy(os.path.join(ROOT, 'apps', other, 'data', name), os.path.join(out, 'data', name))
+    if cfg.get('videosFrom'):  # borrow another app's video lessons
+        other = os.path.join(ROOT, 'apps', cfg['videosFrom'])
+        copytree(os.path.join(other, 'videos'), os.path.join(out, 'videos'))
+        # catalog: this app's own videos first, then the borrowed ones
+        def cat(p):
+            if not os.path.exists(p): return []
+            t = open(p).read(); return json.loads(t[t.index('['):t.rindex(']') + 1])
+        merged = cat(os.path.join(src, 'data', 'videos.js')) + cat(os.path.join(other, 'data', 'videos.js'))
+        with open(os.path.join(out, 'data', 'videos.js'), 'w') as f:
+            f.write('// Built by tools/build.py: this app\'s videos plus the ones it borrows.\nconst VIDEOS = ' + json.dumps(merged, indent=1, ensure_ascii=False) + ';\n')
     if not os.path.exists(os.path.join(out, 'data', 'voice-clips.js')):
         with open(os.path.join(out, 'data', 'voice-clips.js'), 'w') as f:
             f.write('// No recorded voice yet (run tools/make_voice.py); the device voice is used instead.\nconst VOICE_BUNDLES = [];\nconst VOICE_CLIPS = {};\n')
@@ -144,7 +159,7 @@ def build_hub(cfgs):
     open(os.path.join(out, '.nojekyll'), 'w').close()
     # local test helpers (deploy.sh never publishes _test/)
     os.makedirs(os.path.join(out, '_test'), exist_ok=True)
-    for f in ('playthrough.js', 'shot-frame.html'):
+    for f in ('playthrough.js', 'shot-frame.html', 'maprun.js'):
         shutil.copy2(os.path.join(HERE, f), os.path.join(out, '_test', f))
     print('built dist/index.html (hub)')
 

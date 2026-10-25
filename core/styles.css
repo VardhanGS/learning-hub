@@ -735,3 +735,49 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 
 .lesson-fig { margin-top: 12px; padding: 10px; border-radius: 14px; background: var(--surface); }
 .lesson-fig svg { max-height: 220px; width: auto; }
+
+/* hot text and click-and-pop (MAP-style formats) */
+.hot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.hot-list { flex-direction: column; align-items: stretch; }
+.hot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+.hot-cell { min-width: 56px; min-height: 52px; padding: 8px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface);
+  font-family: var(--f-display); font-size: 1.35rem; font-weight: 600; box-shadow: 0 3px 0 var(--line); }
+.hot-list .hot-cell { font-size: 1.15rem; text-align: left; }
+.hot-cell.pic { padding: 6px; display: grid; place-items: center; }
+.hot-cell.pic svg { width: 76px; height: 76px; }
+.hot-cell.sel { border-color: var(--c, var(--reading)); background: color-mix(in srgb, var(--c, var(--reading)) 18%, var(--surface)); transform: translateY(-2px); }
+.hot-cell.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 16%, var(--surface)); }
+.hot-cell.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, var(--surface)); }
+.pop-line { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: center; font-family: var(--f-display); font-size: 1.5rem; font-weight: 600; }
+.pop-slot { min-width: 58px; min-height: 50px; padding: 4px 8px; border-radius: 12px; border: 2px solid var(--c, var(--reading)); background: color-mix(in srgb, var(--c, var(--reading)) 12%, var(--surface)); font: inherit; }
+.pop-slot.empty { display: inline-block; border-style: dashed; background: var(--surface); }
+.fig-pair { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+/* test mode: calm, no rewards; calculator */
+.testmode .quiz-head .pill { display: none; }
+.calc { align-self: center; width: min(100%, 260px); padding: 10px; border-radius: 16px; border: 2px solid var(--line); background: var(--paper); }
+.calc-disp { font-family: var(--f-display); font-size: 1.4rem; text-align: right; padding: 6px 10px; border-radius: 10px; background: var(--surface); margin-bottom: 8px; overflow: hidden; }
+.calc-keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.calc-keys .kp-key { min-height: 42px; font-size: 1.15rem; }
+.calc-keys .wide { grid-column: span 4; }
+
+/* MAP-style practice test */
+.map-card { border: 2px solid color-mix(in srgb, var(--c1) 40%, var(--line)); }
+.tag-unofficial { font-size: 0.75rem; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.plain-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.big-band { display: flex; flex-direction: column; align-items: center; padding: 8px 0; }
+.band-num { font-family: var(--f-display); font-size: 2.6rem; font-weight: 700; color: var(--c1); }
+.band { fill: color-mix(in srgb, var(--c1) 35%, var(--surface)); stroke: var(--c1); stroke-width: 2; }
+.band-svg, .growth-svg { width: 100%; max-width: 600px; height: auto; display: block; margin: 0 auto; }
+.desc { display: inline-block; font-size: 0.8rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+.d-low { background: color-mix(in srgb, var(--bad) 18%, var(--surface)); color: var(--bad); }
+.d-loavg { background: color-mix(in srgb, var(--c3) 18%, var(--surface)); color: var(--c3); }
+.d-avg { background: color-mix(in srgb, var(--muted) 16%, var(--surface)); color: var(--ink); }
+.d-hiavg { background: color-mix(in srgb, var(--c1) 16%, var(--surface)); color: var(--c1); }
+.d-high { background: color-mix(in srgb, var(--good) 18%, var(--surface)); color: var(--good); }
+.goal-table td, .goal-table th { padding: 8px; }
+
+.goal-list { display: grid; gap: 8px; }
+.goal-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 10px 12px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface); }
+.goal-row .gname { font-weight: 700; }
+.goal-row .gband { font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; text-align: right; }
+.goal-row .gmeta { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 0.88rem; }

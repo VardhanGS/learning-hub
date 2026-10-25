@@ -22,9 +22,10 @@ const load = (f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'),
 load(`apps/${appId}/config.js`);
 vm.runInContext('var APP = window.APP;', ctx);
 ['core/speech.js', 'core/U.js', 'core/engine/fig.js'].forEach(load);
-for (const f of ctx.APP.data) load(`apps/${appId}/data/${f}`);
-vm.runInContext('this.U = U; this.SUBJECTS = SUBJECTS; this.N = N; this.MathText = MathText; this.LESSONS = typeof LESSONS === "undefined" ? {} : LESSONS;', ctx);
-const { SUBJECTS, N, MathText, LESSONS } = ctx;
+const dataPath = (f) => (f.includes(':') ? `apps/${f.split(':')[0]}/data/${f.split(':')[1]}` : `apps/${appId}/data/${f}`);
+for (const f of ctx.APP.data) load(dataPath(f));
+vm.runInContext('this.MAPBANK = typeof MAPBANK === "undefined" ? null : MAPBANK; this.U = U; this.SUBJECTS = SUBJECTS; this.N = N; this.MathText = MathText; this.LESSONS = typeof LESSONS === "undefined" ? {} : LESSONS;', ctx);
+const { SUBJECTS, N, MathText, LESSONS, MAPBANK } = ctx;
 
 // ---- independent answer computation ----
 const R = (n, d = 1) => N.make(n, d);
@@ -54,7 +55,10 @@ const COMPUTE = {
   size: ([vals]) => R(vals.length),
   sides: ([k]) => R(SIDES[k]),
   cube: ([prop]) => R({ faces: 6, 'corners (vertices)': 8, edges: 12 }[prop]),
+  expr: ([e]) => { const v = ev(e); return Number.isInteger(v) ? R(v) : null; },
 };
+// Safe arithmetic: digits, + − × ÷, parentheses.
+function ev(e) { const js = String(e).replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'); if (!/^[\d+\-*/ ().]+$/.test(js)) return NaN; return Function(`return (${js})`)(); }
 // Answers that are words or times, recomputed here.
 const r100 = (n) => Math.floor(n / 100 + 0.5) * 100;
 const COINV = { q: 25, d: 10, n: 5, p: 1, b: 100 };
@@ -71,6 +75,16 @@ const TEXT = {
   ampm: ([i]) => ['a.m.', 'a.m.', 'p.m.', 'p.m.', 'p.m.', 'p.m.', 'a.m.', 'p.m.'][i],
   shapeName: ([k]) => k,
   quadFact: ([i]) => ['square', 'rhombus', 'rectangle', 'trapezoid'][i],
+  picChoice: ([k]) => 'ABCD'[k],
+  exprUnit: ([e, unit]) => `${ev(e)} ${unit}`,
+  cmpFrac: ([a, b]) => (a[0] / a[1] > b[0] / b[1] ? '>' : a[0] / a[1] < b[0] / b[1] ? '<' : '='),
+  ruleAdd: ([seq]) => `add ${seq[1] - seq[0]}`,
+  storyEq: ([kind, a, b]) => (kind === 'gain' ? `${a} + ${b} = □` : kind === 'lose' ? `${a + b} − ${b} = □` : `□ + ${b} = ${a + b}`),
+  mulStory: ([g, n]) => `${g} × ${n}`,
+  estFact: ([i]) => ['7 inches', '7 feet', '1 inch', '40 feet', '9 centimeters', '10 meters'][i],
+  centsText: (list) => `${list.reduce((t, k) => t + COINV[k], 0)}¢`,
+  dataQ: () => 'How many votes were there in all?',
+  maxLabel: ([cats]) => cats.reduce((a, b) => (b[1] > a[1] ? b : a))[0],
 };
 // An equation like "13 − 6 = 7": is it true, and which numbers does it use?
 function equation(e) {
@@ -106,12 +120,14 @@ const fail = (where, q, msg) => {
   g.n++; groups.set(k, g);
 };
 
+let noFig = 0;
 function checkItem(where, q, levelStd) {
   types[q.t] = (types[q.t] || 0) + 1;
+  if (!q.fig && !['line', 'shade', 'clock', 'coins', 'hot'].includes(q.t) && !(q.t === 'hot')) noFig++;
   if (!q.q || typeof q.q !== 'string') fail(where, q, 'missing prompt');
   if (!levelStd) fail(where, q, 'level has no standard code');
   if (!MathText.spoken(q.q)) fail(where, q, 'prompt has nothing to say aloud');
-  const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins'].includes(q.t) || (q.t === 'mc' && q.meta);
+  const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins', 'hot', 'pop'].includes(q.t) || (q.t === 'mc' && q.meta);
   if (math && !q.meta) fail(where, q, 'math item without meta (answer cannot be recomputed)');
 
   if (q.t === 'mc' || q.t === 'multi') {
@@ -143,7 +159,7 @@ function checkItem(where, q, levelStd) {
 
   if (q.fig && /graph:/.test(q.fig) && q.meta && Array.isArray(q.meta.args[0])) {
     const label = (q.fig.match(/aria-label="([^"]*)"/) || [])[1] || '';
-    q.meta.args[0].forEach((v) => { if (!label.includes(` ${v}`)) fail(where, q, `graph does not show the value ${v} used for the answer`); });
+    q.meta.args[0].map((v) => (Array.isArray(v) ? `${v[0]} ${v[1]}` : v)).forEach((v) => { if (!label.includes(` ${v}`)) fail(where, q, `graph does not show the value ${v} used for the answer`); });
   }
   if (q.t === 'clock' && !q.meta) fail(where, q, 'clock without meta');
   if (q.t === 'coins' && !(Number.isInteger(q.a) && q.a > 0)) fail(where, q, 'coins amount must be a whole number of cents');
@@ -165,11 +181,41 @@ function checkItem(where, q, levelStd) {
         if (!e || !e.ok) fail(where, q, `option ${o} is not a true equation`);
         else if ((e.nums === fam) !== q.a.includes(o)) fail(where, q, `${o} is ${e.nums === fam ? '' : 'not '}in the family but marked the other way`);
       });
+    } else if (kind === 'picChoice') {
+      // Picture answer choices must all look different (compare each picture without its position).
+      const pics = (q.fig.match(/<g transform="[^"]*">[\s\S]*?<\/g>/g) || []).map((g) => g.replace(/^<g transform="[^"]*">/, ''));
+      if (new Set(pics).size !== pics.length) fail(where, q, 'two picture choices are identical');
+      if (q.a !== 'ABCD'[args[0]]) fail(where, q, `answer ${q.a} but the right picture is ${'ABCD'[args[0]]}`);
+    } else if (kind === 'hotDigit') {
+      const [n, idx] = args;
+      if (q.cells.join('') !== String(n) || q.a.join() !== String(idx)) fail(where, q, 'digit cells or answer do not match the number');
+    } else if (kind === 'hotTrue') {
+      q.cells.forEach((c, i) => { const [l, r] = c.split(' = '); const ok = ev(l) === ev(r); if (ok !== q.a.includes(i)) fail(where, q, `${c} is ${ok ? 'true' : 'false'} but marked the other way`); });
+    } else if (kind === 'hotShape') {
+      const [prop, names] = args;
+      const has = (s) => ({ quad: SIDES[s] === 4, 'square corners': ['square', 'rectangle'].includes(s), '3 sides': SIDES[s] === 3, '4 sides': SIDES[s] === 4, '5 vertices': SIDES[s] === 5, '6 sides': SIDES[s] === 6, 'no straight sides': s === 'circle' }[prop]);
+      names.forEach((s, i) => { if (has(s) !== q.a.includes(i)) fail(where, q, `${s} marked wrong for "${prop}"`); });
+      if (q.cells.length !== names.length) fail(where, q, 'pictures and names differ');
+    } else if (kind === 'popPlace' || kind === 'popOrder' || kind === 'popEq') {
+      // Try every way to fill the boxes from the tiles: the accepted fills must be exactly the correct ones.
+      const k = (q.template.match(/□/g) || []).length, fills = [];
+      const go = (cur, used) => { if (cur.length === k) { fills.push(cur); return; } q.tiles.forEach((t, i) => { if (!used.has(i)) go([...cur, t], new Set([...used, i])); }); };
+      go([], new Set());
+      const correct = (vals) => {
+        if (kind === 'popPlace') return +vals[0] * 100 + +vals[1] * 10 + +vals[2] === args[0];
+        if (kind === 'popOrder') return vals.join(',') === [...args[0]].sort((a, b) => a - b).join(',');
+        let j = 0; const eq = q.template.replace(/□/g, () => vals[j++]); const [l, r] = eq.split(' = '); return ev(l) === ev(r);
+      };
+      const acc = new Set(q.accept.map((a) => a.join('|')));
+      fills.forEach((f) => { if (correct(f) !== acc.has(f.join('|'))) fail(where, q, `fill ${f.join(',')} is ${correct(f) ? 'right' : 'wrong'} but marked the other way`); });
+      if (!q.accept.length) fail(where, q, 'no accepted answer');
+      q.accept.forEach((acc) => { const left = [...q.tiles]; acc.forEach((v) => { const i = left.indexOf(v); if (i < 0) fail(where, q, `accepted answer ${acc.join(',')} cannot be built from the tiles`); else left.splice(i, 1); }); });
     } else if (kind === 'sidesIs') {
       q.opts.forEach((o) => { if ((SIDES[o] === args[0]) !== q.a.includes(o)) fail(where, q, `${o} has ${SIDES[o]} sides but is marked the other way`); });
     } else if (TEXT[kind]) {
       const want = TEXT[kind](args);
       const got = q.t === 'clock' ? hm(q.h, q.m) : String(q.a);
+      if (q.t === 'mc' && !q.opts.includes(want)) fail(where, q, `recomputed answer ${want} is not among the options`);
       if (want !== got) fail(where, q, `answer ${got} but ${kind}(${args}) = ${want}`);
       if (q.t === 'clock' && (q.h < 1 || q.h > 12 || q.m < 0 || q.m > 59 || q.m % (q.step || 5))) fail(where, q, 'clock time cannot be set with this clock');
     } else if (COMPUTE[kind]) {
@@ -209,4 +255,7 @@ if (errors.length) {
   errors.forEach((e) => console.log('  ✗ ' + e));
   process.exit(1);
 }
+if (MAPBANK) console.log(`MAP bank: ${Math.round(100 * MAPBANK.freshShare)}% of practice levels are new (minimum ${Math.round(100 * MAPBANK.MIN_FRESH)}%)`);
+if (MAPBANK && MAPBANK.freshShare < MAPBANK.MIN_FRESH) { console.log('✗ not enough new content'); process.exit(1); }
+console.log(`Pictures: ${noFig ? `${noFig} item(s) without a picture` : 'every question that needs one has a picture'}`);
 console.log('✓ all checks passed');

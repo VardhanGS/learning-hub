@@ -22,6 +22,12 @@
     if (q.t === 'line') { const right = H.answerFor(q).chosen; st.chosen = right === 0 ? 1 : 0; }
     if (q.t === 'shade') st.sel = q.a + 1 <= q.parts ? [...Array(q.a + 1).keys()] : [0, 1].slice(0, q.a === 1 ? 2 : 1);
     if (q.t === 'clock') { st.h = q.h % 12 + 1; st.m = q.m; }
+    if (q.t === 'hot') { const w = q.cells.findIndex((_, i) => !q.a.includes(i)); st.sel = [w]; }
+    if (q.t === 'pop') {
+      const k = (q.template.match(/□/g) || []).length, acc = new Set(q.accept.map((x) => x.join('|')));
+      const idx = [...q.tiles.keys()];
+      for (let tries = 0; tries < 200; tries++) { const pick = U.sample(idx, k); if (!acc.has(pick.map((i) => q.tiles[i]).join('|'))) { st.picked = pick; break; } }
+    }
     if (q.t === 'coins') st.picked = q.a === 1 ? ['n'] : ['p'];
     if (q.t === 'sort') { q.items.forEach((it, i) => { st.place[i] = (it.b + 1) % q.bins.length; }); }
     if (q.t === 'tap') st.sel = [q.words.findIndex((_, i) => !q.a.includes(i))];
@@ -40,12 +46,14 @@
     if (q.t === 'line') { const pts = ((q.max - q.min) * (q.den || 1)) / (q.step || 1) + 1; if (n('.nl-hit') !== pts) fail(where, `number line has ${n('.nl-hit')} points, expected ${pts}`); }
     if (q.t === 'shade' && n('.sh-part') !== q.parts) fail(where, `shape has ${n('.sh-part')} parts, expected ${q.parts}`);
     if (q.t === 'clock' && n('.ck-hit') !== 12 + 60 / (q.step || 5)) fail(where, `clock has ${n('.ck-hit')} targets`);
+    if (q.t === 'hot' && n('.hot-cell') !== q.cells.length) fail(where, 'hot-text cells missing');
+    if (q.t === 'pop' && n('.pop-slot') !== (q.template.match(/□/g) || []).length) fail(where, 'click-and-pop boxes missing');
     if (q.t === 'coins' && n('.coin[data-k]') !== (q.coins || ['q', 'd', 'n', 'p']).length) fail(where, 'coin tray missing');
     if (q.fig && !app.querySelector('.fig svg')) fail(where, 'figure missing');
     if (/⟪|⟫|\\frac/.test(app.querySelector('.qcard').textContent)) fail(where, 'raw math markup visible');
     // Every control must sit inside the question card (catches CSS name clashes that move things off the card).
     const card = app.querySelector('.qcard').getBoundingClientRect();
-    app.querySelectorAll('.qcard .opt, .qcard .kp-key, .qcard .nl-hit, .qcard .sh-part, .qcard .fig svg, .qcard .ck-hit, .qcard .coin').forEach((el) => {
+    app.querySelectorAll('.qcard .opt, .qcard .kp-key, .qcard .nl-hit, .qcard .sh-part, .qcard .fig svg, .qcard .ck-hit, .qcard .coin, .qcard .hot-cell, .qcard .pop-slot, .qcard .pop-tile').forEach((el) => {
       const b = el.getBoundingClientRect();
       if (b.width === 0 || b.height === 0) fail(where, `${el.className.baseVal ?? el.className} has no size`);
       else if (b.left < card.left - 1 || b.right > card.right + 1 || b.top < card.top - 1 || b.bottom > card.bottom + 1) fail(where, `${el.getAttribute('class')} is outside the question card`);

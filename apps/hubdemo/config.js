@@ -18,6 +18,7 @@ window.APP = {
       ],
     },
   },
+  voice: 'g2', // grade-matched narrator (tools/sweet_voice.py PROFILES)
   speech: { frac: 'ordinal' },   // "3 fourths" (elementary); Algebra apps use 'over' ("3 over 4")
   features: { studio: false, katex: true },
   data: ['skills.js', 'lessons.js'],

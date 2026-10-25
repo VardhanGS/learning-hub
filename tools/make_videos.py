@@ -12,6 +12,15 @@ Math pictures (scene type "image") are drawn by core/engine/fig.js and rendered 
 """
 import hashlib, json, math, os, subprocess, sys, tempfile, wave
 import numpy as np
+# The voice profile comes from the app's config (voice: 'g2' | 'g4' | 'g8'), read before sweet_voice is imported.
+def _app_voice(app):
+    import json as _j, subprocess as _sp
+    cfg = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'apps', app, 'config.js')
+    if not os.path.exists(cfg): return 'g2'
+    out = _sp.run(['node', '-e', f"const window={{}};{open(cfg).read()};process.stdout.write(window.APP.voice||'g2')"], capture_output=True, text=True).stdout
+    return out or 'g2'
+if len(sys.argv) > 1 and not os.environ.get('VOICE_PROFILE'):
+    os.environ['VOICE_PROFILE'] = _app_voice(sys.argv[1])
 from PIL import Image, ImageDraw, ImageFont
 
 HUB = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

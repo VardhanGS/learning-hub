@@ -100,7 +100,8 @@ const SFX = (() => {
   }
 
   return {
-    play(name, arg) { if (!enabled) return; try { sounds[name] && sounds[name](arg); } catch { /* audio unavailable */ } },
+    // window.HUB_QUIET is set by the app during practice tests (no sounds, like the real test).
+    play(name, arg) { if (!enabled || (typeof window !== 'undefined' && window.HUB_QUIET)) return; try { sounds[name] && sounds[name](arg); } catch { /* audio unavailable */ } },
     configure({ sound, vol, music }) {
       enabled = !!sound;
       volume = vol;

@@ -306,8 +306,9 @@ const Fig = (() => {
   }
   // ---- a picture with a caption (time of day, items with prices) ----
   function picture(icons, caption = '') {
-    const body = `<text x="${icons.length * 30 + 10}" y="56" font-size="52" text-anchor="middle">${icons.join('')}</text>${caption ? `<text x="${icons.length * 30 + 10}" y="96" class="fg-text" font-size="17" text-anchor="middle">${caption}</text>` : ''}`;
-    return svg(icons.length * 60 + 20, caption ? 104 : 72, body, caption || icons.join(' '));
+    const W = Math.max(icons.length * 60 + 20, caption.length * 9 + 20), cx = W / 2;
+    const body = `<text x="${cx}" y="56" font-size="52" text-anchor="middle">${icons.join('')}</text>${caption ? `<text x="${cx}" y="96" class="fg-text" font-size="17" text-anchor="middle">${caption}</text>` : ''}`;
+    return svg(W, caption ? 104 : 72, body, caption || icons.join(' '));
   }
   function priceTags(icon, price, qty) {
     let body = '';
