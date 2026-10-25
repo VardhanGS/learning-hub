@@ -52,26 +52,28 @@ By August, the boxes were overflowing. Mr. Okafor handed Kenji the first ripe to
         ] },
     ],
     [ // Grade 4 Star
-      { passage: P('Second Chair', 'Story', `When the orchestra list went up on the music room door, Sofia found her name right away: Violin, Second Chair. Her best friend Mateo's name was above hers. First Chair.
+      { passage: P('Third Leg', 'Story', `When Coach Rivera read the relay order, Sofia held her breath. Everyone knew the anchor, the last runner, got the glory. Everyone watched the anchor cross the finish line.
 
-Sofia smiled and congratulated him, but inside she felt like a balloon slowly losing air. She had practiced every night for a month. Mateo had practiced too, of course, but she had been so sure.
+"Anchor: Mateo," Coach said. "Third leg: Sofia."
 
-At the first rehearsal, Sofia barely looked at Mateo. She played her part a little too loudly, as if she could prove that she deserved his seat. Ms. Delgado tapped her baton on the stand. "Second violins," she said, "you're not the melody here. You're the floor the melody stands on."
+Sofia smiled and gave Mateo a high five, but inside she felt like a balloon slowly losing air. She had run sprints every morning for a month. Mateo had too, of course, but she had been so sure.
 
-Sofia frowned. A floor? Nobody listened to a floor.
+At the first practice, Sofia barely looked at Mateo. On her turn, she ran as hard as she could and slapped the baton into his hand so roughly that he nearly dropped it. Coach blew her whistle. "Sofia," she said, "the third leg isn't a race against your own team. You're the bridge. A race is won or lost in the handoffs."
 
-But that night, she listened to a recording of the piece. She heard the first violins soar above the rest, and then, underneath them, she heard something steady and warm. It was the second violins, holding the whole song together. Without them, the melody sounded thin, like a voice singing alone in an empty room.
+Sofia frowned. A bridge? Nobody cheered for a bridge.
 
-At the next rehearsal, Sofia played softly and evenly. When the piece ended, Mateo turned around. "That sounded amazing," he whispered. "I could hear you keeping us together."
+That night, she watched a video of a championship relay. She saw the anchors sprint for the line, and then, rewinding, she noticed something else. The best teams passed the baton smoothly, without slowing down. The teams that fumbled the handoff lost, no matter how fast their anchor was.
 
-For the first time all week, Sofia smiled for real.`, ['🎻', '🎼', '🪑'], 'The school orchestra'),
+At the next practice, Sofia focused on her handoff. She called "Stick!" and placed the baton firmly in Mateo's palm, still running at full speed. They shaved almost a full second off their time. Mateo turned around, grinning. "That was perfect," he said. "I didn't even have to look."
+
+For the first time all week, Sofia smiled for real.`, ['🏃', '🥇', '🏟️'], 'The relay team'),
         qs: [
-          ['mc', '"Inside she felt like a balloon slowly losing air." What does this show about Sofia?', 'She felt disappointed even though she smiled.', [['She was excited for Mateo\'s good news.', 'Her smile on the outside does not match how she feels inside.'], 'She felt sick and needed to go home.', 'She was angry at Ms. Delgado for the list.'], 'A balloon losing air shows her happiness draining away.', 'device'],
-          ['mc', 'Why does Sofia play too loudly at the first rehearsal?', 'She wants to prove she deserves first chair.', [['Ms. Delgado asked her to play louder.', 'Read the sentence right after she plays loudly.'], 'She cannot hear the rest of the orchestra.', 'She wants Mateo to hear her mistakes.'], 'She played "as if she could prove that she deserved his seat."', 'character'],
-          ['mc', 'What does Ms. Delgado mean by "the floor the melody stands on"?', 'The second violins support the main tune.', [['The second violins sit on the floor.', 'This is a comparison, not a fact about where they sit.'], 'The second violins should play the melody.', 'The second violins are the least important.'], 'A floor holds things up, just as the second violins support the melody.', 'device'],
-          ['ev', 'Which sentence shows when Sofia begins to understand her part?', 'It was the second violins, holding the whole song together.', 'Hearing the recording, she realizes how important her part is.', 'evidence'],
-          ['mc', 'How does Sofia change from the beginning to the end?', 'She goes from jealous to proud of her role.', [['She goes from proud to embarrassed by the orchestra.', 'At the end she smiles "for real."'], 'She goes from shy to bossy with Mateo.', 'She does not change during the week.'], 'She starts out jealous of Mateo and ends up proud of supporting the orchestra.', 'character'],
-          ['mc', 'Which statement BEST expresses the theme?', 'Every part of a team matters, even the quiet ones.', [['The loudest player is always the best player.', 'Think about what Sofia learns from the recording.'], 'Best friends should never compete with each other.', 'Practicing every night guarantees first place.'], 'Sofia learns that the second violins hold the song together.', 'theme'],
+          ['mc', '"Inside she felt like a balloon slowly losing air." What does this show about Sofia?', 'She felt disappointed even though she smiled.', [['She was excited for Mateo\'s good news.', 'Her smile on the outside does not match how she feels inside.'], 'She felt sick and needed to go home.', 'She was tired from running sprints all month.'], 'A balloon losing air shows her happiness draining away.', 'device'],
+          ['mc', 'Why does Sofia hand off the baton so roughly at first?', 'She is upset that Mateo got the anchor spot.', [['Coach Rivera told her to run faster.', 'Think about how she feels about the relay order.'], 'She did not know how to hold a baton.', 'She wanted Mateo to drop it on purpose.'], 'She is still upset and runs "as hard as she could," slapping the baton.', 'character'],
+          ['mc', 'What does Coach Rivera mean by "You\'re the bridge"?', 'The third runner connects the team to the anchor.', [['Sofia should run across a real bridge.', 'This is a comparison, not a place.'], 'Sofia should run the last leg instead.', 'The third leg is the least important leg.'], 'A bridge connects two places, just as Sofia connects the runners.', 'device'],
+          ['ev', 'Which sentence shows when Sofia begins to understand her role?', 'The teams that fumbled the handoff lost, no matter how fast their anchor was.', 'Watching the video, she realizes that the handoff matters as much as the anchor.', 'evidence'],
+          ['mc', 'How does Sofia change from the beginning to the end?', 'She goes from jealous to proud of her role.', [['She goes from proud to embarrassed by the team.', 'At the end she smiles "for real."'], 'She goes from shy to bossy with Mateo.', 'She does not change during the week.'], 'She starts out jealous of Mateo and ends up proud of her handoff.', 'character'],
+          ['mc', 'Which statement BEST expresses the theme?', 'Every part of a team matters, even when no one cheers.', [['The fastest runner always wins the race.', 'Think about what Sofia learns from the video.'], 'Best friends should never compete with each other.', 'Practicing every morning guarantees first place.'], 'Sofia learns that the handoff can win or lose a race.', 'theme'],
         ] },
       { passage: P('The Night the Lights Went Out', 'Story', `The storm began right after dinner. Thunder rattled the windows, and then, with a loud pop, every light in the house went dark.
 
@@ -100,7 +102,7 @@ At ten o'clock, the lights blinked back on. Everyone groaned. "Can we turn them 
         ] },
     ],
     [ // Grade 5 Challenge
-      { passage: P('The Map in the Attic', 'Story', `Zara had always thought of her grandmother's attic as a place where old things went to be forgotten. But on the rainy Saturday she was sent up to find a box of winter blankets, she found something else: a long cardboard tube with her grandmother's maiden name written on it in faded ink.
+      { passage: P('The Map in the Attic', 'Story', `Zara had always thought of her grandmother's attic as a place where old things went to be forgotten. But on the rainy Saturday she was sent up to find a box of winter blankets, she found something else: a flat tin box with her grandmother's maiden name scratched into the lid.
 
 Inside was a hand-drawn map. It wasn't a map of any country Zara knew. It showed a small town with crooked streets, a bakery shaped like a loaf of bread, a river curling like a ribbon, and dozens of tiny houses, each one labeled with a family name.
 

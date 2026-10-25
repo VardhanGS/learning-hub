@@ -16,7 +16,9 @@ const RK = (() => {
     const out = [];
     // titles like "Ms." and "Dr." do not end a sentence
     const keep = (x) => x.replace(/\b([ap])\.m\.(?=\s+[a-z])/g, '$1\u2024m\u2024').replace(/\b([ap])\.m\./g, '$1\u2024m.').replace(/\b(Mr|Ms|Mrs|Dr|St)\./gi, '$1\u2024'), back = (x) => x.replace(/\u2024/g, '.');
-    text.split('\n').forEach((line) => { (keep(line).match(/[^.!?]+[.!?]+["”’')]*|[^.!?]+$/g) || []).forEach((s) => { const t = back(s.trim()); if (t.length > 2 && !/^(CAST|SETTING|Text \d|Scene \d|Account [A-Z]|Act \d)\b/.test(t)) out.push(t); }); }); // headings are not sentences
+    text.split('\n').forEach((line) => { (keep(line).match(/[^.!?]+[.!?]+["”’')]*|[^.!?]+$/g) || []).forEach((s) => { let t = back(s.trim());
+      // a sentence split out of a stage direction keeps only its own parenthesis
+      if (t.startsWith('(') && !t.includes(')')) t = t.slice(1); if (t.endsWith(')') && !t.includes('(')) t = t.slice(0, -1); if (t.length > 2 && !/^(CAST|SETTING|Text \d|Scene \d|Account [A-Z]|Act \d)\b/.test(t)) out.push(t); }); }); // headings are not sentences
     return out;
   }
   const wrongOf = (w) => (Array.isArray(w) ? w : [w, '']);
