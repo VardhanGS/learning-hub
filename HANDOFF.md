@@ -108,7 +108,7 @@ leave it empty; delete only the specific temporary student ids you create.
 
 ## Status at the end of the old session (2026-10-25)
 
-Nothing is running. Phase 3 is complete and committed (f6f7fd5) but NOT yet published:
+Nothing is running. Phase 3 is complete, committed and PUBLISHED:
 - Grade 2 voice for mathquest2 / mapmath2 / hubdemo; `node tools/voicecheck.js <app>` passes on all three.
 - Fixed: negative answer choices in Grade 2 MAP items (validator now rejects them in g2/g4 apps); clock answers
   wrapping on phones (playthrough now flags one-word answers that break across lines).
@@ -119,9 +119,8 @@ Nothing is running. Phase 3 is complete and committed (f6f7fd5) but NOT yet publ
 
 ## PENDING — next steps, in order
 
-1. Publish: the user runs `tools/deploy.sh "Publish MAP Math 2; Math Quest 2 with Grade 2 voice and videos"`
-   (the auto-mode classifier blocks Claude from publishing), then check the live URLs. Ask whether the Grade 2/4/8
-   voice styles are OK (samples/voice-grades.wav).
+1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
+   to run tools/deploy.sh). Still open: ask whether the Grade 2/4/8 voice styles are OK (samples/voice-grades.wav).
 2. Phase 4: MAP Math 4 — Grade 4 content (multi-digit × and ÷, equivalent fractions, like-denominator fraction
    addition, decimals to hundredths, angles, area/perimeter, factors/multiples) + Grade 5 level-up, voice `g4`,
    MAP layer ≥60% new, norms G4 above.
