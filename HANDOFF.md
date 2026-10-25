@@ -106,24 +106,22 @@ leave it empty; delete only the specific temporary student ids you create.
     in-browser tests at θ 160–205 all inside the band ✓; phone screenshots reviewed and 4 layout fixes made.
     Bugs found and fixed: duplicate-digit tiles, identical picture choices (validator now checks both).
 
-## What was RUNNING when the old session ended (check first)
+## Status at the end of the old session (2026-10-25)
 
-1. Voice recording, Grade 2 profile — FINISHED 2026-10-25 03:05 (exit 0): mathquest2 2,388 clips / 50 bundles,
-   mapmath2 2,085 clips / 44 bundles, hubdemo 1,518 clips / 11 bundles. Nothing is running now.
-   Still to do: the in-page voice-coverage check (below).
+Nothing is running. Phase 3 is complete and committed (f6f7fd5) but NOT yet published:
+- Grade 2 voice for mathquest2 / mapmath2 / hubdemo; `node tools/voicecheck.js <app>` passes on all three.
+- Fixed: negative answer choices in Grade 2 MAP items (validator now rejects them in g2/g4 apps); clock answers
+  wrapping on phones (playthrough now flags one-word answers that break across lines).
+- Videos re-rendered in the Grade 2 voice (8 Math Quest 2 + map-tips). Validate, maptest, playthrough at 375px
+  (1,008 + 1,152 questions), 3 in-browser MAP tests, light/dark shots: all pass.
+- `mapmath2` is marked live in hub/index.html. Firebase web-app registration is NOT needed (REST sync uses only
+  apiKey + projectId; rules already allow mapmath2).
 
 ## PENDING — next steps, in order
 
-1. Finish Phase 3:
-   - Verify voice for mathquest2, mapmath2, hubdemo is complete; run the in-page voice-coverage check (every
-     `Voice.build.question` and `demoEnd` line has a clip) on each.
-   - Render videos in the Grade 2 voice: `tools/.venv/bin/python tools/make_videos.py mathquest2` (8 videos) and
-     `... make_videos.py mapmath2` (map-tips). Spot-check frames with ffmpeg.
-   - Rebuild (`python3 tools/build.py`), validate both apps, play-through + `maprun.js` in the browser, phone
-     screenshots (`tools/shots.sh mapmath2 "run:maprun.js|__hub.go('mapReport')"`), dark mode too.
-   - Mark `mapmath2` live in `hub/index.html`. **Ask the user before publishing MAP Math 2** (new app); ask them to
-     register the "MAP Math 2" web app in Firebase. Re-publishing Math Quest 2 with the new voice/videos is an update.
-   - Ask whether the Grade 2/4/8 voice styles are OK (sample sent).
+1. Publish: the user runs `tools/deploy.sh "Publish MAP Math 2; Math Quest 2 with Grade 2 voice and videos"`
+   (the auto-mode classifier blocks Claude from publishing), then check the live URLs. Ask whether the Grade 2/4/8
+   voice styles are OK (samples/voice-grades.wav).
 2. Phase 4: MAP Math 4 — Grade 4 content (multi-digit × and ÷, equivalent fractions, like-denominator fraction
    addition, decimals to hundredths, angles, area/perimeter, factors/multiples) + Grade 5 level-up, voice `g4`,
    MAP layer ≥60% new, norms G4 above.
