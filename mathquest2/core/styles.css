@@ -191,7 +191,7 @@ p { margin: 0; }
   background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 18%, 0 52%, 0 84%;
 }
 .paper-title p { color: var(--muted); letter-spacing: 0.06em; }
-.avatars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.avatars { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; } /* minmax: six buddies always fit a phone-width card */
 .av-btn { aspect-ratio: 1; max-width: 100%; font-size: 1.8rem; border-radius: 14px; border: 2px solid var(--line); background: var(--paper); }
 .av-btn.on { border-color: var(--reading); background: color-mix(in srgb, var(--reading) 14%, var(--surface)); }
 

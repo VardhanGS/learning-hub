@@ -493,7 +493,8 @@
   const lineCount = (q) => ((q.max - q.min) * lineDen(q)) / lineStep(q);
   const lineVal = (q, i) => N.make(q.min * lineDen(q) + i * lineStep(q), lineDen(q));
   function lineIndex(q, a) { const v = N.parse(String(a)); if (!v) return -1; const i = ((v.n * lineDen(q)) / v.d - q.min * lineDen(q)) / lineStep(q); return Number.isInteger(i) && i >= 0 && i <= lineCount(q) ? i : -1; }
-  const lineLabel = (q, i) => (i < 0 ? '' : N.str(lineVal(q, i), !!q.mixed));
+  // q.dec: label points as decimals with that many places (0.3, 0.25) instead of fractions
+  const lineLabel = (q, i) => (i < 0 ? '' : q.dec != null ? (lineVal(q, i).n / lineVal(q, i).d).toFixed(q.dec) : N.str(lineVal(q, i), !!q.mixed));
 
   function check() {
     if (Q.mode === 'test') { submitTest(); return; }

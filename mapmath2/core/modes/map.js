@@ -175,9 +175,9 @@
     const list = tests();
     return `<h1 class="page-h">My growth</h1>
       <section class="card">${list.length ? growthChart(list) : '<p class="muted">Take a practice test to see your growth here.</p>'}</section>
-      ${list.length ? `<section class="card"><table class="dash"><thead><tr><th>Date</th><th>Season</th><th>Estimated band</th><th>Compared with grade ${M.grade}</th><th>Right</th><th>Time</th></tr></thead><tbody>
+      ${list.length ? `<section class="card dash-wrap"><div class="dash-scroll"><table class="dash"><thead><tr><th>Date</th><th>Season</th><th>Estimated band</th><th>Compared with grade ${M.grade}</th><th>Right</th><th>Time</th></tr></thead><tbody>
         ${[...list].reverse().map((t) => `<tr><td>${new Date(t.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td><td>${MapCore.TERM_NAME[t.term]}</td><td class="num"><b>${t.lo}–${t.hi}</b></td><td>${chip(t.desc)}</td><td class="num">${t.correct}/${t.n}</td><td class="num">${fmtMin(t.secs)}</td></tr>`).join('')}
-      </tbody></table></section>` : ''}
+      </tbody></table></div></section>` : ''}
       <p class="fine">${esc(APP.disclaimer)}</p>`;
   }
 

@@ -138,8 +138,8 @@ const Fig = (() => {
       const v = min + i / den;
       const whole = Number.isInteger(v);
       body += `<line x1="${x(v)}" y1="${base - 7}" x2="${x(v)}" y2="${base + 7}" class="fg-stroke"/>`;
-      const lbl = whole ? String(v) : (den === 2 ? `${Math.floor(v) || ''} ½` : den === 4 ? `${Math.floor(v) || ''} ${['', '¼', '½', '¾'][Math.round((v % 1) * 4)]}` : '');
-      body += `<text x="${x(v)}" y="${base + 25}" class="fg-text" font-size="${whole ? 17 : den === 4 ? 11 : 14}" text-anchor="middle">${lbl.trim()}</text>`;
+      const lbl = whole ? String(v) : (den === 2 ? `${Math.floor(v) || ''} ½` : den === 4 ? `${Math.floor(v) || ''} ${['', '¼', '½', '¾'][Math.round((v % 1) * 4)]}` : den === 8 ? `${Math.floor(v) || ''} ${['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞'][Math.round((v % 1) * 8)]}` : '');
+      body += `<text x="${x(v)}" y="${base + 25}" class="fg-text" font-size="${whole ? 17 : den >= 4 ? 11 : 14}" text-anchor="middle">${lbl.trim()}</text>`;
     }
     Object.entries(counts).forEach(([v, c]) => { for (let k = 0; k < c; k++) body += `<text x="${x(+v)}" y="${base - 12 - k * 22}" class="lp-x" font-size="24" text-anchor="middle">✕</text>`; });
     if (unit) body += `<text x="${W / 2}" y="${base + 46}" class="fg-text" font-size="13" text-anchor="middle">${unit}</text>`;
@@ -318,6 +318,227 @@ const Fig = (() => {
     return svg(x + 90, 94, body, `${qty} items at ${price} cents, paid with a dollar`);
   }
 
+
+  // ===== Grade 4–5 pictures (MAP Math 4) =====
+  const inner = (sv) => sv.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
+  const vbox = (sv) => { const m = sv.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/); return [+m[1], +m[2]]; };
+  const rad = (d) => (d * Math.PI) / 180;
+  const FRAC_GLYPH = { '1/8': '⅛', '1/4': '¼', '3/8': '⅜', '1/2': '½', '5/8': '⅝', '3/4': '¾', '7/8': '⅞' };
+
+  // A table: rows of cells, the first row is the header. '?' cells are dashed.
+  function table(rows, title = '') {
+    const cols = Math.max(...rows.map((r) => r.length)), cw = Math.max(72, Math.min(110, 420 / cols)), ch = 40, W = cols * cw + 8, top = title ? 26 : 4;
+    let body = title ? `<text x="${W / 2}" y="18" class="fg-text" font-size="15" text-anchor="middle">${title}</text>` : '';
+    rows.forEach((row, r) => row.forEach((c, i) => {
+      const x = 4 + i * cw, y = top + r * ch;
+      body += `<rect x="${x}" y="${y}" width="${cw}" height="${ch}" class="${r === 0 ? 'pc-head' : c === '?' ? 'bm-unknown' : 'pc-cell'}"/><text x="${x + cw / 2}" y="${y + 26}" class="fg-text" font-size="${r === 0 ? 14 : 18}" text-anchor="middle">${c}</text>`;
+    }));
+    return svg(W, top + rows.length * ch + 4, body, `Table${title ? ` ${title}` : ''}: ${rows.map((r) => r.join(' ')).join('; ')}`);
+  }
+
+  // An angle: two rays from a vertex. `start` = direction of the first ray (degrees, counterclockwise from the right).
+  // label shown inside the arc ('35°', '?', or ''). A right angle gets a small square instead of an arc.
+  function angle(deg, { start = 0, label = '', len = 120 } = {}) {
+    const W = 300, H = 170, cx = 150, cy = 140;
+    const p = (a, r) => `${(cx + r * Math.cos(rad(a))).toFixed(1)} ${(cy - r * Math.sin(rad(a))).toFixed(1)}`;
+    const a0 = start, a1 = start + deg;
+    let body = `<path d="M${p(a0, len)} L${cx} ${cy} L${p(a1, len)}" class="fg-stroke" style="stroke-width:3"/>`;
+    body += `<circle cx="${p(a0, len).split(' ')[0]}" cy="${p(a0, len).split(' ')[1]}" r="4" class="fg-text"/><circle cx="${p(a1, len).split(' ')[0]}" cy="${p(a1, len).split(' ')[1]}" r="4" class="fg-text"/><circle cx="${cx}" cy="${cy}" r="4" class="fg-text"/>`;
+    if (deg === 90) body += `<path d="M${p(a0, 22)} L${(cx + 22 * Math.SQRT2 * Math.cos(rad(a0 + 45))).toFixed(1)} ${(cy - 22 * Math.SQRT2 * Math.sin(rad(a0 + 45))).toFixed(1)} L${p(a1, 22)}" class="fg-stroke" style="stroke-width:2"/>`;
+    else body += `<path d="M${p(a0, 34)} A34 34 0 ${deg > 180 ? 1 : 0} 0 ${p(a1, 34)}" class="jp-arc"/>`;
+    if (label) { const m = a0 + deg / 2, r = deg < 40 ? 70 : 54; body += `<text x="${(cx + r * Math.cos(rad(m))).toFixed(1)}" y="${(cy - r * Math.sin(rad(m)) + 6).toFixed(1)}" class="fg-text" font-size="18" text-anchor="middle">${label}</text>`; }
+    return svg(W, H, body, `An angle${label && label !== '?' ? ` of ${label.replace('°', ' degrees')}` : ''}`);
+  }
+  // An angle split into two parts by a ray: parts [a, b] with labels (one may be '?').
+  function angleSplit(a, b, la, lb, lt = '') {
+    const W = 320, H = 180, cx = 150, cy = 150, len = 125;
+    const p = (d, r) => `${(cx + r * Math.cos(rad(d))).toFixed(1)} ${(cy - r * Math.sin(rad(d))).toFixed(1)}`;
+    let body = `<path d="M${p(0, len)} L${cx} ${cy} L${p(a + b, len)} M${cx} ${cy} L${p(a, len)}" class="fg-stroke" style="stroke-width:3"/>`;
+    body += `<path d="M${p(0, 40)} A40 40 0 0 0 ${p(a, 40)}" class="jp-arc"/><path d="M${p(a, 52)} A52 52 0 0 0 ${p(a + b, 52)}" class="jp-arc" style="stroke:var(--c3)"/>`;
+    const lab = (d, r, t) => `<text x="${(cx + r * Math.cos(rad(d))).toFixed(1)}" y="${(cy - r * Math.sin(rad(d)) + 6).toFixed(1)}" class="fg-text" font-size="17" text-anchor="middle">${t}</text>`;
+    body += lab(a / 2, a < 30 ? 100 : 78, la) + lab(a + b / 2, b < 30 ? 108 : 90, lb);
+    if (lt) body += `<text x="${W - 6}" y="20" class="fg-text" font-size="15" text-anchor="end">Whole angle: ${lt}</text>`;
+    return svg(W, H, body, `An angle split into two parts: ${la} and ${lb}${lt ? `; whole angle ${lt}` : ''}`);
+  }
+  // A protractor with both scales; one ray along the base (pointing right) and one ray at `deg` (outer scale).
+  function protractor(deg) {
+    const W = 360, H = 200, cx = 180, cy = 185, R = 160;
+    const p = (d, r) => `${(cx + r * Math.cos(rad(d))).toFixed(1)} ${(cy - r * Math.sin(rad(d))).toFixed(1)}`;
+    let body = `<path d="M${cx - R} ${cy} A${R} ${R} 0 0 1 ${cx + R} ${cy} Z" class="ck-face"/>`;
+    for (let d = 0; d <= 180; d += 5) {
+      const big = d % 10 === 0;
+      body += `<line x1="${p(d, R).split(' ')[0]}" y1="${p(d, R).split(' ')[1]}" x2="${p(d, R - (big ? 12 : 7)).split(' ')[0]}" y2="${p(d, R - (big ? 12 : 7)).split(' ')[1]}" class="fg-stroke" style="stroke-width:${big ? 1.6 : 1}"/>`;
+      if (d % 20 === 0 || d === 90) {
+        const lift = d === 0 || d === 180 ? 12 : 0; // keep the end labels off the bottom ray
+        const [x1, y1] = p(d, R - 24).split(' '), [x2, y2] = p(d, R - 46).split(' ');
+        body += `<text x="${x1}" y="${+y1 + 5 - lift}" class="fg-text" font-size="12" text-anchor="middle">${d}</text><text x="${x2}" y="${+y2 + 5}" class="fg-text" font-size="11" text-anchor="middle" style="opacity:.7" transform="translate(0 ${-lift})">${180 - d}</text>`;
+      }
+    }
+    body += `<path d="M${cx} ${cy} L${p(0, R + 8)} M${cx} ${cy} L${p(deg, R + 8)}" class="jp-arc" style="stroke-width:3.5"/><circle cx="${cx}" cy="${cy}" r="5" class="fg-text"/>`;
+    return svg(W, H, body, `A protractor. One ray is on 0 of the outer scale; the other ray points to ${deg} on the outer scale and ${180 - deg} on the inner scale`);
+  }
+
+  // Area model for a × b: a rectangle split by the place-value parts of each factor, with partial products
+  // (or '?' for the cells listed in `hide`).
+  function areaModel(a, b, { hide = [], showTotals = true } = {}) {
+    const parts = (n) => String(n).split('').map((d, i, s) => +d * 10 ** (s.length - 1 - i)).filter((v) => v > 0);
+    const A = parts(a), B = parts(b), W = 380, H = B.length > 1 ? 170 : 90, x0 = 56, y0 = 30;
+    const sum = (xs) => xs.reduce((t, v) => t + v, 0), wTot = W - x0 - 6;
+    const ws = A.map((v) => Math.max(54, (v / sum(A)) * wTot)), sc = wTot / sum(ws), hs = B.map((v) => Math.max(56, (v / sum(B)) * H)), sh = H / sum(hs);
+    let body = '', x = x0, k = 0;
+    A.forEach((av, i) => {
+      const w = ws[i] * sc;
+      body += `<text x="${x + w / 2}" y="${y0 - 10}" class="fg-text" font-size="16" text-anchor="middle">${av}</text>`;
+      let y = y0;
+      B.forEach((bv, j) => {
+        const h = hs[j] * sh;
+        const val = hide.includes(k) ? '?' : (showTotals ? (av * bv).toLocaleString('en-US') : '');
+        body += `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${hide.includes(k) ? 'bm-unknown' : `bm-part bm-p${(i + j) % 3}`}"/><text x="${x + w / 2}" y="${y + h / 2 + 6}" class="fg-text" font-size="${w < 70 ? 13 : 16}" text-anchor="middle">${val}</text>`;
+        if (i === 0) body += `<text x="${x0 - 8}" y="${y + h / 2 + 6}" class="fg-text" font-size="16" text-anchor="end">${bv}</text>`;
+        y += h; k++;
+      });
+      x += w;
+    });
+    return svg(W, y0 + H + 6, body, `Area model for ${a} times ${b}: ${A.join(' + ')} by ${B.join(' + ')}`);
+  }
+
+  // Hundredths grid (10 × 10) with n shaded; tenths strip when total = 10.
+  function decimalGrid(n, total = 100) {
+    const c = total === 100 ? 20 : 40, cols = 10, rows = total / 10, W = cols * c + 8, H = rows * c + 8;
+    let body = '';
+    for (let i = 0; i < total; i++) {
+      // fill whole columns (tenths) first, the way hundredths are usually shown
+      const col = total === 100 ? Math.floor(i / 10) : i, row = total === 100 ? i % 10 : 0;
+      body += `<rect x="${4 + col * c}" y="${4 + row * c}" width="${c}" height="${c}" class="${i < n ? 'fg-fill' : 'pc-cell'}" style="stroke-width:1"/>`;
+    }
+    body += `<rect x="4" y="4" width="${cols * c}" height="${rows * c}" class="fg-stroke" style="stroke-width:2.5"/>`;
+    return svg(W, H, body, `A ${total === 100 ? 'hundredths grid' : 'tenths strip'} with ${n} of ${total} parts shaded`);
+  }
+
+  // A number line from min to max cut into `den` parts per unit. marks: [{v, label}] (label '?' or text above a dot).
+  // labels: 'whole' (whole numbers), 'all' (every tick), or a list of values. dec: show decimal labels with that many places.
+  function numLine(min, max, den, { marks = [], labels = 'whole', dec = null } = {}) {
+    const n = Math.round((max - min) * den), W = 460, pad = 28, y = 56, x = (v) => pad + ((v - min) * den / n) * (W - 2 * pad);
+    const lab = (v) => { if (dec != null) return v.toFixed(dec); if (Number.isInteger(v)) return String(v); const w = Math.floor(v + 1e-9), f = Math.round((v - w) * den); const g = N.str(N.make(f, den)); return `${w ? w + ' ' : ''}${FRAC_GLYPH[g] || g}`; };
+    let body = `<line x1="${pad - 12}" y1="${y}" x2="${W - pad + 12}" y2="${y}" class="fg-stroke"/>`;
+    for (let i = 0; i <= n; i++) {
+      const v = min + i / den, whole = Math.abs(v - Math.round(v)) < 1e-9;
+      body += `<line x1="${x(v)}" y1="${y - (whole ? 12 : 7)}" x2="${x(v)}" y2="${y + (whole ? 12 : 7)}" class="fg-stroke" style="stroke-width:${whole ? 2.5 : 1.5}"/>`;
+      const show = labels === 'all' || (labels === 'whole' && whole) || (Array.isArray(labels) && labels.some((l) => Math.abs(l - v) < 1e-9));
+      if (show) body += `<text x="${x(v)}" y="${y + 32}" class="fg-text" font-size="${n > 12 && !whole ? 11 : 15}" text-anchor="middle">${lab(v)}</text>`;
+    }
+    marks.forEach((m) => { body += `<circle cx="${x(m.v)}" cy="${y}" r="8" class="tf-a"/>${m.label ? `<text x="${x(m.v)}" y="${y - 18}" class="fg-text" font-size="17" text-anchor="middle">${m.label}</text>` : ''}`; });
+    return svg(W, y + 42, body, `A number line from ${min} to ${max} in ${den === 1 ? 'wholes' : `parts of 1/${den}`}${marks.length ? `, with a point at ${marks.map((m) => m.label || '').join(', ')}` : ''}`);
+  }
+
+  // Lines and line pieces: 'parallel', 'perpendicular', 'intersecting', 'segment', 'ray', 'line', 'point'.
+  function lines(kind) {
+    const W = 200, H = 120, arrow = (x, y, a) => `<path d="M${x} ${y} l${(-12 * Math.cos(rad(a - 25))).toFixed(1)} ${(12 * Math.sin(rad(a - 25))).toFixed(1)} M${x} ${y} l${(-12 * Math.cos(rad(a + 25))).toFixed(1)} ${(12 * Math.sin(rad(a + 25))).toFixed(1)}" class="fg-stroke"/>`;
+    const dot = (x, y) => `<circle cx="${x}" cy="${y}" r="5" class="fg-text"/>`;
+    let body = '';
+    if (kind === 'parallel') body = `<line x1="20" y1="35" x2="180" y2="35" class="fg-stroke"/><line x1="20" y1="85" x2="180" y2="85" class="fg-stroke"/>${arrow(180, 35, 0)}${arrow(20, 35, 180)}${arrow(180, 85, 0)}${arrow(20, 85, 180)}`;
+    else if (kind === 'perpendicular') body = `<line x1="20" y1="70" x2="180" y2="70" class="fg-stroke"/><line x1="100" y1="10" x2="100" y2="112" class="fg-stroke"/><path d="M100 56 h14 v14" class="fg-stroke" style="stroke-width:1.8"/>${arrow(180, 70, 0)}${arrow(20, 70, 180)}${arrow(100, 10, 90)}${arrow(100, 112, 270)}`;
+    else if (kind === 'intersecting') body = `<line x1="20" y1="100" x2="180" y2="20" class="fg-stroke"/><line x1="20" y1="40" x2="180" y2="88" class="fg-stroke"/>${arrow(180, 20, 26.6)}${arrow(20, 100, 206.6)}${arrow(180, 88, -16.7)}${arrow(20, 40, 163.3)}`;
+    else if (kind === 'segment') body = `<line x1="30" y1="60" x2="170" y2="60" class="fg-stroke"/>${dot(30, 60)}${dot(170, 60)}`;
+    else if (kind === 'ray') body = `<line x1="30" y1="60" x2="180" y2="60" class="fg-stroke"/>${dot(30, 60)}${arrow(180, 60, 0)}`;
+    else if (kind === 'line') body = `<line x1="20" y1="60" x2="180" y2="60" class="fg-stroke"/>${arrow(180, 60, 0)}${arrow(20, 60, 180)}`;
+    else body = dot(100, 60);
+    return svg(W, H, body, kind === 'point' ? 'a point' : kind === 'segment' ? 'a line segment' : kind === 'ray' ? 'a ray' : kind === 'line' ? 'a line' : `${kind} lines`);
+  }
+
+  // A shape with a dashed fold line. Shapes: 'heart', 'arrow', 'isosceles', 'rectangle', 'square', 'scalene', 'L', 'parallelogram', 'kite', 'hexagon'.
+  // fold: 'v' (up-down), 'h' (left-right), 'd' (corner to corner).
+  const SYM = {
+    heart: 'M100 150 C40 105 15 70 40 40 C62 16 92 28 100 52 C108 28 138 16 160 40 C185 70 160 105 100 150 Z',
+    arrow: 'M100 15 L160 75 L125 75 L125 150 L75 150 L75 75 L40 75 Z',
+    isosceles: 'M100 15 L165 150 L35 150 Z',
+    rectangle: 'M30 45 L170 45 L170 125 L30 125 Z',
+    square: 'M40 25 L160 25 L160 145 L40 145 Z',
+    scalene: 'M45 140 L170 140 L80 30 Z',
+    L: 'M50 20 L90 20 L90 110 L160 110 L160 150 L50 150 Z',
+    parallelogram: 'M60 40 L175 40 L140 130 L25 130 Z',
+    kite: 'M100 15 L150 70 L100 155 L50 70 Z',
+    hexagon: 'M65 25 L135 25 L170 85 L135 145 L65 145 L30 85 Z',
+  };
+  // Which fold lines really are lines of symmetry for each shape (the true answers, used by questions and the validator).
+  const SYM_LINES = { heart: ['v'], arrow: ['v'], isosceles: ['v'], rectangle: ['v', 'h'], square: ['v', 'h', 'd'], scalene: [], L: [], parallelogram: [], kite: ['v'], hexagon: ['v', 'h'] };
+  function symmetry(kind, fold = null) {
+    let body = `<path d="${SYM[kind]}" class="fg-fill"/>`;
+    const C = { square: [100, 85], rectangle: [100, 85], hexagon: [100, 85] }[kind] || [100, 85];
+    if (fold === 'v') body += `<line x1="100" y1="5" x2="100" y2="162" class="fg-stroke" style="stroke-dasharray:8 6;stroke:var(--c3);stroke-width:3"/>`;
+    if (fold === 'h') body += `<line x1="10" y1="${C[1]}" x2="190" y2="${C[1]}" class="fg-stroke" style="stroke-dasharray:8 6;stroke:var(--c3);stroke-width:3"/>`;
+    if (fold === 'd') body += kind === 'square' ? `<line x1="28" y1="13" x2="172" y2="157" class="fg-stroke" style="stroke-dasharray:8 6;stroke:var(--c3);stroke-width:3"/>` : `<line x1="20" y1="20" x2="180" y2="150" class="fg-stroke" style="stroke-dasharray:8 6;stroke:var(--c3);stroke-width:3"/>`;
+    return svg(200, 166, body, `a ${kind === 'L' ? 'L-shape' : kind}${fold ? ' with a dashed fold line' : ''}`);
+  }
+  // Triangles by angle: 'right', 'acute', 'obtuse' (a right triangle gets a square corner mark).
+  function triangle(kind) {
+    const P = { right: [[30, 140], [170, 140], [30, 30]], acute: [[30, 140], [170, 140], [110, 25]], obtuse: [[20, 140], [120, 140], [185, 50]] }[kind];
+    let body = `<polygon points="${P.map((p) => p.join(',')).join(' ')}" class="fg-fill"/>`;
+    if (kind === 'right') body += `<path d="M30 124 h16 v16" class="fg-stroke" style="stroke-width:1.8"/>`;
+    return svg(200, 150, body, `a ${kind} triangle`);
+  }
+
+  // First-quadrant coordinate grid with labeled points [[x, y, 'A'], …].
+  function coordGrid(points, max = 10) {
+    const g = 30, x0 = 34, y0 = 10, W = x0 + max * g + 16, H = y0 + max * g + 34;
+    const X = (v) => x0 + v * g, Y = (v) => y0 + (max - v) * g;
+    let body = '';
+    for (let i = 0; i <= max; i++) body += `<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(max)}" class="gr-grid"/><line x1="${X(0)}" y1="${Y(i)}" x2="${X(max)}" y2="${Y(i)}" class="gr-grid"/><text x="${X(i)}" y="${Y(0) + 20}" class="fg-text" font-size="12" text-anchor="middle">${i}</text>${i ? `<text x="${X(0) - 8}" y="${Y(i) + 4}" class="fg-text" font-size="12" text-anchor="end">${i}</text>` : ''}`;
+    body += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(max) + 8}" y2="${Y(0)}" class="fg-stroke"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(0)}" y2="${Y(max) - 8}" class="fg-stroke"/>`;
+    points.forEach(([x, y, l]) => { body += `<circle cx="${X(x)}" cy="${Y(y)}" r="6" class="tf-a"/><text x="${X(x) + 9}" y="${Y(y) - 8}" class="fg-text" font-size="16">${l}</text>`; });
+    return svg(W, H, body, `A coordinate grid with ${points.map(([x, y, l]) => `point ${l}`).join(', ')}`);
+  }
+
+  // A rectangular prism built from unit cubes (l long, w deep, h tall), drawn at an angle.
+  function prism(l, w, h) {
+    const u = Math.min(30, 200 / (l + w * 0.6)), dx = u * 0.55, dy = u * 0.4, W = l * u + w * dx + 10, H = h * u + w * dy + 10;
+    const ox = 5, oy = 5 + w * dy;
+    let body = '';
+    // front face, then top, then right side
+    for (let z = 0; z < h; z++) for (let x = 0; x < l; x++) body += `<rect x="${ox + x * u}" y="${oy + (h - 1 - z) * u}" width="${u}" height="${u}" class="fg-fill" style="stroke-width:1.2"/>`;
+    for (let d = 0; d < w; d++) for (let x = 0; x < l; x++) { const bx = ox + x * u + d * dx, by = oy - d * dy; body += `<path d="M${bx} ${by} l${dx} ${-dy} h${u} l${-dx} ${dy} z" class="pc-head" style="stroke-width:1.2"/>`; }
+    for (let d = 0; d < w; d++) for (let z = 0; z < h; z++) { const bx = ox + l * u + d * dx, by = oy + (h - 1 - z) * u - d * dy; body += `<path d="M${bx} ${by} l${dx} ${-dy} v${u} l${-dx} ${dy} z" class="pc-cell" style="stroke-width:1.2"/>`; }
+    return svg(W, H, body, `A box made of unit cubes: ${l} long, ${w} wide, ${h} tall`);
+  }
+
+  // "Times as many": a bar for the smaller amount and a bar made of k copies of it.
+  function timesBars(small, k, la, lb, big = '?') {
+    const u = Math.min(64, 330 / k), x0 = 80;
+    let body = `<text x="4" y="31" class="fg-text" font-size="15">${la}</text><rect x="${x0}" y="10" width="${u}" height="32" rx="5" class="bm-part bm-p0"/><text x="${x0 + u / 2}" y="32" class="fg-text" font-size="15" text-anchor="middle">${small}</text>`;
+    body += `<text x="4" y="79" class="fg-text" font-size="15">${lb}</text>`;
+    for (let i = 0; i < k; i++) body += `<rect x="${x0 + i * u}" y="58" width="${u}" height="32" rx="5" class="bm-part bm-p1"/><text x="${x0 + i * u + u / 2}" y="80" class="fg-text" font-size="${u < 40 ? 11 : 15}" text-anchor="middle">${small}</text>`;
+    body += `<path d="M${x0} 100 v8 h${k * u} v-8" class="fg-stroke" style="stroke-width:1.8"/><text x="${x0 + (k * u) / 2}" y="126" class="fg-text" font-size="16" text-anchor="middle">${big}</text>`;
+    return svg(x0 + k * u + 10, 132, body, `${lb} is ${k} times as many as ${la}: ${k} bars of ${small}`);
+  }
+
+  // Equal-share bar for division: total split into n equal parts (labels '?' by default), with remainder r shown apart.
+  function shareBar(total, n, { each = '?', r = 0 } = {}) {
+    const W = 420, x0 = 6, rw = r ? 50 : 0, w = (W - rw) / n;
+    let body = `<rect x="${x0}" y="6" width="${W}" height="36" rx="6" class="bm-whole"/><text x="${x0 + W / 2}" y="31" class="fg-text" font-size="18" text-anchor="middle">${total}</text>`;
+    for (let i = 0; i < n; i++) body += `<rect x="${x0 + i * w}" y="52" width="${w}" height="36" rx="5" class="${each === '?' ? 'bm-unknown' : 'bm-part bm-p0'}"/><text x="${x0 + i * w + w / 2}" y="77" class="fg-text" font-size="${w < 40 ? 12 : 16}" text-anchor="middle">${each}</text>`;
+    if (r) body += `<rect x="${x0 + W - rw}" y="52" width="${rw}" height="36" rx="5" class="bm-part bm-p2"/><text x="${x0 + W - rw / 2}" y="77" class="fg-text" font-size="14" text-anchor="middle">${r} left</text>`;
+    return svg(W + 12, 94, body, `${total} shared into ${n} equal parts${r ? ` with ${r} left over` : ''}`);
+  }
+
+  // Fraction strips: several fractions as bars of the same length, one per row (for equivalence and comparing).
+  function fracStrips(list) {
+    const W = 360, x0 = 64, h = 34;
+    let body = '';
+    list.forEach(([n, d], r) => {
+      const y = 4 + r * (h + 10), w = W / d;
+      body += `<text x="${x0 - 10}" y="${y + 23}" class="fg-text" font-size="16" text-anchor="end">${n}/${d}</text>`;
+      for (let i = 0; i < d; i++) body += `<rect x="${x0 + i * w}" y="${y}" width="${w}" height="${h}" class="${i < n ? 'fg-fill' : 'pc-cell'}" style="${i < n ? '' : 'fill:var(--surface)'}"/>`;
+    });
+    return svg(x0 + W + 6, list.length * (h + 10) + 2, body, `Fraction strips: ${list.map(([n, d]) => `${n}/${d}`).join(', ')}`);
+  }
+
+  // Side by side, scaled to the same height (two pictures in one figure).
+  function pair(a, b, gap = 24) {
+    const [wa, ha] = vbox(a), [wb, hb] = vbox(b), H = Math.max(ha, hb);
+    return `<svg viewBox="0 0 ${wa + gap + wb} ${H}" width="${wa + gap + wb}" role="img" aria-label="Two pictures"><g transform="translate(0 ${(H - ha) / 2})">${inner(a)}</g><g transform="translate(${wa + gap} ${(H - hb) / 2})">${inner(b)}</g></svg>`;
+  }
+
   return { blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
-    tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags };
+    tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
+    table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair };
 })();
