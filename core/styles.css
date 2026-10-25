@@ -516,7 +516,7 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 .subject.s-studio { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; }
 .subject.s-studio .subject-ic { grid-row: span 3; font-size: 2.4rem; }
 .opts.tiny { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); }
-.opts.tiny .opt { text-align: center; font-size: 1.5rem; }
+.opts.tiny .opt { text-align: center; font-size: 1.5rem; white-space: nowrap; }
 @media (max-width: 560px) { .opts.tiny { grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); } }
 
 /* ---------- "Watch first" example ---------- */

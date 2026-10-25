@@ -676,7 +676,7 @@
     switch (q.t) {
       case 'mc': {
         const long = q.opts.some((o) => MathText.plain(o).replace(/[⟪⟫]/g, '').length > 18);
-        const tiny = q.opts.every((o) => o.length <= 4);
+        const tiny = q.opts.every((o) => o.length <= 3); // 4+ characters ("2:25", "1000") need the 2-column layout on a phone
         return `<div class="opts ${long ? 'long' : ''} ${tiny ? 'tiny' : ''}">${q.opts.map((o) => {
           let cls = '';
           if (Q && Q.mode === 'test' && !st.done) cls = st.chosen === o ? 'sel' : '';

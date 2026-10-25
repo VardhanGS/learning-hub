@@ -58,6 +58,20 @@
       if (b.width === 0 || b.height === 0) fail(where, `${el.className.baseVal ?? el.className} has no size`);
       else if (b.left < card.left - 1 || b.right > card.right + 1 || b.top < card.top - 1 || b.bottom > card.bottom + 1) fail(where, `${el.getAttribute('class')} is outside the question card`);
     });
+    // A one-word answer ("2:25", "1000", "35¢") must not break across lines on a phone.
+    app.querySelectorAll('.qcard .opt').forEach((el) => {
+      const t = el.textContent.trim();
+      if (!t || /\s/.test(t) || el.querySelector('.katex')) return; // typeset math (a stacked fraction) is meant to have 2 rows
+      // measure the text only (a multi-select checkbox beside the word is not a second line)
+      const tops = new Set();
+      const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+        if (!n.textContent.trim()) continue;
+        const r = document.createRange(); r.selectNodeContents(n);
+        [...r.getClientRects()].filter((x) => x.width > 0).forEach((x) => tops.add(Math.round(x.top)));
+      }
+      if (tops.size > 1) fail(where, `answer "${t}" breaks across ${tops.size} lines at ${innerWidth}px`);
+    });
   }
 
   for (const s of H.S) for (const k of s.skills) for (let l = 0; l < k.levels.length; l++) {
