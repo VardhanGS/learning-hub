@@ -121,9 +121,19 @@ Nothing is running. Phase 3 is complete, committed and PUBLISHED:
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
    to run tools/deploy.sh). Still open: ask whether the Grade 2/4/8 voice styles are OK (samples/voice-grades.wav).
-2. Phase 4: MAP Math 4 — Grade 4 content (multi-digit × and ÷, equivalent fractions, like-denominator fraction
-   addition, decimals to hundredths, angles, area/perimeter, factors/multiples) + Grade 5 level-up, voice `g4`,
-   MAP layer ≥60% new, norms G4 above.
+2. Phase 4: MAP Math 4 — IN PROGRESS (2026-10-25). `apps/mapmath4/`: 17 skills × 3 levels (G4 Starter, G4 Star,
+   G5 Challenge) in common4.js / number4.js / algebra4.js / geometry4.js, lessons4.js (51 lessons with pictures),
+   map-bank.js (all skills new → 100% fresh), video_scripts.py (6 videos). Standards codes were read from
+   nj.gov/education/standards/math/2023/{3,4,5}.shtml (codes = section letter + continued list number, e.g. 4.M.B.4,
+   4.DL.B.5). Done and passing: validate (10k and 30k items), 10/10 planted-bug mutation test, maptest 150–230
+   (bank 178–224 after adding harder G5 items), browser play-through 1,221 q at 375px, 3 in-browser MAP tests.
+   Core additions (backward compatible; other apps re-validated): new Fig pictures (table, angle, angleSplit,
+   protractor, areaModel, decimalGrid, numLine, lines, symmetry, triangle, coordGrid, prism, timesBars, shareBar,
+   fracStrips, pair), speech: numbers to 999,999,999 as "45 thousand 678", "R" read as remainder, mixed numbers in
+   TeX, and `speech.split` (decimals/fractions read as pieces; used by mapmath4 only). Validator: many new meta kinds.
+   Still to do: finish g4 voice (`tools/voice_all.sh mapmath4 4`, then `node tools/voicecheck.js mapmath4`), render
+   videos (`make_videos.py mapmath4`), rebuild, re-run play-through (code changed after the last run), light/dark
+   shots, mark live in hub/index.html, ASK before publishing (new app), then re-publish the other apps (core changed).
 3. Phase 5: MAP Reading 2 (ELA Quest G2 banks + MAP formats; MAP Reading Fluency practice: read-aloud passages with a
    timer and a grown-up-scored words-per-minute check — verify iPad speech recognition before promising automatic
    scoring), MAP Reading 4 (new G4 passages), MAP Reading 8 (ELA Quest G8 banks + more passages). No Language Usage.

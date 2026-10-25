@@ -56,9 +56,34 @@ const COMPUTE = {
   sides: ([k]) => R(SIDES[k]),
   cube: ([prop]) => R({ faces: 6, 'corners (vertices)': 8, edges: 12 }[prop]),
   expr: ([e]) => { const v = ev(e); return Number.isInteger(v) ? R(v) : null; },
+  // ---- Grade 4–5 ----
+  dexpr: ([e]) => { const v = ev(e); return Number.isFinite(v) ? N.parse(String(+v.toFixed(9))) : null; },
+  fexpr: ([a, op, b]) => frac(a, op, b),
+  estRound: ([a, b, to, op]) => { const r = (v) => Math.floor(v / to + 0.5) * to; return R(op === '+' ? r(a) + r(b) : r(a) - r(b)); },
+  roundDec: ([k, p]) => { const u = 10 ** (3 - p); return R(Math.floor(k / u + 0.5) * u, 1000); },
+  rem: ([a, b]) => R(a % b),
+  quot: ([a, b]) => R(Math.floor(a / b)),
+  ceilDiv: ([a, b]) => R(Math.ceil(a / b)),
+  pairs: ([n]) => { let k = 0; for (let i = 1; i * i <= n; i++) if (n % i === 0) k++; return R(k); },
 };
+// Exact fraction arithmetic for fexpr: [n, d] op [n, d].
+function frac([a, b], op, [c, d]) {
+  const [n, m] = op === '+' ? [a * d + c * b, b * d] : op === '−' || op === '-' ? [a * d - c * b, b * d] : op === '×' ? [a * c, b * d] : [a * d, b * c];
+  return R(n, m);
+}
+const isPrime = (n) => { if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; };
+// Tap-all questions: which values must be tapped (pred, param, value).
+const PRED = {
+  factor: (n, v) => n % v === 0, prime: (_, v) => isPrime(v), composite: (_, v) => v > 1 && !isPrime(v),
+  gt: (t, v) => v > t, acute: (_, d) => d < 90, obtuse: (_, d) => d > 90 && d < 180, right: (_, d) => d === 90,
+};
+// Lines of symmetry, written out independently of core/engine/fig.js (folds: v up-down, h left-right, d corner to corner).
+const SYMMETRY = { heart: 'v', arrow: 'v', isosceles: 'v', rectangle: 'vh', square: 'vhd', scalene: '', L: '', parallelogram: '', kite: 'v', hexagon: 'vh' };
+// Names that ALWAYS describe each quadrilateral (inclusive definitions, Grade 5).
+const ALWAYS = { square: ['rectangle', 'rhombus', 'parallelogram', 'quadrilateral'], rectangle: ['parallelogram', 'quadrilateral'], rhombus: ['parallelogram', 'quadrilateral'], parallelogram: ['quadrilateral'] };
+const commas = (n) => Number(n).toLocaleString('en-US');
 // Safe arithmetic: digits, + − × ÷, parentheses.
-function ev(e) { const js = String(e).replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'); if (!/^[\d+\-*/ ().]+$/.test(js)) return NaN; return Function(`return (${js})`)(); }
+function ev(e) { const js = String(e).replace(/,/g, '').replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'); if (!/^[\d+\-*/ ().]+$/.test(js)) return NaN; return Function(`return (${js})`)(); }
 // Answers that are words or times, recomputed here.
 const r100 = (n) => Math.floor(n / 100 + 0.5) * 100;
 const COINV = { q: 25, d: 10, n: 5, p: 1, b: 100 };
@@ -85,6 +110,24 @@ const TEXT = {
   centsText: (list) => `${list.reduce((t, k) => t + COINV[k], 0)}¢`,
   dataQ: () => 'How many votes were there in all?',
   maxLabel: ([cats]) => cats.reduce((a, b) => (b[1] > a[1] ? b : a))[0],
+  // ---- Grade 4–5 ----
+  expanded: ([n]) => String(n).split('').map((d, i, s) => +d * 10 ** (s.length - 1 - i)).filter((v) => v > 0).map(commas).join(' + '),
+  qr: ([a, b]) => `${commas(Math.floor(a / b))} R ${a % b}`,
+  angleType: ([d]) => (d < 90 ? 'acute' : d === 90 ? 'right' : d < 180 ? 'obtuse' : 'straight'),
+  lineKind: ([k]) => ({ point: 'point', segment: 'line segment', ray: 'ray', line: 'line', parallel: 'parallel lines', perpendicular: 'perpendicular lines', intersecting: 'intersecting lines that are not perpendicular' }[k]),
+  timesEq: ([p, k, a]) => (p === k * a ? `${p} = ${k} × ${a}` : 'not a true comparison'),
+  twoPatterns: ([ka, kb]) => `Each number in B is ${kb / ka} times the number in A.`,
+  point: ([x, y]) => `(${x}, ${y})`,
+  pointLabel: ([x, y, pts]) => pts.find((p) => p[0] === x && p[1] === y)[2],
+  deg: ([d]) => `${d}°`,
+  moneyText: ([paid, price]) => `$${((paid - price) / 100).toFixed(2)}`,
+  symYN: ([k, fold]) => (SYMMETRY[k].includes(fold) ? 'Yes' : 'No'),
+  patternFeature: ([s, k]) => {
+    const seq = [0, 1, 2, 3, 4].map((i) => s + i * k), par = seq.map((v) => v % 2);
+    if (par.every((p) => p === 1)) return 'All the numbers are odd.';
+    if (par.every((p) => p === 0)) return 'All the numbers are even.';
+    return par.every((p, i) => i === 0 || p !== par[i - 1]) ? 'The numbers go back and forth between odd and even.' : '?';
+  },
 };
 // An equation like "13 − 6 = 7": is it true, and which numbers does it use?
 function equation(e) {
@@ -198,20 +241,51 @@ function checkItem(where, q, levelStd) {
       const has = (s) => ({ quad: SIDES[s] === 4, 'square corners': ['square', 'rectangle'].includes(s), '3 sides': SIDES[s] === 3, '4 sides': SIDES[s] === 4, '5 vertices': SIDES[s] === 5, '6 sides': SIDES[s] === 6, 'no straight sides': s === 'circle' }[prop]);
       names.forEach((s, i) => { if (has(s) !== q.a.includes(i)) fail(where, q, `${s} marked wrong for "${prop}"`); });
       if (q.cells.length !== names.length) fail(where, q, 'pictures and names differ');
-    } else if (kind === 'popPlace' || kind === 'popOrder' || kind === 'popEq') {
+    } else if (kind === 'popPlace' || kind === 'popOrder' || kind === 'popEq' || kind === 'popExpanded') {
       // Try every way to fill the boxes from the tiles: the accepted fills must be exactly the correct ones.
       const k = (q.template.match(/□/g) || []).length, fills = [];
       const go = (cur, used) => { if (cur.length === k) { fills.push(cur); return; } q.tiles.forEach((t, i) => { if (!used.has(i)) go([...cur, t], new Set([...used, i])); }); };
       go([], new Set());
       const correct = (vals) => {
         if (kind === 'popPlace') return +vals[0] * 100 + +vals[1] * 10 + +vals[2] === args[0];
-        if (kind === 'popOrder') return vals.join(',') === [...args[0]].sort((a, b) => a - b).join(',');
+        if (kind === 'popOrder') return vals.map((v) => +String(v).replace(/,/g, '')).join(',') === [...args[0]].sort((a, b) => a - b).join(',');
+        if (kind === 'popExpanded') { const ns = vals.map((v) => +String(v).replace(/,/g, '')); return ns.reduce((t, v) => t + v, 0) === args[0] && ns.every((v, i) => i === 0 || v < ns[i - 1]) && ns.every((v) => /^[1-9]0*$/.test(String(v))); }
         let j = 0; const eq = q.template.replace(/□/g, () => vals[j++]); const [l, r] = eq.split(' = '); return ev(l) === ev(r);
       };
       const acc = new Set(q.accept.map((a) => a.join('|')));
       fills.forEach((f) => { if (correct(f) !== acc.has(f.join('|'))) fail(where, q, `fill ${f.join(',')} is ${correct(f) ? 'right' : 'wrong'} but marked the other way`); });
       if (!q.accept.length) fail(where, q, 'no accepted answer');
       q.accept.forEach((acc) => { const left = [...q.tiles]; acc.forEach((v) => { const i = left.indexOf(v); if (i < 0) fail(where, q, `accepted answer ${acc.join(',')} cannot be built from the tiles`); else left.splice(i, 1); }); });
+    } else if (kind === 'hotPred') {
+      const [pred, param, values] = args;
+      if (values.length !== q.cells.length) fail(where, q, 'values and cells differ');
+      values.forEach((v, i) => { if (PRED[pred](param, v) !== q.a.includes(i)) fail(where, q, `${v} is ${PRED[pred](param, v) ? '' : 'not '}${pred} ${param || ''} but marked the other way`); });
+      q.cells.forEach((cell, i) => { if (!String(cell).startsWith('<svg') && +String(cell).replace(/,/g, '') !== values[i]) fail(where, q, `cell ${cell} does not show ${values[i]}`); });
+    } else if (kind === 'multiPred') {
+      const [pred, param] = args;
+      q.opts.forEach((o) => {
+        let ok;
+        if (pred === 'gtHalf') { const v = N.parse(plain(o)); ok = v.n * 2 > v.d; }
+        else if (pred === 'fsumEq') { const sum = plain(o).split(' + ').map((t) => N.parse(t)).reduce((t, v) => R(t.n * v.d + v.n * t.d, t.d * v.d)); ok = N.eq(sum, R(param[0], param[1])); }
+        if (ok !== q.a.includes(o)) fail(where, q, `${plain(o)} is ${ok ? '' : 'not '}${pred} but marked the other way`);
+      });
+    } else if (kind === 'shapeIs') {
+      q.opts.forEach((o) => { const ok = ALWAYS[args[0]].includes(o); if (ok !== q.a.includes(o)) fail(where, q, `a ${args[0]} is ${ok ? '' : 'not '}always a ${o}, but marked the other way`); });
+    } else if (kind === 'hotTri') {
+      args[1].forEach((k, i) => { if ((k === args[0]) !== q.a.includes(i)) fail(where, q, `${k} triangle marked the wrong way`); if (!q.cells[i].includes(`a ${k} triangle`)) fail(where, q, 'picture does not match its triangle kind'); });
+    } else if (kind === 'hotSym') {
+      args[0].forEach((k, i) => { const ok = SYMMETRY[k].length > 0; if (ok !== q.a.includes(i)) fail(where, q, `${k} ${ok ? 'has' : 'has no'} line of symmetry but marked the other way`); });
+    } else if (kind === 'multipleOf') {
+      q.opts.forEach((o) => { const ok = +o % args[0] === 0; if (ok !== (o === q.a)) fail(where, q, `${o} is ${ok ? '' : 'not '}a multiple of ${args[0]} but marked the other way`); });
+    } else if (kind === 'exprWords') {
+      const [i, a, b, k, p] = args, want = [(a + b) * k, a * k + b, (a - b) * k, p / k + b][i];
+      if (ev(plain(q.a)) !== want) fail(where, q, `${plain(q.a)} does not follow the words`);
+      q.opts.filter((o) => o !== q.a).forEach((o) => { if (ev(plain(o)) === want) fail(where, q, `wrong choice ${plain(o)} has the same value as the answer`); });
+    } else if (kind === 'plotMode') {
+      const [vals, den, unit] = args, cnt = {}; vals.forEach((v) => { cnt[v] = (cnt[v] || 0) + 1; });
+      const top = Math.max(...Object.values(cnt)), mode = +Object.keys(cnt).find((v) => cnt[v] === top);
+      const got = N.parse(plain(q.a).replace(` ${unit}`, ''));
+      if (!got || !N.eq(got, R(Math.round(mode * den), den))) fail(where, q, `answer ${plain(q.a)} is not the most common value ${mode}`);
     } else if (kind === 'sidesIs') {
       q.opts.forEach((o) => { if ((SIDES[o] === args[0]) !== q.a.includes(o)) fail(where, q, `${o} has ${SIDES[o]} sides but is marked the other way`); });
     } else if (TEXT[kind]) {
@@ -222,7 +296,7 @@ function checkItem(where, q, levelStd) {
       if (q.t === 'clock' && (q.h < 1 || q.h > 12 || q.m < 0 || q.m > 59 || q.m % (q.step || 5))) fail(where, q, 'clock time cannot be set with this clock');
     } else if (COMPUTE[kind]) {
       const want = COMPUTE[kind](args);
-      const got = q.t === 'shade' || q.t === 'coins' ? R(q.a) : N.parse(String(q.a));
+      const got = q.t === 'shade' || q.t === 'coins' ? R(q.a) : N.parse(plain(String(q.a)).replace(/^\$/, ''));
       if (!want) { fail(where, q, `${kind}(${args}) is not a whole answer`); return; }
       if (!N.eq(want, got)) fail(where, q, `answer ${q.a} but ${kind}(${args}) = ${N.str(want)}`);
     } else fail(where, q, `unknown meta kind ${kind}`);

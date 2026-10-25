@@ -32,7 +32,7 @@ const norm = M.norms.fall;
 const prior = { mean: norm.mean, sd: 20 };
 const rows = [];
 let problems = 0;
-for (const theta of [150, 160, 170, 180, 190, 200, 210, 220]) {
+for (const theta of [150, 160, 170, 180, 190, 200, 210, 220, 230]) {
   let err = 0, abs = 0, inBand = 0, semSum = 0, balanceBad = 0, freshMin = 1;
   for (let k = 0; k < N; k++) {
     const used = new Set(), answers = [];

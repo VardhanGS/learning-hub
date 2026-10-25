@@ -48,6 +48,8 @@ const fixed = ['Type a number', 'Use the number keys. For a fraction like 3/4, t
 [...Voice.PRAISE, ...Object.values(Voice.LINES), ...fixed].forEach((t) => add(t, true));
 for (let n = 0; n <= 1000; n++) addOne(String(n), 'num', String(n));
 for (let n = 2000; n <= 20000; n += 1000) addOne(String(n), 'num', String(n));
+// Words that join pieces: big numbers ("45 thousand 678"), remainders, and split decimals and fractions.
+['thousand', 'million', 'remainder', 'point', 'and', 'over'].forEach((w) => add(w, true));
 
 for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
   bundle = `${k.id}-${l}`;
