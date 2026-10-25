@@ -26,7 +26,7 @@
     const n = threeDigit(0.1), place = U.pick(['hundreds', 'tens', 'ones']);
     const d = place === 'hundreds' ? Math.floor(n / 100) : place === 'tens' ? Math.floor(n / 10) % 10 : n % 10;
     const digits = String(n).split('');
-    const q = U.mcMiss(`What digit is in the ${place} place in ${n}?`, String(d), digits.filter((x) => x !== String(d)).map((x, i) => [x, `Places from the left are hundreds, tens, ones. ${x} is in a different place.`]), { meta: { kind: 'digit', args: [n, place] }, hint: 'In a three-digit number: hundreds, tens, ones from left to right.', why: `${n}: ${digits[0]} hundreds, ${digits[1]} tens, ${digits[2]} ones.` }, 3, () => String(U.int(0, 9)));
+    const q = U.mcMiss(`What digit is in the ${place} place in ${n}?`, String(d), digits.filter((x) => x !== String(d)).map((x, i) => [x, `Places from the left are hundreds, tens, ones. ${x} is in a different place.`]), { fig: Fig.placeChart([n], '', { hundreds: 0, tens: 1, ones: 2 }[place]), meta: { kind: 'digit', args: [n, place] }, hint: 'In a three-digit number: hundreds, tens, ones from left to right.', why: `${n}: ${digits[0]} hundreds, ${digits[1]} tens, ${digits[2]} ones.` }, 3, () => String(U.int(0, 9)));
     return tag(q, '2.NBT.A.1', 168, 'number');
   }
   function expanded() {
@@ -35,10 +35,10 @@
     if (U.pick([true, false])) {
       const w = [[o * 100 + t * 10 + h, 'Read the parts from the biggest place: hundreds first.'], [h * 100 + o * 10 + t, 'The tens part and the ones part are mixed up.'], [n + 10, 'Check the tens.']];
       if (t === 0) w.unshift([`${h}${o}`, 'There are 0 tens, so the tens digit is 0.']);
-      return tag(U.mcMiss(`Which number is ${parts.join(' + ')}?`, String(n), w, { meta: { kind: 'value', args: [n] }, hint: 'Hundreds + tens + ones.', why: `${parts.join(' + ')} = ${n}` }, 3, () => String(threeDigit())), '2.NBT.A.3', 178, 'number');
+      return tag(U.mcMiss(`Which number is ${parts.join(' + ')}?`, String(n), w, { fig: Fig.blocks(n), meta: { kind: 'value', args: [n] }, hint: 'Hundreds + tens + ones.', why: `${parts.join(' + ')} = ${n}` }, 3, () => String(threeDigit())), '2.NBT.A.3', 178, 'number');
     }
     // Spoken as the number itself ("three hundred six"), which reuses the recorded number clips.
-    const q = U.num(`Write the number: ${words(n)}`, n, { speak: `Write the number: ${n}`, meta: { kind: 'value', args: [n] }, hint: 'Write the hundreds digit, then tens, then ones. Use 0 for an empty place.', why: `${Math.floor(n / 100)} hundreds, ${Math.floor(n / 10) % 10} tens, ${n % 10} ones: ${n}` });
+    const q = U.num(`Write the number: ${words(n)}`, n, { speak: `Write the number: ${n}`, fig: Fig.blocks(n), meta: { kind: 'value', args: [n] }, hint: 'Write the hundreds digit, then tens, then ones. Use 0 for an empty place.', why: `${Math.floor(n / 100)} hundreds, ${Math.floor(n / 10) % 10} tens, ${n % 10} ones: ${n}` });
     q.miss = missMap([[`${h}00${t * 10 + o}`, `Do not write "100" and then the rest. ${h} hundred is just the first digit.`], [`${h}${t * 10 + o}`, t === 0 ? 'Remember the 0 in the tens place.' : 'Check each place.']], n);
     return tag(q, '2.NBT.A.3', 182, 'number');
   }
@@ -49,7 +49,7 @@
     const r = Math.round(n / to) * to;
     const other = to === 10 ? Math.round(n / 100) * 100 : Math.round(n / 10) * 10;
     const wrongWay = r > n ? r - to : r + to;
-    const q = U.num(`Round ${n} to the nearest ${to === 10 ? 'ten' : 'hundred'}.`, r, { meta: { kind: 'round', args: [n, to] }, hint: to === 10 ? `Look at the ones digit (${n % 10}). 5 or more: round up.` : `Look at the tens digit (${Math.floor(n / 10) % 10}). 5 or more: round up.`, why: `${n} is closer to ${r}${n % to === to / 2 ? ' (halfway rounds up)' : ''}.` });
+    const q = U.num(`Round ${n} to the nearest ${to === 10 ? 'ten' : 'hundred'}.`, r, { fig: Fig.roundLine(n, to), meta: { kind: 'round', args: [n, to] }, hint: to === 10 ? `Look at the ones digit (${n % 10}). 5 or more: round up.` : `Look at the tens digit (${Math.floor(n / 10) % 10}). 5 or more: round up.`, why: `${n} is closer to ${r}${n % to === to / 2 ? ' (halfway rounds up)' : ''}.` });
     q.miss = missMap([[wrongWay, `${n} is closer to ${r} than to ${wrongWay}.`], [other, `That is rounded to the nearest ${to === 10 ? 'hundred' : 'ten'}.`], [n, 'Rounding changes the number to a close, easy one.']], r);
     return tag(q, '3.NBT.A.1', 194, 'number');
   }
@@ -59,7 +59,7 @@
     const by = U.pick([5, 10, 100]);
     const start = by === 100 ? U.int(1, 5) * 100 + U.pick([0, 0, 20, 50]) : by * U.int(1, 15) + (by === 10 ? U.pick([0, 0, 3, 7]) : 0);
     const seq = [0, 1, 2, 3].map((i) => start + i * by);
-    const q = U.num(`Count by ${by}s. What comes next?\n${seq.join(', ')}, □`, start + 4 * by, { meta: { kind: 'add', args: [seq[3], by] }, hint: `Add ${by} each time.`, why: `${seq[3]} + ${by} = ${start + 4 * by}` });
+    const q = U.num(`Count by ${by}s. What comes next?\n${seq.join(', ')}, □`, start + 4 * by, { fig: Fig.jumps(start, by, 4), meta: { kind: 'add', args: [seq[3], by] }, hint: `Add ${by} each time.`, why: `${seq[3]} + ${by} = ${start + 4 * by}` });
     q.miss = missMap([[seq[3] + 1, `That counts by 1s. Count by ${by}s.`], [seq[3] + (by === 10 ? 5 : 10), `Each jump is ${by}.`]], start + 4 * by);
     return tag(q, '2.NBT.A.2', 166, 'number');
   }
@@ -71,7 +71,7 @@
     else b = threeDigit(0.15);
     if (kind !== 0 && a === b) b = a + 10 <= 999 ? a + 10 : a - 10;
     const ans = a > b ? '>' : a < b ? '<' : '=';
-    const q = U.mcFixed(`Choose the sign that makes this true.\n${a} □ ${b}`, ans, ['>', '<', '='], { meta: { kind: 'cmp', args: [a, b] }, hint: 'Compare the hundreds first. If they are the same, compare the tens, then the ones.', why: `${a} ${ans} ${b}. ${ans === '=' ? 'They are the same number.' : `${Math.max(a, b)} is greater.`}` });
+    const q = U.mcFixed(`Choose the sign that makes this true.\n${a} □ ${b}`, ans, ['>', '<', '='], { fig: Fig.placeChart([a, b]), meta: { kind: 'cmp', args: [a, b] }, hint: 'Compare the hundreds first. If they are the same, compare the tens, then the ones.', why: `${a} ${ans} ${b}. ${ans === '=' ? 'They are the same number.' : `${Math.max(a, b)} is greater.`}` });
     q.miss = { '>': 'The open side of > faces the bigger number. Which number is bigger?', '<': 'The open side of < faces the bigger number. Which number is bigger?', '=': 'Equal means exactly the same number.' };
     delete q.miss[ans];
     return tag(q, '2.NBT.A.4', 176, 'number');
@@ -81,11 +81,11 @@
     const nums = U.uniq([h * 100 + digits[0] * 10 + digits[1], h * 100 + digits[1] * 10 + digits[0], (h - 1) * 100 + 99 - U.int(0, 5), h * 100 + U.int(0, 9)]).slice(0, 4);
     if (nums.length < 3) return greatest();
     const big = Math.max(...nums);
-    return tag(U.mcMiss('Which number is the greatest?', String(big), nums.filter((n) => n !== big).map((n) => [String(n), n % 100 > big % 100 && Math.floor(n / 100) < Math.floor(big / 100) ? `${n} has bigger tens and ones, but fewer hundreds. Hundreds matter most.` : `Compare place by place: ${n} < ${big}.`]), { meta: { kind: 'max', args: nums }, hint: 'Look at the hundreds first.', why: `${big} is the greatest.` }), '2.NBT.A.4', 180, 'number');
+    return tag(U.mcMiss('Which number is the greatest?', String(big), nums.filter((n) => n !== big).map((n) => [String(n), n % 100 > big % 100 && Math.floor(n / 100) < Math.floor(big / 100) ? `${n} has bigger tens and ones, but fewer hundreds. Hundreds matter most.` : `Compare place by place: ${n} < ${big}.`]), { fig: Fig.placeChart(nums), meta: { kind: 'max', args: nums }, hint: 'Look at the hundreds first.', why: `${big} is the greatest.` }), '2.NBT.A.4', 180, 'number');
   }
   function timesTens() {
     const a = U.int(2, 9), b = U.int(1, 9) * 10;
-    const q = U.num(`${a} × ${b} = ?`, a * b, { meta: { kind: 'mul', args: [a, b] }, hint: `${a} × ${b / 10} tens = ${a * b / 10} tens.`, why: `${a} × ${b / 10} = ${a * b / 10}, so ${a} × ${b} = ${a * b / 10} tens = ${a * b}.` });
+    const q = U.num(`${a} × ${b} = ?`, a * b, { fig: Fig.tensGroups(a, b / 10), meta: { kind: 'mul', args: [a, b] }, hint: `${a} × ${b / 10} tens = ${a * b / 10} tens.`, why: `${a} × ${b / 10} = ${a * b / 10}, so ${a} × ${b} = ${a * b / 10} tens = ${a * b}.` });
     q.miss = missMap([[a * b / 10, `That is ${a} × ${b / 10}. Each ${b} is ${b / 10} tens, so the answer is in tens.`], [a + b, `That is ${a} + ${b}. Multiply.`]], a * b);
     return tag(q, '3.NBT.A.3', 196, 'number');
   }
@@ -97,11 +97,12 @@
     const q = U.mcFixed(`Is ${n} even or odd?`, ans, ['even', 'odd'], { meta: { kind: 'parity', args: [n] }, hint: 'Look at the ones digit. 0, 2, 4, 6, 8 are even.', why: `${n} ends in ${n % 10}, so it is ${ans}${n <= 20 ? `: ${n} objects ${ans === 'even' ? 'make pairs with none left over' : 'make pairs with 1 left over'}` : ''}.` });
     q.miss = { [ans === 'even' ? 'odd' : 'even']: `Check the ones digit: ${n % 10}.` };
     if (n <= 20) q.fig = Fig.array(Math.ceil(n / 2), 2).replace(/(<circle[^>]*>)(?![\s\S]*<circle)/, n % 2 ? '' : '$1');
+    else q.fig = Fig.placeChart([n], '', 2); // the ones digit decides odd or even
     return tag(q, '2.OA.C.3', 168, 'algebra');
   }
   function doubles() {
     const h = U.int(3, 10), n = 2 * h;
-    return tag(U.num(`${n} is even. ${n} = □ + □, and both boxes are the same number. What is it?`, h, { meta: { kind: 'div', args: [n, 2] }, hint: 'Split it into two equal groups.', why: `${h} + ${h} = ${n}` }), '2.OA.C.3', 174, 'algebra');
+    return tag(U.num(`${n} is even. ${n} = □ + □, and both boxes are the same number. What is it?`, h, { fig: Fig.array(2, h), meta: { kind: 'div', args: [n, 2] }, hint: 'Split it into two equal groups.', why: `${h} + ${h} = ${n}` }), '2.OA.C.3', 174, 'algebra');
   }
   function arrayTotal() {
     const r = U.int(2, 5), c = U.int(2, 5);
@@ -118,11 +119,11 @@
   function shareOrFactor() {
     const a = U.int(2, 9), b = U.int(2, 9);
     if (U.pick([true, false])) {
-      const q = U.num(`What number goes in the box?\n□ × ${a} = ${a * b}`, b, { meta: { kind: 'div', args: [a * b, a] }, hint: `Think: how many groups of ${a} make ${a * b}?`, why: `${b} × ${a} = ${a * b}` });
+      const q = U.num(`What number goes in the box?\n□ × ${a} = ${a * b}`, b, { fig: Fig.array(b, a), meta: { kind: 'div', args: [a * b, a] }, hint: `Think: how many groups of ${a} make ${a * b}?`, why: `${b} × ${a} = ${a * b}` });
       q.miss = missMap([[a * b - a, 'Find the number that multiplies, not the difference.'], [a * b * a, 'Multiply to check: the box times ' + a + ' must equal ' + a * b + '.']], b);
       return tag(q, '3.OA.A.4', 197, 'algebra');
     }
-    const q = U.num(`${a * b} stickers are shared equally into ${pl(a, 'bag')}. How many stickers go in each bag?`, b, { unit: 'stickers', meta: { kind: 'div', args: [a * b, a] }, hint: `${a * b} ÷ ${a}. Think: ${a} × ? = ${a * b}.`, why: `${a * b} ÷ ${a} = ${b}` });
+    const q = U.num(`${a * b} stickers are shared equally into ${pl(a, 'bag')}. How many stickers go in each bag?`, b, { unit: 'stickers', fig: Fig.groups(a, b, '⭐'), meta: { kind: 'div', args: [a * b, a] }, hint: `${a * b} ÷ ${a}. Think: ${a} × ? = ${a * b}.`, why: `${a * b} ÷ ${a} = ${b}` });
     q.miss = missMap([[a * b - a, 'Sharing equally means divide, not subtract.']], b);
     return tag(q, '3.OA.A.2', 195, 'algebra');
   }

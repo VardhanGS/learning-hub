@@ -718,3 +718,20 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 .ru-body { fill: color-mix(in srgb, var(--gold) 45%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
 .ru-guide { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 4; }
 .lp-x { fill: var(--c, var(--reading)); font-family: var(--f-display); font-weight: 700; }
+
+/* ten-frames, bar models, groups, place-value charts */
+.tf-a { fill: color-mix(in srgb, var(--c3) 75%, var(--surface)); stroke: var(--ink); stroke-width: 1.5; }
+.tf-b { fill: color-mix(in srgb, var(--c1) 70%, var(--surface)); stroke: var(--ink); stroke-width: 1.5; }
+.tf-x { stroke: var(--bad); stroke-width: 3.5; stroke-linecap: round; }
+.bm-whole { fill: color-mix(in srgb, var(--gold) 40%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.bm-part { stroke: var(--ink); stroke-width: 2; }
+.bm-p0 { fill: color-mix(in srgb, var(--c1) 30%, var(--surface)); } .bm-p1 { fill: color-mix(in srgb, var(--c2) 30%, var(--surface)); } .bm-p2 { fill: color-mix(in srgb, var(--c4) 30%, var(--surface)); }
+.bm-unknown { fill: var(--surface); stroke: var(--ink); stroke-width: 2; stroke-dasharray: 6 4; }
+.gp-ring { fill: color-mix(in srgb, var(--c2) 10%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.pc-head { fill: color-mix(in srgb, var(--c1) 18%, var(--surface)); stroke: var(--ink); stroke-width: 1.5; }
+.pc-cell { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.pc-hi { fill: color-mix(in srgb, var(--gold) 35%, var(--surface)); }
+.jp-arc { fill: none; stroke: var(--c, var(--reading)); stroke-width: 2.5; }
+
+.lesson-fig { margin-top: 12px; padding: 10px; border-radius: 14px; background: var(--surface); }
+.lesson-fig svg { max-height: 220px; width: auto; }

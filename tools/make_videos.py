@@ -252,6 +252,13 @@ def r_wordmath(img, sc, t, st, col, C):
         for a, op, b, res, note in rows:
             C['r'].append([chip(a, f, INK, SURFACE, outline=LINE, radius=16), text_block(op, font('display', 50), MUTED), chip(b, f, '#fff', mix(col, '#000000', 0.05), radius=16),
                            text_block('=', font('display', 50), MUTED), chip(res, f, '#fff', GOOD, radius=16), text_block(note, font('regular', 30), MUTED) if note else None])
+    if 'fig' not in C:
+        C['fig'] = None
+        if sc.get('fig'):
+            from fig_png import fig_png
+            im = fig_png(sc['fig']); k = min(760 / im.width, 230 / im.height)
+            C['fig'] = im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
+    if C['fig']: pop(img, C['fig'], W / 2, 590 - 30 - C['fig'].height / 2, st[0] + 0.4, t)
     if C['h']: pop(img, C['h'], W / 2, 145, st[0], t)
     vis = [k for k in range(len(rows)) if k + off < len(st) and t >= st[k + off]]
     first = max(0, len(vis) - 4)
@@ -335,13 +342,22 @@ def r_quiz(img, sc, t, st, col, C):
             tb = text_block(sc['passage'], font('regular', 30), INK, 980, spacing=1.35)
             c = card(tb.width + 60, tb.height + 36, fill=mix(col, SURFACE, 0.93), outline=mix(col, SURFACE, 0.6))
             c.alpha_composite(tb, (32, 20)); C['p'] = c
+        C['fig'] = None
+        if sc.get('fig'):
+            from fig_png import fig_png
+            im = fig_png(sc['fig']); k = min(620 / im.width, 165 / im.height)
+            C['fig'] = im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS)
         f = font('bold', 38)
         C['o'] = [chip(o, f, INK, SURFACE, outline=LINE, padx=28, pady=12, radius=18) for o in sc['opts']]
         C['ok'] = [chip('✓ ' + o, f, '#fff', GOOD, padx=28, pady=12, radius=18) for o in sc['opts']]
     pop(img, C['tag'], W / 2, 140, st[ia], t)
     qy = 215 if C['p'] else 240
-    pop(img, C['q'], W / 2, qy + C['q'].height / 2 - 20, st[ia] + 0.15, t)
+    pop(img, C['q'], W / 2, (qy if not C['fig'] else 205) + C['q'].height / 2 - 20, st[ia] + 0.15, t)
     oy = 470
+    if C['fig']:
+        qy = 190
+        pop(img, C['fig'], W / 2, 250 + C['fig'].height / 2 + max(0, C['q'].height - 60), st[ia] + 0.3, t)
+        oy = 548
     if C['p']: pop(img, C['p'], W / 2, qy + C['q'].height + C['p'].height / 2, st[ia] + 0.3, t); oy = min(545, qy + C['q'].height + C['p'].height + 50)
     n = len(sc['opts']); gap = 30
     ws = [o.width for o in C['o']]
@@ -652,7 +668,7 @@ if __name__ == '__main__':
     for v in VIDEOS:
         if only and v['id'] not in only: continue
         for sc in v['scenes']:
-            for e in sc.get('figs', []): fig_png(e)
+            for e in sc.get('figs', []) + ([sc['fig']] if sc.get('fig') else []): fig_png(e)
     with tempfile.TemporaryDirectory() as tmp:
         for v in VIDEOS:
             if only and v['id'] not in only: continue
