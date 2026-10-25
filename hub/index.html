@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2b5fd0">
+  <title>Learning Hub</title>
+  <link rel="icon" href="hub-icons/icon-192.png">
+  <link rel="apple-touch-icon" href="hub-icons/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap">
+  <style>
+    :root { --paper: #f5f8fd; --surface: #fff; --ink: #1d2640; --muted: #5b6684; --line: #dfe6f2;
+      --c1: #2b5fd0; --c2: #1f8f4e; --c3: #dc6a12; --c4: #c42f69; --c5: #0d8585; --c6: #6a4fd0; color-scheme: light; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #141b2b; --surface: #1d2638; --ink: #eef2fa; --muted: #a6b0c8; --line: #2d3850;
+      --c1: #79a0ff; --c2: #52c985; --c3: #ff9a48; --c4: #f2709f; --c5: #3cc9c9; --c6: #a58cff; color-scheme: dark; } }
+    :root[data-theme="dark"] { --paper: #141b2b; --surface: #1d2638; --ink: #eef2fa; --muted: #a6b0c8; --line: #2d3850;
+      --c1: #79a0ff; --c2: #52c985; --c3: #ff9a48; --c4: #f2709f; --c5: #3cc9c9; --c6: #a58cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Andika", system-ui, sans-serif; font-size: 17px; line-height: 1.5; }
+    main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1, h2 { font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; margin: 0; line-height: 1.2; }
+    h1 { font-size: 2.1rem; }
+    .lead { color: var(--muted); margin: 6px 0 22px; max-width: 60ch; }
+    h2 { font-size: 1.2rem; margin: 26px 0 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+    .app { display: flex; gap: 14px; align-items: center; padding: 14px; border-radius: 18px; background: var(--surface);
+      border: 2px solid var(--line); color: inherit; text-decoration: none; min-width: 0; }
+    a.app:hover { border-color: var(--c); transform: translateY(-1px); }
+    .app .ic { flex: none; width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; font-size: 1.8rem;
+      background: color-mix(in srgb, var(--c) 16%, var(--surface)); }
+    .app b { font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 1.1rem; display: block; color: var(--c); }
+    .app small { color: var(--muted); display: block; }
+    .app.soon { opacity: 0.6; }
+    .tag { font-size: 0.75rem; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--muted); margin-left: 4px; white-space: nowrap; }
+    .fine { color: var(--muted); font-size: 0.85rem; margin-top: 28px; max-width: 70ch; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🧭 Learning Hub</h1>
+  <p class="lead">Math, reading, and test-practice apps for our family. Each app installs on its own: open it, then use "Add to Home Screen". One class code and one PIN per child work in every app.</p>
+  <div id="list"></div>
+  <p class="fine">MAP Growth–style practice apps are unofficial. They are not made by or affiliated with NWEA, and the scores they show are practice estimates, not RIT scores.
+    SAT® is a trademark of the College Board, which is not affiliated with this app. All passages and questions are original.</p>
+</main>
+<script>
+  // live: true once the app is built and published.
+  const APPS = [
+    { kid: '2nd grade', id: 'mathquest2', name: 'Math Quest 2', icon: '🔢', c: 'c2', blurb: 'Grade 2 math with a Grade 3 level-up', live: false },
+    { kid: '2nd grade', id: 'mapmath2', name: 'MAP Math 2', icon: '📈', c: 'c1', blurb: 'MAP Growth–style practice: Math 2–5', live: false },
+    { kid: '2nd grade', id: 'mapread2', name: 'MAP Reading 2', icon: '📖', c: 'c4', blurb: 'MAP Growth–style practice: Reading 2–5', live: false },
+    { kid: '4th grade', id: 'mapmath4', name: 'MAP Math 4', icon: '📐', c: 'c3', blurb: 'Grade 4 math with a Grade 5 level-up, MAP-style', live: false },
+    { kid: '4th grade', id: 'mapread4', name: 'MAP Reading 4', icon: '📚', c: 'c5', blurb: 'MAP Growth–style practice: Reading 2–5', live: false },
+    { kid: '8th grade', id: 'algebra1', name: 'Algebra 1 Quest', icon: '✖️', c: 'c6', blurb: 'The full Algebra 1 course, with Geometry and Algebra 2 previews', live: false },
+    { kid: '8th grade', id: 'mapalg1', name: 'MAP Algebra 1', icon: '📊', c: 'c1', blurb: 'MAP Growth–style practice: Algebra 1 course test', live: false },
+    { kid: '8th grade', id: 'mapread8', name: 'MAP Reading 8', icon: '🔍', c: 'c4', blurb: 'MAP Growth–style practice: Reading 6+', live: false },
+    { kid: '8th grade', id: 'satprep', name: 'SAT Prep', icon: '🎯', c: 'c3', blurb: 'Digital SAT practice: Reading & Writing and Math', live: false },
+    { kid: 'Grown-ups', id: 'hubdemo', name: 'Hub Demo', icon: '🧪', c: 'c6', blurb: 'Engine demo: keypad, number line, fractions', live: true },
+  ];
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const groups = [...new Set(APPS.map((a) => a.kid))];
+  document.getElementById('list').innerHTML = groups.map((g) => `<h2>${esc(g)}</h2><div class="grid">${APPS.filter((a) => a.kid === g).map((a) =>
+    a.live ? `<a class="app" href="./${a.id}/" style="--c:var(--${a.c})"><span class="ic">${a.icon}</span><span><b>${esc(a.name)}</b><small>${esc(a.blurb)}</small></span></a>`
+           : `<div class="app soon" style="--c:var(--${a.c})"><span class="ic">${a.icon}</span><span><b>${esc(a.name)} <span class="tag">coming soon</span></b><small>${esc(a.blurb)}</small></span></div>`).join('')}</div>`).join('');
+</script>
+</body>
+</html>

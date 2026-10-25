@@ -1,0 +1,8 @@
+tools/.voice-cache/
+tools/.venv
+tools/tts-models
+apps/*/.speech-lines.json
+dist/_test/
+__pycache__/
+.DS_Store
+dist/
