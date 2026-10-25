@@ -20,7 +20,7 @@ vm.createContext(ctx);
 const load = (f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
 load(`apps/${appId}/config.js`);
 vm.runInContext('var APP = window.APP;', ctx);
-['core/speech.js', 'core/voice.js', 'core/U.js', 'core/engine/fig.js'].forEach(load);
+['core/speech.js', 'core/voice.js', 'core/U.js', 'core/engine/fig.js', 'core/engine/alg.js'].forEach(load);
 for (const f of ctx.APP.data) load(f.startsWith('elaquest:') ? `../ELAQuest/data/${f.split(':')[1]}` : f.includes(':') ? `apps/${f.split(':')[0]}/data/${f.split(':')[1]}` : `apps/${appId}/data/${f}`);
 vm.runInContext('this.Voice = Voice; this.MathText = MathText; this.SUBJECTS = SUBJECTS; this.LESSONS = typeof LESSONS === "undefined" ? {} : LESSONS;', ctx);
 const { Voice, MathText, SUBJECTS, LESSONS } = ctx;
@@ -60,7 +60,7 @@ for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
   const seen = new Map();
   const note = (p) => { const part = typeof p === 'string' ? { text: p } : p; if (part.text) seen.set(Voice.keyOf(part.text, part.kind || ''), part); };
   let stale = 0;
-  for (let r = 0; r < RUNS && stale < 120; r++) {
+  for (let r = 0; r < RUNS && stale < Math.max(120, RUNS / 4); r++) {
     const before = seen.size;
     for (const q of L.gen({})) {
       Voice.build.question(q).forEach(note);

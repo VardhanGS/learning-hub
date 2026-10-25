@@ -17,7 +17,7 @@ const dataPath = (f) => (f.startsWith('elaquest:') ? `../ELAQuest/data/${f.split
 const load = (f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
 load(`apps/${appId}/config.js`);
 vm.runInContext('var APP = window.APP;', ctx);
-['core/speech.js', 'core/U.js', 'core/engine/fig.js', 'core/modes/map-core.js'].forEach(load);
+['core/speech.js', 'core/U.js', 'core/engine/fig.js', 'core/engine/alg.js', 'core/modes/map-core.js'].forEach(load);
 for (const f of ctx.APP.data) load(dataPath(f));
 vm.runInContext('this.U = U; this.MapCore = MapCore; this.MAPBANK = typeof MAPBANK === "undefined" ? null : MAPBANK;', ctx);
 const { U, MapCore, MAPBANK, APP } = ctx;

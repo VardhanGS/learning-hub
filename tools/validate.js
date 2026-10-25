@@ -21,11 +21,12 @@ vm.createContext(ctx);
 const load = (f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
 load(`apps/${appId}/config.js`);
 vm.runInContext('var APP = window.APP;', ctx);
-['core/speech.js', 'core/U.js', 'core/engine/fig.js'].forEach(load);
+['core/speech.js', 'core/U.js', 'core/engine/fig.js', 'core/engine/alg.js'].forEach(load);
 const dataPath = (f) => (f.startsWith('elaquest:') ? `../ELAQuest/data/${f.split(':')[1]}` : f.includes(':') ? `apps/${f.split(':')[0]}/data/${f.split(':')[1]}` : `apps/${appId}/data/${f}`);
 for (const f of ctx.APP.data) load(dataPath(f));
 vm.runInContext('this.MAPBANK = typeof MAPBANK === "undefined" ? null : MAPBANK; this.U = U; this.SUBJECTS = SUBJECTS; this.N = N; this.MathText = MathText; this.LESSONS = typeof LESSONS === "undefined" ? {} : LESSONS;', ctx);
-const { SUBJECTS, N, MathText, LESSONS, MAPBANK } = ctx;
+vm.runInContext('this.Alg = Alg;', ctx);
+const { SUBJECTS, N, MathText, LESSONS, MAPBANK, Alg } = ctx;
 
 // ---- independent answer computation ----
 const R = (n, d = 1) => N.make(n, d);
@@ -89,6 +90,7 @@ const r100 = (n) => Math.floor(n / 100 + 0.5) * 100;
 const COINV = { q: 25, d: 10, n: 5, p: 1, b: 100 };
 const SIDES = { triangle: 3, square: 4, rectangle: 4, rhombus: 4, trapezoid: 4, parallelogram: 4, pentagon: 5, hexagon: 6, octagon: 8, circle: 0 };
 const hm = (h, m) => `${h}:${String(m).padStart(2, '0')}`;
+const neg = (v) => String(v).replace(/-(?=\d)/g, '−');
 const TEXT = {
   digit: ([n, place]) => String(n).padStart(3, '0')[{ hundreds: 0, tens: 1, ones: 2 }[place]],
   cmp: ([a, b]) => (a > b ? '>' : a < b ? '<' : '='),
@@ -110,6 +112,33 @@ const TEXT = {
   centsText: (list) => `${list.reduce((t, k) => t + COINV[k], 0)}¢`,
   dataQ: () => 'How many votes were there in all?',
   maxLabel: ([cats]) => cats.reduce((a, b) => (b[1] > a[1] ? b : a))[0],
+  // ---- Algebra 1 ----
+  numClass: ([n]) => { const s = String(n).replace('−', '-'); if (s === 'π') return 'irrational'; const r = s.match(/^√(\d+)$/); if (r) return Number.isInteger(Math.sqrt(+r[1])) ? 'integer' : 'irrational'; if (/…$/.test(s)) return 'rational, not an integer'; const v = N.parse(s); return v && v.d === 1 ? 'integer' : 'rational, not an integer'; },
+  iPow: ([n]) => ['1', 'i', '−1', '−i'][n % 4],
+  complexOp: ([a, b, op, c, d]) => { const re = op === '+' ? a + c : a - c, im = op === '+' ? b + d : b - d; return `${re < 0 ? '−' + -re : re} ${im < 0 ? '−' : '+'} ${Math.abs(im)}i`; },
+  ineqSol: ([a, b, op, c]) => { const x = (c - b) / a, FL = { '<': '>', '>': '<', '≤': '≥', '≥': '≤' }; return `x ${a < 0 ? FL[op] : op} ${neg(x)}`; },
+  absIneq: ([c, r]) => `${neg(c - r)} < x < ${neg(c + r)}`,
+  sysSol: ([a1, b1, c1, a2, b2, c2]) => { const D = a1 * b2 - a2 * b1; return `(${neg((c1 * b2 - c2 * b1) / D)}, ${neg((a1 * c2 - a2 * c1) / D)})`; },
+  sysSol1: ([a1, b1, c1, a2, b2, c2]) => String((c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1)),
+  sysCheck: ([S, [x, y]]) => (S.a1 * x + S.b1 * y === S.c1 && S.a2 * x + S.b2 * y === S.c2 ? 'Yes, it makes both equations true.' : 'No, it does not make both equations true.'),
+  discCount: ([a, b, c]) => { const D = b * b - 4 * a * c; return D > 0 ? 'two real solutions' : D === 0 ? 'one real solution' : 'no real solutions'; },
+  isFunc: ([pairs]) => (pairs.every(([x, y]) => pairs.every(([u, v]) => u !== x || v === y)) ? 'Yes, each input has exactly one output.' : 'No, an input has two different outputs.'),
+  isFuncGraph: ([k]) => (k === 'v' ? 'No, a vertical line crosses it more than once.' : 'Yes, it passes the vertical line test.'),
+  domRange: ([pairs, which]) => `{${[...new Set(pairs.map((p) => p[which === 'domain' ? 0 : 1]))].sort((a, b) => a - b).map(neg).join(', ')}}`,
+  perpSlope: ([p, d, kind]) => { const n = kind === 'parallel' ? p : -d, dd = kind === 'parallel' ? d : p, g = N.make(n, dd); return g.d === 1 ? String(g.n) : `${g.n}/${g.d}`; },
+  tableType: ([ys]) => { const d = ys.slice(1).map((y, i) => y - ys[i]), r = ys.slice(1).map((y, i) => y / ys[i]); return d.every((v) => v === d[0]) ? 'linear' : r.every((v) => v === r[0]) ? 'exponential' : 'neither'; },
+  growthRate: ([b]) => (b > 1 ? `growth of ${Math.round((b - 1) * 100)}% each year` : `decay of ${Math.round((1 - b) * 100)}% each year`),
+  expSolve: ([b, v]) => { for (let x = 0; x < 20; x++) if (b ** x === v) return String(x); return '?'; },
+  vertex: ([h, k]) => `(${neg(h)}, ${neg(k)})`,
+  axisSym: ([a, b]) => String(-b / (2 * a)),
+  shift: ([h, k]) => `${h > 0 ? 'right' : 'left'} ${Math.abs(h)} and ${k > 0 ? 'up' : 'down'} ${Math.abs(k)}`,
+  seqNext: ([t]) => { const d = t[1] - t[0], r = t[1] / t[0]; if (t.every((v, i) => !i || v - t[i - 1] === d)) return String(t[t.length - 1] + d); if (t.every((v, i) => !i || v / t[i - 1] === r)) return String(t[t.length - 1] * r); return '?'; },
+  mean: ([xs]) => String(xs.reduce((a, b) => a + b, 0) / xs.length),
+  median: ([xs]) => { const s = xs.slice().sort((a, b) => a - b), n = s.length; return String(n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2); },
+  iqr: ([xs]) => { const s = xs.slice().sort((a, b) => a - b), n = s.length, med = (a) => (a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2); return String(med(s.slice(Math.ceil(n / 2))) - med(s.slice(0, Math.floor(n / 2)))); },
+  outlierMore: ([xs, big]) => { const mean = (a) => a.reduce((p, q) => p + q, 0) / a.length, med = (a) => { const s = a.slice().sort((p, q) => p - q), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; }; const dm = Math.abs(mean([...xs, big]) - mean(xs)), dd = Math.abs(med([...xs, big]) - med(xs)); return dm > dd ? 'the mean' : dd > dm ? 'the median' : 'they change by the same amount'; },
+  corrSign: ([pts]) => { const mx = pts.reduce((a, p) => a + p[0], 0) / pts.length, my = pts.reduce((a, p) => a + p[1], 0) / pts.length; let sxy = 0, sx = 0, sy = 0; pts.forEach(([x, y]) => { sxy += (x - mx) * (y - my); sx += (x - mx) ** 2; sy += (y - my) ** 2; }); const r = sx && sy ? sxy / Math.sqrt(sx * sy) : 0; return r > 0.6 ? 'positive correlation' : r < -0.6 ? 'negative correlation' : Math.abs(r) < 0.3 ? 'no clear correlation' : 'unclear'; },
+  radSimp: ([n]) => { let s = 1; for (let k = 2; k * k <= n; k++) if (n % (k * k) === 0) s = k; return `${s}√${n / (s * s)}`; },
   // ---- Grade 4–5 ----
   expanded: ([n]) => String(n).split('').map((d, i, s) => +d * 10 ** (s.length - 1 - i)).filter((v) => v > 0).map(commas).join(' + '),
   qr: ([a, b]) => `${commas(Math.floor(a / b))} R ${a % b}`,
@@ -167,7 +196,7 @@ let noFig = 0;
 const lenStats = { n: 0, longest: 0 };
 function checkItem(where, q, levelStd) {
   types[q.t] = (types[q.t] || 0) + 1;
-  if (!q.fig && !(q.passage && q.passage.fig) && !['line', 'shade', 'clock', 'coins', 'hot'].includes(q.t) && !(q.t === 'hot')) noFig++;
+  if (!q.fig && !(q.passage && q.passage.fig) && !['line', 'shade', 'clock', 'coins', 'hot', 'plot'].includes(q.t) && !(q.t === 'hot')) noFig++;
   if (q.passage && (!q.passage.title || !q.passage.text || q.passage.text.length < 20)) fail(where, q, 'passage without a title or text');
   // answer-length bias: is the right answer the single longest choice?
   // counted only when the right answer is VISIBLY longest: at least 20% and 8 characters longer than every wrong choice
@@ -175,7 +204,7 @@ function checkItem(where, q, levelStd) {
   if (!q.q || typeof q.q !== 'string') fail(where, q, 'missing prompt');
   if (!levelStd) fail(where, q, 'level has no standard code');
   if (!MathText.spoken(q.q)) fail(where, q, 'prompt has nothing to say aloud');
-  const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins', 'hot', 'pop'].includes(q.t) || (q.t === 'mc' && q.meta);
+  const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins', 'hot', 'pop', 'expr', 'plot'].includes(q.t) || (q.t === 'mc' && q.meta);
   if (math && !q.meta) fail(where, q, 'math item without meta (answer cannot be recomputed)');
 
   if (q.t === 'mc' || q.t === 'multi') {
@@ -197,6 +226,19 @@ function checkItem(where, q, levelStd) {
     if (!N.parse(q.a)) fail(where, q, `answer ${q.a} is not a number`);
     if (!keysAllow(q).test(q.a)) fail(where, q, `answer ${q.a} cannot be typed on this keypad`);
     if (q.miss) Object.keys(q.miss).forEach((m) => { if (N.eq(N.parse(m), N.parse(q.a))) fail(where, q, 'misconception note attached to the answer'); });
+  }
+  if (q.t === 'expr') {
+    if (!Alg.tryParse(q.a)) fail(where, q, `answer ${q.a} cannot be parsed`);
+    if (q.form && !Alg.formOk(q.a, q.form)) fail(where, q, `answer ${q.a} is not written ${q.form}`);
+    if (q.gcf && Math.abs(Alg.leadNum(q.a)) !== q.gcf) fail(where, q, `answer ${q.a} does not take out the common factor ${q.gcf}`);
+    const typeable = new RegExp(`^[0-9.+\\-*/^()${q.vars || 'x'}${q.sqrt ? 'r' : ''} ]+$`);
+    if (!typeable.test(Alg.clean(q.a))) fail(where, q, `answer ${q.a} cannot be typed on this keypad`);
+    if (q.miss) Object.keys(q.miss).forEach((m) => { if (Alg.equiv(m, q.a)) fail(where, q, 'misconception note is equivalent to the answer'); });
+  }
+  if (q.t === 'plot') {
+    const [lo, hi] = q.range || [-6, 6], P = q.plot;
+    if (P.kind === 'points') { if (P.pts.length !== (q.n || 1)) fail(where, q, 'number of points differs from n'); P.pts.forEach(([x, y]) => { if (x < lo || x > hi || y < lo || y > hi || !Number.isInteger(x) || !Number.isInteger(y)) fail(where, q, `point (${x}, ${y}) is not on the grid`); }); }
+    else if (P.kind === 'line') { let k = 0; for (let x = lo; x <= hi; x++) { const y = P.m * x + P.b; if (Math.abs(y - Math.round(y)) < 1e-9 && y >= lo && y <= hi) k++; } if (k < 2) fail(where, q, 'the line has fewer than 2 grid points to tap'); if (q.n !== 2) fail(where, q, 'a line needs n = 2'); }
   }
   if (q.t === 'line') {
     if (lineIndex(q, q.a) < 0) fail(where, q, `answer ${q.a} is not on a point of the line ${q.min}..${q.max}`);
@@ -271,6 +313,7 @@ function checkItem(where, q, levelStd) {
       q.opts.forEach((o) => {
         let ok;
         if (pred === 'gtHalf') { const v = N.parse(plain(o)); ok = v.n * 2 > v.d; }
+        else if (pred === 'irrational') { const m = o.match(/^√(\d+)$/); ok = o === 'π' || (!!m && !Number.isInteger(Math.sqrt(+m[1]))); }
         else if (pred === 'fsumEq') { const sum = plain(o).split(' + ').map((t) => N.parse(t)).reduce((t, v) => R(t.n * v.d + v.n * t.d, t.d * v.d)); ok = N.eq(sum, R(param[0], param[1])); }
         if (ok !== q.a.includes(o)) fail(where, q, `${plain(o)} is ${ok ? '' : 'not '}${pred} but marked the other way`);
       });
@@ -304,6 +347,64 @@ function checkItem(where, q, levelStd) {
     } else if (kind === 'popSeq') {
       if (q.accept.length !== 1 || q.accept[0].join('|') !== args[0].join('|')) fail(where, q, 'accepted order differs from the events');
       if (new Set(q.tiles).size !== q.tiles.length) fail(where, q, 'two event tiles are the same');
+    } else if (kind === 'algEquiv') {
+      // the answer must equal the question's own expression (e.g. simplify 2(x+3) + x → 3x + 6)
+      if (!Alg.equiv(q.t === 'mc' ? plain(q.a).replace(/\s+/g, '') : q.a, args[0])) fail(where, q, `answer ${q.a} is not equivalent to ${args[0]}`);
+      if (q.t === 'mc') q.opts.filter((o) => o !== q.a).forEach((o) => { if (Alg.equiv(plain(o).replace(/\s+/g, ''), args[0])) fail(where, q, `wrong choice ${plain(o)} is also equivalent`); });
+    } else if (kind === 'solveLin') {
+      // solve lhs = rhs for x by evaluating: f(x) = lhs − rhs is linear, so x = −f(0) / (f(1) − f(0))
+      const f = (x) => Alg.evalAt(Alg.parse(args[0]), { x }) - Alg.evalAt(Alg.parse(args[1]), { x });
+      const root = -f(0) / (f(1) - f(0)), got = N.parse(plain(String(q.a)).replace(/^x\s*=\s*/, ''));
+      if (!got || Math.abs(got.n / got.d - root) > 1e-9) fail(where, q, `answer ${q.a} but ${args[0]} = ${args[1]} gives x = ${root}`);
+      if (Math.abs(f(root)) > 1e-9) fail(where, q, 'the equation is not linear');
+    } else if (kind === 'roots') {
+      // every listed root makes the expression zero, and the count matches the degree's real roots
+      const t = Alg.parse(args[0]), want = q.t === 'mc' ? plain(q.a).split(/,\s*|\s+and\s+|x\s*=\s*/).filter((x) => x.trim() !== '') : [String(q.a)];
+      want.map((w) => N.parse(w.trim())).forEach((v) => { if (!v || Math.abs(Alg.evalAt(t, { x: v.n / v.d })) > 1e-7) fail(where, q, `${q.a} is not a root of ${args[0]}`); });
+    } else if (kind === 'inverse') {
+      // g is the inverse of f when f(g(x)) = x for every x
+      const comp = args[0].replace(/x/g, `(${q.a})`);
+      if (!Alg.equiv(comp, 'x')) fail(where, q, `${q.a} is not the inverse of ${args[0]}`);
+    } else if (kind === 'lineThru') {
+      // the answer line goes through both points (and is a line: same rise for each step)
+      const e = Alg.parse(plain(q.a).replace(/^y\s*=\s*/, '')), [x1, y1, x2, y2] = args, at = (x) => Alg.evalAt(e, { x });
+      if (Math.abs(at(x1) - y1) > 1e-9 || Math.abs(at(x2) - y2) > 1e-9) fail(where, q, `${q.a} misses (${x1}, ${y1}) or (${x2}, ${y2})`);
+      if (Math.abs(at(2) - 2 * at(1) + at(0)) > 1e-9) fail(where, q, `${q.a} is not a line`);
+      if (q.t === 'mc') q.opts.filter((o) => o !== q.a).forEach((o) => { const w = Alg.parse(plain(o).replace(/^y\s*=\s*/, '')); if (Math.abs(Alg.evalAt(w, { x: x1 }) - y1) < 1e-9 && Math.abs(Alg.evalAt(w, { x: x2 }) - y2) < 1e-9) fail(where, q, `wrong choice ${o} also fits`); });
+    } else if (kind === 'seqFormula') {
+      // the formula gives every listed term for n = 1, 2, 3, …
+      const e = Alg.parse(q.a);
+      args[0].forEach((v, i) => { if (Math.abs(Alg.evalAt(e, { n: i + 1 }) - v) > 1e-9) fail(where, q, `${q.a} gives ${Alg.evalAt(e, { n: i + 1 })} for n = ${i + 1}, not ${v}`); });
+    } else if (kind === 'literalSolve') {
+      // put the answer back in for the target letter: both sides must then agree for every value of the other letters
+      const [qq] = args, target = qq.match(/for (\w)\.$/)[1], [L, Rt] = qq.replace(/^Solve /, '').replace(/ for \w\.$/, '').split('=');
+      const sub = (side) => side.replace(new RegExp(target, 'g'), `(${q.a})`);
+      if (!Alg.equiv(sub(L), sub(Rt))) fail(where, q, `${target} = ${q.a} does not solve ${qq}`);
+      if (q.a.includes(target)) fail(where, q, 'the answer still uses the letter being solved for');
+    } else if (kind === 'ineq2') {
+      // the answer point satisfies y op mx + b; every other choice does not
+      const [m, b, op] = args, ok = (o) => { const [x, y] = plain(o).replace(/[()]/g, '').split(',').map((t) => N.parse(t)).map((v) => v.n / v.d); return op === '>' ? y > m * x + b : y < m * x + b; };
+      if (!ok(q.a)) fail(where, q, `${q.a} is not in the region`);
+      q.opts.filter((o) => o !== q.a).forEach((o) => { if (ok(o)) fail(where, q, `wrong choice ${o} is also in the region`); });
+    } else if (kind === 'quadForm') {
+      // read "x = h ± k√r": both values must be roots of ax² + bx + c; no wrong choice may give the roots
+      const [a, b, c] = args, roots = (o) => { const m = plain(o).replace(/−/g, '-').match(/^x = (-?[\d.]+) ± (?:(\d+)\/(\d+)|(\d*))√(\d+)$/); if (!m) return null; const k = m[2] ? m[2] / m[3] : m[4] === '' ? 1 : +m[4], h = +m[1], s = k * Math.sqrt(+m[5]); return [h + s, h - s]; };
+      const isRoot = (r) => Math.abs(a * r * r + b * r + c) < 1e-7, A = roots(q.a);
+      if (!A || !A.every(isRoot)) fail(where, q, `${q.a} does not solve the equation`);
+      q.opts.filter((o) => o !== q.a).forEach((o) => { const W = roots(o); if (W && W.every(isRoot)) fail(where, q, `wrong choice ${o} also solves it`); });
+    } else if (kind === 'evalAt') {
+      const v = Alg.evalAt(Alg.parse(args[0]), args[1]), got = N.parse(plain(String(q.a)));
+      if (!got || Math.abs(got.n / got.d - v) > 1e-9) fail(where, q, `answer ${q.a} but ${args[0]} at ${JSON.stringify(args[1])} = ${v}`);
+    } else if (kind === 'slope') {
+      const [x1, y1, x2, y2] = args, got = N.parse(plain(String(q.a)));
+      if (!got || !N.eq(got, R(y2 - y1, x2 - x1))) fail(where, q, `slope is ${(y2 - y1)}/${(x2 - x1)}, not ${q.a}`);
+    } else if (kind === 'plotLine') {
+      // args: the equation as text ("y = 2x - 3"): read m and b by evaluating its right side at x = 0 and x = 1
+      const rhs = typeof args[0] === 'string' ? Alg.parse(args[0].replace(/^y\s*=/, '')) : null, b = rhs ? Alg.evalAt(rhs, { x: 0 }) : args[1], m = rhs ? Alg.evalAt(rhs, { x: 1 }) - b : args[0];
+      if (q.plot.kind !== 'line' || Math.abs(q.plot.m - m) > 1e-12 || Math.abs(q.plot.b - b) > 1e-12) fail(where, q, 'plotted line differs from the equation');
+    } else if (kind === 'plotPoints') {
+      const want = args[0].map((p) => p.join(',')).sort().join('|'), got = q.plot.pts.map((p) => p.join(',')).sort().join('|');
+      if (want !== got) fail(where, q, 'plotted points differ from the answer');
     } else if (kind === 'sidesIs') {
       q.opts.forEach((o) => { if ((SIDES[o] === args[0]) !== q.a.includes(o)) fail(where, q, `${o} has ${SIDES[o]} sides but is marked the other way`); });
     } else if (TEXT[kind]) {

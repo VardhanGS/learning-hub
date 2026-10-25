@@ -127,8 +127,8 @@ leave it empty; delete only the specific temporary student ids you create.
 
 ## Status at the end of the old session (2026-10-25)
 
-Phase 5 DONE and PUBLISHED: mapread2, mapread4, mapread8 (with the shared core fixes). Live check passed (sw cache
-names match, gh-pages == dist). Nothing is running. Next: Phase 6 (Algebra 1 Quest) — ask before publishing.
+Phase 6 DONE: Algebra 1 Quest (published if the live check below says so). Next: Phase 7 (MAP Algebra 1) — ask
+before publishing anything new.
 
 ## PENDING — next steps, in order
 
@@ -158,8 +158,24 @@ names match, gh-pages == dist). Nothing is running. Next: Phase 6 (Algebra 1 Que
      coverage), 16 videos (R2, R4), R8 voice+7 videos rendering in background at time of writing.
    - Not verified: item-format mix of real MAP Reading (no NWEA source found); RIT tags are hand-set estimates;
      nobody has listened to the reading voices or watched the reading videos end to end.
-4. Phase 6: Algebra 1 Quest (full course; level-up = Geometry/Algebra 2 previews; expression entry checked by random
-   evaluation, coordinate-grid plotting) — voice `g8`, `speech.frac: 'over'`.
+4. Phase 6: Algebra 1 Quest — DONE 2026-10-25 (apps/algebra1; see "Phase 6 details" below).
+   - 15 skills × 3 levels (Algebra 1 Starter, Algebra 1 Star, Challenge = Geometry/Algebra 2 preview) in 3 subjects
+     (Real Numbers; Expressions, Equations, and Inequalities; Patterns, Functions, and Graphing), 45 lessons with
+     pictures, 8 videos, g8 voice (2,554 clips; voicecheck: every line of 492k recorded), speech.frac 'over'.
+   - New engine: core/engine/alg.js (safe parser, implicit ×, equiv at random points + whole-number fallback for
+     things like (−2)^(n−1), form expanded/factored/monomial, leadNum for "greatest common factor"), question types
+     `expr` (algebra keypad, q.form, q.gcf, q.pre, q.vars) and `plot` (tap points / two points of a line), Fig.graph
+     (clip path, fs/lw for answer choices, aspect capped 0.62–1.1) and Fig.ineqLine. Fig.table now widens columns /
+     wraps long cells (old tables that fit are unchanged). Speech: log base, "sub n", absolute value, negatives.
+   - Tests: validate 10k and 150k ✓; mutation 26/26 planted bugs caught (+ a control that exposed a real outlier bug,
+     fixed); demo-solves 14,400/14,400; play-through 1,440 q at 375px; light/dark phone shots; table-overflow check
+     on all algebra1 + mapmath4 figures; other apps re-validated and re-played (mathquest2, mapmath2, mapmath4,
+     mapread8) and voicechecked after the shared changes.
+   - Standards codes checked against nj.gov 2023 HS pages (algebra, functions, numquant, statistics, geometry; codes
+     are inferred from cluster letter + item number, the pages do not print them). NJ has NO N.RN.B.3 and no
+     8.NS.A.3; 8.EE.C.8 is systems — those were removed.
+   - Not verified: nobody has used the keypad/plot on a real phone or tablet, listened to the g8 algebra voice, or
+     watched the 8 videos end to end. RIT tags are hand-set (used in Phase 7).
 5. Phase 7: MAP Algebra 1 (+ prerequisite review; course-specific goal areas above; not grade-normed — the 2022
    course norms are not grade-specific).
 6. Phase 8: SAT Prep (verify College Board facts first).

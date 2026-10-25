@@ -33,6 +33,12 @@
     if (q.t === 'tap') st.sel = [q.words.findIndex((_, i) => !q.a.includes(i))];
     if (q.t === 'order' || q.t === 'build') st.picked = [];
     if (q.t === 'type' || q.t === 'spell') st.typed = 'zzzz';
+    if (q.t === 'expr') st.typed = `${q.a}+1`;
+    if (q.t === 'plot') {
+      const [lo] = q.range || [-6, 6], P = q.plot;
+      const bad = [[lo, lo], [lo + 1, lo], [lo, lo + 1]].filter(([x, y]) => !(P.kind === 'points' ? P.pts.some(([a, b]) => a === x && b === y) : P.kind === 'vline' ? x === P.x : Math.abs(y - (P.m * x + P.b)) < 1e-9));
+      st.sel = bad.slice(0, q.n || 1).map(([x, y]) => `${x},${y}`);
+    }
     return st;
   }
   // The controls each question type must show.

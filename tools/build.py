@@ -18,7 +18,7 @@ KATEX_FONTS = ('AMS-Regular Caligraphic-Bold Caligraphic-Regular Fraktur-Bold Fr
                'Script-Regular Size1-Regular Size2-Regular Size3-Regular Size4-Regular Typewriter-Regular').split()
 
 # Core scripts in load order. data/voice-clips.js and the app's data files are slotted in by build().
-CORE_JS = ['core/sound.js', 'core/speech.js', 'VOICE_CLIPS', 'core/voice.js', 'core/cloud.js', 'core/U.js', 'core/engine/fig.js']
+CORE_JS = ['core/sound.js', 'core/speech.js', 'VOICE_CLIPS', 'core/voice.js', 'core/cloud.js', 'core/U.js', 'core/engine/fig.js', 'core/engine/alg.js']
 
 
 def read_config(app_id):

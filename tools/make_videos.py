@@ -35,7 +35,8 @@ GAP = 0.45  # silence after each narrated line
 PAPER, SURFACE, INK, MUTED, LINE, RULE, RULE_MID = '#f5f8fd', '#ffffff', '#1d2640', '#5b6684', '#dfe6f2', '#b9cdee', '#e6a3a8'
 COLORS = {'c1': '#2b5fd0', 'c2': '#1f8f4e', 'c3': '#dc6a12', 'c4': '#c42f69', 'c5': '#0d8585', 'c6': '#6a4fd0', 'phonics': '#dc6a12', 'grammar': '#1f8f4e', 'reading': '#2b5fd0', 'writing': '#c42f69', 'mix': '#6a4fd0', 'spelling': '#b07800', 'vocab': '#0d8585',
           'number': '#2b5fd0', 'algebra': '#1f8f4e', 'geometry': '#dc6a12',  # MAP math goal areas (config goal colors c1, c2, c3)
-          'lit': '#c42f69', 'info': '#2b5fd0', 'vocab': '#1f8f4e'}  # MAP reading goal areas
+          'lit': '#c42f69', 'info': '#2b5fd0', 'vocab': '#1f8f4e',  # MAP reading goal areas
+          'real': '#2b5fd0', 'eei': '#1f8f4e', 'func': '#dc6a12'}  # Algebra 1 goal areas
 GOOD, GOLD = '#1c8f50', '#f2b01e'
 TAGC = {'noun': '#2b5fd0', 'verb': '#1f8f4e', 'adj': '#dc6a12'}
 TAGL = {'noun': 'noun', 'verb': 'verb', 'adj': 'adjective'}
