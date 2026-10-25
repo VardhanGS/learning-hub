@@ -39,7 +39,7 @@ const Voice = (() => {
   const build = {
     question(q) {
       // Drop a trailing letter pattern like "__ip": the word itself is played right after.
-      const parts = [q.q.replace(/\?\s{2}\S*_{2,}\S*$/, '?').replace(/\n+/g, '. ')];
+      const parts = [(q.speak || q.q).replace(/\?\s{2}\S*_{2,}\S*$/, '?').replace(/\n+/g, '. ')];
       if ((q.t === 'mc' || q.t === 'multi') && !q.say && !/spelling/i.test(q.q)) parts.push(...q.opts);
       if (q.say) parts.push({ text: q.say });
       return parts;

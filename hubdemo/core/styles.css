@@ -621,8 +621,10 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 
 /* ================= Learning Hub additions ================= */
 .disclaimer { margin: 18px auto 4px; max-width: 60ch; }
-.fig { display: flex; justify-content: center; }
-.fig svg { max-width: 100%; height: auto; }
+/* min-width: 0 lets wide pictures shrink to the card instead of pushing it wider than a phone screen */
+.quiz-body > *, .qcard, .qcard > *, .demo-card, .demo-body { min-width: 0; }
+.fig { display: flex; justify-content: center; min-width: 0; max-width: 100%; }
+.fig svg { flex: 0 1 auto; min-width: 0; max-width: 100%; height: auto; }
 .fig.small svg { max-width: 240px; }
 .mplain { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .katex { font-size: 1.08em; }
@@ -681,3 +683,38 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 .fg-stroke { stroke: var(--ink); fill: none; stroke-width: 2.5; }
 .fg-fill { fill: color-mix(in srgb, var(--c, var(--reading)) 22%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
 .fg-text { fill: var(--ink); font-family: var(--f-display); font-weight: 600; }
+
+/* clock */
+.clock-wrap { display: flex; justify-content: center; }
+.clockface { width: min(100%, 300px); height: auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+.ck-face { fill: var(--surface); stroke: var(--ink); stroke-width: 4; }
+.clockface.right .ck-face { stroke: var(--good); } .clockface.wrong .ck-face { stroke: var(--bad); }
+.ck-hour { stroke: var(--ink); stroke-width: 7; stroke-linecap: round; }
+.ck-min { stroke: var(--c, var(--reading)); stroke-width: 4.5; stroke-linecap: round; }
+.ck-pin { fill: var(--ink); }
+.ck-hit { fill: transparent; cursor: pointer; }
+.ck-hit:hover, .ck-hit:focus-visible { fill: color-mix(in srgb, var(--c, var(--reading)) 18%, transparent); outline: none; }
+.ck-on { fill: var(--c, var(--reading)); }
+
+/* coins */
+.cn-copper { fill: #c8814a; stroke: #8a4f22; stroke-width: 2; }
+.cn-silver { fill: #c9ced6; stroke: #7d8592; stroke-width: 2; }
+.cn-bill { fill: #b9dcb0; stroke: #4c7d43; stroke-width: 2; }
+.cn-rim { fill: none; stroke: rgba(0, 0, 0, 0.18); stroke-width: 1.5; }
+.cn-text { fill: #1d2640; font-family: var(--f-display); font-weight: 700; }
+.purse { min-height: 76px; padding: 10px; border-radius: 14px; border: 2px dashed var(--line); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+.purse.right { border-color: var(--good); } .purse.wrong { border-color: var(--bad); }
+.coin-tray { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.coin { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); box-shadow: 0 3px 0 var(--line); }
+.coin small { font-size: 0.8rem; color: var(--muted); }
+.coin.in { padding: 2px; border: none; box-shadow: none; background: transparent; }
+.coin:active { transform: translateY(2px); }
+
+/* graphs and rulers */
+.gr-grid { stroke: var(--line); stroke-width: 1.5; }
+.gr-bar { stroke: var(--ink); stroke-width: 1.5; }
+.gr-b0 { fill: color-mix(in srgb, var(--c1) 55%, var(--surface)); } .gr-b1 { fill: color-mix(in srgb, var(--c2) 55%, var(--surface)); }
+.gr-b2 { fill: color-mix(in srgb, var(--c3) 55%, var(--surface)); } .gr-b3 { fill: color-mix(in srgb, var(--c4) 55%, var(--surface)); }
+.ru-body { fill: color-mix(in srgb, var(--gold) 45%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.ru-guide { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.lp-x { fill: var(--c, var(--reading)); font-family: var(--f-display); font-weight: 700; }

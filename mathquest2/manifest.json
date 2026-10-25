@@ -1,0 +1,29 @@
+{
+  "name": "Math Quest 2",
+  "short_name": "Math Quest",
+  "description": "Add & Subtract \u00b7 Place Value \u00b7 Measurement \u00b7 Data \u00b7 Geometry",
+  "id": "./?app=mathquest2",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4fbf7",
+  "theme_color": "#1f8f4e",
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
