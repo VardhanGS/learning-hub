@@ -127,7 +127,7 @@ leave it empty; delete only the specific temporary student ids you create.
 
 ## Status at the end of the old session (2026-10-25)
 
-Phase 6 DONE: Algebra 1 Quest (published if the live check below says so). Next: Phase 7 (MAP Algebra 1) — ask
+Phase 6 DONE and PUBLISHED: Algebra 1 Quest at vardhangs.github.io/learning-hub/algebra1/ (live check passed: sw cache names of all 8 apps match dist; hub shows it live; videos served). Next: Phase 7 (MAP Algebra 1) — ask
 before publishing anything new.
 
 ## PENDING — next steps, in order
