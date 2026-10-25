@@ -12,11 +12,11 @@ LABEL_FONT = os.path.join(HERE, 'fonts', 'Fredoka-VF.ttf')
 
 def emoji_img(ch, size):
     f = ImageFont.truetype(EMOJI_FONT, 160)  # Apple Color Emoji only renders at its bitmap size
-    im = Image.new('RGBA', (180, 180), (0, 0, 0, 0))
-    ImageDraw.Draw(im).text((90, 90), ch, font=f, anchor='mm', embedded_color=True)
-    im = im.crop(im.getbbox() or (0, 0, 180, 180))
-    im.thumbnail((size, size), Image.LANCZOS)
-    return im
+    im = Image.new('RGBA', (320, 320), (0, 0, 0, 0))
+    ImageDraw.Draw(im).text((160, 160), ch, font=f, anchor='mm', embedded_color=True)
+    im = im.crop(im.getbbox() or (0, 0, 320, 320))
+    k = size / max(im.width, im.height)
+    return im.resize((max(1, round(im.width * k)), max(1, round(im.height * k))), Image.LANCZOS)
 
 
 def main():
