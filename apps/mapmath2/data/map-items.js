@@ -74,7 +74,7 @@
   }
   function closestHundred() {
     const n = U.intWhere(110, 890, (x) => x % 100 !== 50 && x % 100 > 5 && x % 100 < 95), r = Math.round(n / 100) * 100;
-    return tag(U.mcMiss(`Which hundred is ${n} closest to?`, String(r), [[String(r === Math.floor(n / 100) * 100 ? r + 100 : r - 100), `${n} is between ${Math.floor(n / 100) * 100} and ${Math.floor(n / 100) * 100 + 100}. Look at the tens digit to see which is closer.`], [String(Math.round(n / 10) * 10), 'That is the nearest ten, not the nearest hundred.']], { fig: Fig.roundLine(n, 100), meta: { kind: 'round', args: [n, 100] }, hint: 'Is it before or after the halfway mark?', why: `${n} is closer to ${r}.` }, 3, () => String(r + U.pick([-200, 200]))), '3.NBT.A.1', 192, 'number');
+    return tag(U.mcMiss(`Which hundred is ${n} closest to?`, String(r), [[String(r === Math.floor(n / 100) * 100 ? r + 100 : r - 100), `${n} is between ${Math.floor(n / 100) * 100} and ${Math.floor(n / 100) * 100 + 100}. Look at the tens digit to see which is closer.`], [String(Math.round(n / 10) * 10), 'That is the nearest ten, not the nearest hundred.']], { fig: Fig.roundLine(n, 100), meta: { kind: 'round', args: [n, 100] }, hint: 'Is it before or after the halfway mark?', why: `${n} is closer to ${r}.` }, 3, () => String(U.pick([-200, 200].map((d) => r + d).filter((v) => v >= 0)))), '3.NBT.A.1', 192, 'number');
   }
   // Computation (the MAP style: mostly multiple choice with misconception choices, some typed answers).
   function computeMC(level) {
@@ -86,7 +86,7 @@
     const w = op === '+' ? MQ.addMisses(a, b) : op === '−' ? MQ.subMisses(a, b)
       : [[(Math.floor(a / 10) * b) * 10 + (a % 10), `Multiply the ones too: ${a % 10} × ${b} = ${(a % 10) * b}.`], [Math.floor(a / 10) * 10 * b + ((a % 10) * b) % 10, 'It looks like the tens from the ones product were not regrouped.'], [a + b, `That is ${a} + ${b}. Multiply instead.`]];
     const fig = op === '×' ? Fig.tensGroups(b, Math.floor(a / 10)) : Fig.placeChart([a, b], op);
-    return tag(U.mcMiss(`${a} ${op} ${b} = ?`, String(ans), w.map(([v, why]) => [String(v), why]), { fig, calc: level === 2 && op === '+', meta: { kind: 'expr', args: [`${a} ${op} ${b}`] }, hint: op === '×' ? `Multiply the tens, then the ones, and add.` : 'Line up the places. Regroup when you need to.', why: `${a} ${op} ${b} = ${ans}` }, 3, () => String(ans + U.pick([-10, 10, -1, 1, 100]))), ['2.NBT.B.5', '2.NBT.B.7', '4.NBT.B.5'][level], [176, 190, 206][level], 'number');
+    return tag(U.mcMiss(`${a} ${op} ${b} = ?`, String(ans), w.map(([v, why]) => [String(v), why]), { fig, calc: level === 2 && op === '+', meta: { kind: 'expr', args: [`${a} ${op} ${b}`] }, hint: op === '×' ? `Multiply the tens, then the ones, and add.` : 'Line up the places. Regroup when you need to.', why: `${a} ${op} ${b} = ${ans}` }, 3, () => String(U.pick([-10, 10, -1, 1, 100].map((d) => ans + d).filter((v) => v > 0)))), ['2.NBT.B.5', '2.NBT.B.7', '4.NBT.B.5'][level], [176, 190, 206][level], 'number');
   }
   function computeEntry(level) {
     const a = level === 0 ? U.int(31, 92) : U.int(310, 930);
@@ -201,7 +201,7 @@
     do { cells = U.sample(pool, 5); } while (!cells.some(has) || cells.every(has));
     const a = cells.map((c, i) => (has(c) ? i : -1)).filter((i) => i >= 0);
     const ask = { quad: 'quadrilaterals', 'square corners': 'shapes with 4 square corners', '3 sides': 'shapes with 3 sides', '4 sides': 'shapes with 4 sides', '5 vertices': 'shapes with 5 vertices (corners)', '6 sides': 'shapes with 6 sides', 'no straight sides': 'shapes with no straight sides' }[prop];
-    return tag({ t: 'hot', q: `Tap all the ${ask}.`, cells: cells.map((c) => Fig.shape(c, c === 'circle' ? 0 : U.pick([0, 0, 20, 45]))), cellNames: cells, layout: 'grid', multi: true, a, meta: { kind: 'hotShape', args: [prop, cells] }, hint: 'Count the sides and corners of each shape.', why: `${cells.filter(has).join(', ')}.` }, level === 2 ? '3.G.A.1' : '2.G.A.1', [168, 176, 196][level], 'geometry');
+    return tag({ t: 'hot', q: `Tap all the ${ask}.`, cells: cells.map((c) => Fig.shape(c, c === 'circle' ? 0 : U.pick([0, 0, 20, 45]))), cellNames: cells, layout: 'grid', multi: true, a, meta: { kind: 'hotShape', args: [prop, cells] }, hint: 'Count the sides and corners of each shape.', why: `${pool.filter((c) => cells.includes(c) && has(c)).join(', ')}.` }, level === 2 ? '3.G.A.1' : '2.G.A.1', [168, 176, 196][level], 'geometry');
   }
   function estimateLength() {
     const items = [['a pencil', '7 inches', ['7 feet', '7 yards', '70 inches']], ['a door', '7 feet', ['7 inches', '70 feet', '7 yards']], ['a paper clip', '1 inch', ['1 foot', '10 inches', '1 yard']], ['a school bus', '40 feet', ['40 inches', '4 feet', '400 feet']], ['a crayon', '9 centimeters', ['9 meters', '90 centimeters', '1 centimeter']], ['a classroom', '10 meters', ['10 centimeters', '100 meters', '1 meter']]];
@@ -218,14 +218,14 @@
     let list;
     do { list = ['q', 'd', 'n', 'p'].flatMap((k) => Array(U.int(0, 3)).fill(k)); } while (list.length < 3 || list.length > 9);
     const V = { q: 25, d: 10, n: 5, p: 1 }, total = list.reduce((t, k) => t + V[k], 0);
-    return tag(U.mcMiss('How much money is shown?', `${total}¢`, [[`${list.length}¢`, 'That counts the coins, not what they are worth.'], [`${total + 5 * list.filter((k) => k === 'n').length}¢`, 'A nickel is 5¢.'], [`${total - 1}¢`, 'Count the pennies again.']], { fig: Fig.coins(list), meta: { kind: 'centsText', args: list }, hint: 'Start with the biggest coins and count on.', why: `${total}¢` }, 3, () => `${total + U.pick([10, -10, 25])}¢`), '2.M.C.8', 178, 'geometry');
+    return tag(U.mcMiss('How much money is shown?', `${total}¢`, [[`${list.length}¢`, 'That counts the coins, not what they are worth.'], [`${total + 5 * list.filter((k) => k === 'n').length}¢`, 'A nickel is 5¢.'], [`${total - 1}¢`, 'Count the pennies again.']], { fig: Fig.coins(list), meta: { kind: 'centsText', args: list }, hint: 'Start with the biggest coins and count on.', why: `${total}¢` }, 3, () => `${U.pick([10, -10, 25].map((d) => total + d).filter((v) => v > 0))}¢`), '2.M.C.8', 178, 'geometry');
   }
   function perimeterArea(level) {
     const w = U.int(2, level ? 12 : 8), h = U.intWhere(2, level ? 9 : 6, (x) => x !== w);
     const area = level === 2 || (level === 1 && U.pick([true, false]));
     const unit = U.pick(['cm', 'in', 'ft']);
     const ans = area ? w * h : 2 * (w + h);
-    return tag(U.mcMiss(`What is the ${area ? 'area' : 'perimeter'} of the rectangle?`, `${ans} ${area ? 'square ' : ''}${unit}`, area ? [[`${2 * (w + h)} square ${unit}`, 'That is the perimeter. Area counts the squares inside.'], [`${w + h} square ${unit}`, 'Multiply the side lengths.']] : [[`${w * h} ${unit}`, 'That is the area. Perimeter goes around the outside.'], [`${w + h} ${unit}`, 'Add all 4 sides, not just 2.']], { fig: Fig.rect(w, h, { grid: area && level < 2, labels: true, unit }), meta: { kind: 'exprUnit', args: [area ? `${w} × ${h}` : `2 × (${w} + ${h})`, `${area ? 'square ' : ''}${unit}`] }, hint: area ? 'Area = length × width.' : 'Perimeter = all four sides added.', why: area ? `${w} × ${h} = ${w * h}` : `${w} + ${h} + ${w} + ${h} = ${2 * (w + h)}` }, 3, () => `${ans + U.pick([2, -2, 4])} ${area ? 'square ' : ''}${unit}`), area ? '3.M.B.5' : '3.M.C.6', [190, 198, 206][level], 'geometry');
+    return tag(U.mcMiss(`What is the ${area ? 'area' : 'perimeter'} of the rectangle?`, `${ans} ${area ? 'square ' : ''}${unit}`, area ? [[`${2 * (w + h)} square ${unit}`, 'That is the perimeter. Area counts the squares inside.'], [`${w + h} square ${unit}`, 'Multiply the side lengths.']] : [[`${w * h} ${unit}`, 'That is the area. Perimeter goes around the outside.'], [`${w + h} ${unit}`, 'Add all 4 sides, not just 2.']], { fig: Fig.rect(w, h, { grid: area && level < 2, labels: true, unit }), meta: { kind: 'exprUnit', args: [area ? `${w} × ${h}` : `2 × (${w} + ${h})`, `${area ? 'square ' : ''}${unit}`] }, hint: area ? 'Area = length × width.' : 'Perimeter = all four sides added.', why: area ? `${w} × ${h} = ${w * h}` : `${w} + ${h} + ${w} + ${h} = ${2 * (w + h)}` }, 3, () => `${U.pick([2, -2, 4].map((d) => ans + d).filter((v) => v > 0))} ${area ? 'square ' : ''}${unit}`), area ? '3.M.B.5' : '3.M.C.6', [190, 198, 206][level], 'geometry');
   }
   function tallyQ(level) {
     const labels = U.pick([['Red', 'Blue', 'Green', 'Yellow'], ['Cats', 'Dogs', 'Fish', 'Birds'], ['Apple', 'Pear', 'Grape', 'Plum']]);

@@ -134,6 +134,8 @@ function checkItem(where, q, levelStd) {
     if (!Array.isArray(q.opts) || q.opts.length < 2) fail(where, q, 'fewer than 2 options');
     const ps = q.opts.map(plain);
     if (new Set(q.opts).size !== q.opts.length) fail(where, q, 'duplicate options');
+    // Elementary apps (voice g2/g4): negative numbers are not taught yet, so no option may be one (e.g. a filler '−5' for 22 − 17).
+    if (["g2", "g4"].includes(ctx.APP.voice)) ps.forEach((o) => { if (/^\s*[-−]\s*\d/.test(o)) fail(where, q, `negative option ${o} in an elementary app`); });
     if (new Set(ps).size !== ps.length) fail(where, q, 'options look the same as plain text');
     const ans = q.t === 'mc' ? [q.a] : q.a;
     ans.forEach((a) => { if (!q.opts.includes(a)) fail(where, q, `answer ${a} is not among the options`); });
