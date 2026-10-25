@@ -72,10 +72,16 @@ const MathText = (() => {
     return t;
   }
 
+  // Whole numbers from 1,001 to 20,999 are said as two recorded pieces: "1 thousand" + "129".
+  function bigSplit(tok) {
+    const v = tok.replace(/,/g, '');
+    if (!/^\d{4,5}$/.test(v) || +v % 1000 === 0 || +v > 20999) return [{ num: tok }];
+    return [{ num: String(Math.floor(+v / 1000) * 1000) }, { num: String(+v % 1000) }];
+  }
   // Split spoken text into phrases and number tokens: [{text:'What is'}, {num:'27'}, {text:'plus'}, …].
   const NUM = /(-?\d+ \d+\/\d+|-?\d+\/\d+|-?\d{1,3}(?:,\d{3})+(?:\.\d+)?|-?\d+(?:\.\d+)?)/;
   function pieces(text) {
-    return spoken(text).split(new RegExp(NUM.source, 'g')).map((s, i) => (i % 2 ? { num: s } : { text: s.trim() }))
+    return spoken(text).split(new RegExp(NUM.source, 'g')).flatMap((s, i) => (i % 2 ? bigSplit(s) : [{ text: s.trim() }]))
       .filter((p) => p.num || /[a-z]/i.test(p.text));
   }
 

@@ -47,6 +47,7 @@ function add(p, whole = false) {
 const fixed = ['Type a number', 'Use the number keys. For a fraction like 3/4, type 3, then /, then 4.', 'Almost! Simplify it.', 'That is equal to the answer. Write it in simplest form.', 'Not quite. Try again!', 'Here is the answer:'];
 [...Voice.PRAISE, ...Object.values(Voice.LINES), ...fixed].forEach((t) => add(t, true));
 for (let n = 0; n <= 1000; n++) addOne(String(n), 'num', String(n));
+for (let n = 2000; n <= 20000; n += 1000) addOne(String(n), 'num', String(n));
 
 for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
   bundle = `${k.id}-${l}`;
