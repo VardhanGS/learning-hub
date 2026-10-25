@@ -65,6 +65,25 @@ an 8th grader in New Jersey), built on one shared engine. Read `learning-hub/HAN
   Reading G2 170/17 · 177/17 · 182/17; G4 196/18 · 199/18 · 202/18; G8 216/17 · 217/17 · 218/17.
   Math growth G2 F→W 8, W→S 6, F→S 15; G4 7, 6, 13. Source PDF:
   https://www.nwea.org/resource-center/fact-sheet/87992/MAP-Growth-2025-norms-quick-reference_NWEA_onesheet.pdf/
+- **Reading (verified 2026-10-25):** NWEA durations doc (April 2022): Reading 2–5 and 6+ max 43 items (unchanged in
+  2022); median durations fall G2 33 min, G4 52, G8 59. Reading 2–5 has NO built-in audio (TTS only as an
+  accommodation; K–2 has audio). No NWEA document listing reading item formats was found — the apps use the general MAP
+  formats (multiple choice, multi-select, hot text, click-and-pop) and say the mix is not confirmed.
+  2025 reading growth norms (mean F→W, W→S, F→S): G2 7, 5, 12 · G4 4, 3, 6 · G8 1, 1, 2.
+- **MAP Reading Fluency (NWEA fact sheet, MAY26):** pre-K–5, benchmark fall/winter/spring, 20–30 min, headsets with
+  microphones and automatic speech scoring. Each student reads a short picture book and does timed SILENT reading
+  activities; then either THREE passages read aloud (scored: WCPM scaled, accuracy %, literal comprehension, Lexile
+  oral reading measure) or foundational skills (phonological awareness, phonics & word recognition, picture vocabulary,
+  listening comprehension). The app's practice is grown-up scored (no automatic speech scoring — not verified on iPad).
+- **Oral reading fluency norms (Hasbrouck & Tindal 2017, WCPM; percentiles 90/75/50/25/10, fall · winter · spring):**
+  G2 111 131 148 / 84 109 124 / 50 84 100 / 36 59 72 / 23 35 43 · G3 134 161 166 / 104 137 139 / 83 97 112 / 59 79 91 / 40 62 63 ·
+  G4 153 168 184 / 125 143 160 / 94 120 133 / 75 95 105 / 60 71 83 · G5 179 183 195 / 153 160 169 / 121 133 146 / 87 109 119 / 64 84 102.
+  Source: readnaturally.com table of the BRT technical report "An update to compiled ORF norms" (ERIC ED594994).
+- **NJSLS-ELA 2023 codes (nj.gov/education/standards/ela/2023/{g}.shtml):** Reading RL./RI. + CR (evidence), CI (central
+  idea/theme, summary), IT (characters/individuals/events), TS (structure), PP (point of view/perspective), MF (visual &
+  multiple formats), AA (argument analysis, RI only), CT (comparing texts) + .grade.number, e.g. RL.CR.4.1, RI.TS.4.4,
+  RI.AA.8.7, RL.CT.8.8. Language: L.VL.g.2 (word meaning; G8 L.VL.8.3), L.VI.g.3 (figurative language, word
+  relationships; G8 L.VI.8.4), L.RF.g.4 (fluency, grades 2–5).
 - Digital SAT: R&W 54 q / 64 min (2 × 27, incl. 2 pretest each), Math 44 q / 70 min (2 × 22, incl. 2 pretest each),
   module 2 adaptive; math domain counts Algebra 13–15, Advanced Math 13–15, PSDA 5–7, Geometry & Trig 5–7; passages
   25–150 words, one question each. Still to confirm on collegeboard.org: 200–800 scale, Desmos, reference sheet.
