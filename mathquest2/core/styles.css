@@ -805,3 +805,24 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 .flu-stats div { padding: 12px; border-radius: 14px; background: var(--paper); text-align: center; }
 .flu-stats b { display: block; font-size: 1.8rem; font-family: var(--f-display); }
 .flu-stats span { font-size: 0.85rem; color: var(--muted); }
+
+/* ---------- algebra entry and coordinate grid ---------- */
+.kp-alg { display: grid; grid-template-columns: 3fr 1fr; gap: 8px; }
+.kp-ops { display: grid; grid-template-rows: repeat(5, 1fr); gap: 6px; }
+.kp-ops .kp-key { font-size: 1.25rem; }
+.alg-entry .kp-extra .kp-key { font-family: var(--f-display); font-style: italic; }
+.alg-entry .num-display { min-height: 64px; width: 100%; box-sizing: border-box; justify-content: safe center; overflow-x: auto; white-space: nowrap; } /* long answers shrink (font size set in renderExpr), and scroll if still too wide */
+.plotgrid { width: 100%; max-width: 380px; display: block; margin: 0 auto; touch-action: manipulation; }
+.pl-axis { stroke: var(--ink); stroke-width: 2; }
+.pl-hit { fill: transparent; cursor: pointer; }
+.pl-hit:hover { fill: color-mix(in srgb, var(--c, var(--reading)) 18%, transparent); }
+.pl-dot { stroke: var(--surface); stroke-width: 2.5; }
+.pl-dot.sel { fill: var(--c, var(--reading)); } .pl-dot.right { fill: var(--good); } .pl-dot.wrong { fill: var(--bad); }
+.pl-line { stroke: var(--c, var(--reading)); stroke-width: 3; } .pl-line.right { stroke: var(--good); } .pl-line.wrong { stroke: var(--bad); }
+
+.gr-fn { fill: none; stroke-width: 3; }
+.gr-c0 { stroke: var(--c1); } .gr-c1 { stroke: var(--c4); } .gr-c2 { stroke: var(--c2); }
+
+/* algebra keypad: letters in math italics, so the variable x never looks like the times key × */
+.kp-key .kv { font-family: KaTeX_Math, 'Times New Roman', serif; font-style: italic; font-weight: 600; font-size: 1.3em; }
+.kp-key sup.kv { font-size: 0.8em; }

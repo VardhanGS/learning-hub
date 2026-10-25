@@ -1,0 +1,29 @@
+{
+  "name": "Algebra 1 Quest",
+  "short_name": "Algebra 1",
+  "description": "Equations \u00b7 Functions \u00b7 Graphs \u00b7 Quadratics \u00b7 Statistics",
+  "id": "./?app=algebra1",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4fd",
+  "theme_color": "#5b3fb5",
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

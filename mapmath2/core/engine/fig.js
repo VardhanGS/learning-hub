@@ -327,13 +327,22 @@ const Fig = (() => {
 
   // A table: rows of cells, the first row is the header. '?' cells are dashed.
   function table(rows, title = '') {
-    const cols = Math.max(...rows.map((r) => r.length)), cw = Math.max(72, Math.min(110, 420 / cols)), ch = 40, W = cols * cw + 8, top = title ? 26 : 4;
+    // Columns keep the old fixed width when their text fits; a column with longer text grows (up to 250), and a cell
+    // that is still too long wraps onto two lines (its row gets taller), so no text is ever cut off.
+    const cols = Math.max(...rows.map((r) => r.length)), cw0 = Math.max(72, Math.min(110, 420 / cols));
+    const fsz = (r) => (r === 0 ? 14 : 18), tw = (c, r) => String(c).length * fsz(r) * 0.56;
+    const cw = [...Array(cols).keys()].map((i) => Math.max(cw0, Math.min(250, Math.max(...rows.map((row, r) => (row[i] == null ? 0 : tw(row[i], r) + 16))))));
+    const wrap = (c, r, w) => { const t = String(c); if (tw(t, r) + 12 <= w || !t.includes(' ')) return [t]; const mid = t.length / 2; let best = -1; for (let k = 0; k < t.length; k++) if (t[k] === ' ' && (best < 0 || Math.abs(k - mid) < Math.abs(best - mid))) best = k; return [t.slice(0, best), t.slice(best + 1)]; };
+    const lines = rows.map((row, r) => row.map((c, i) => wrap(c, r, cw[i]))), rh = lines.map((row) => (row.some((l) => l.length > 1) ? 60 : 40));
+    const TW = cw.reduce((a, b) => a + b, 0) + 8, W = Math.max(TW, title ? title.length * 15 * 0.55 + 16 : 0), off = (W - TW) / 2, top = title ? 26 : 4, x0 = (i) => off + 4 + cw.slice(0, i).reduce((a, b) => a + b, 0), y0 = (r) => top + rh.slice(0, r).reduce((a, b) => a + b, 0);
     let body = title ? `<text x="${W / 2}" y="18" class="fg-text" font-size="15" text-anchor="middle">${title}</text>` : '';
     rows.forEach((row, r) => row.forEach((c, i) => {
-      const x = 4 + i * cw, y = top + r * ch;
-      body += `<rect x="${x}" y="${y}" width="${cw}" height="${ch}" class="${r === 0 ? 'pc-head' : c === '?' ? 'bm-unknown' : 'pc-cell'}"/><text x="${x + cw / 2}" y="${y + 26}" class="fg-text" font-size="${r === 0 ? 14 : 18}" text-anchor="middle">${c}</text>`;
+      const x = x0(i), y = y0(r), L = lines[r][i], fs = fsz(r);
+      const txt = L.length === 1 ? `<text x="${x + cw[i] / 2}" y="${y + rh[r] / 2 + 6}" class="fg-text" font-size="${fs}" text-anchor="middle">${L[0]}</text>`
+        : `<text x="${x + cw[i] / 2}" y="${y + rh[r] / 2 - 4}" class="fg-text" font-size="${fs}" text-anchor="middle">${L[0]}<tspan x="${x + cw[i] / 2}" dy="${fs + 3}">${L[1]}</tspan></text>`;
+      body += `<rect x="${x}" y="${y}" width="${cw[i]}" height="${rh[r]}" class="${r === 0 ? 'pc-head' : c === '?' ? 'bm-unknown' : 'pc-cell'}"/>${txt}`;
     }));
-    return svg(W, top + rows.length * ch + 4, body, `Table${title ? ` ${title}` : ''}: ${rows.map((r) => r.join(' ')).join('; ')}`);
+    return svg(W, y0(rows.length) + 4, body, `Table${title ? ` ${title}` : ''}: ${rows.map((r) => r.join(' ')).join('; ')}`);
   }
 
   // An angle: two rays from a vertex. `start` = direction of the first ray (degrees, counterclockwise from the right).
@@ -570,7 +579,61 @@ const Fig = (() => {
     return `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Diagram: ${escT(title)}, labeled ${labels.join(', ')}">${b}</svg>`;
   }
 
+  // ===== Algebra pictures =====
+  // A coordinate graph. fns: {kind:'lin', m, b} | {kind:'quad', a, h, k} | {kind:'exp', a, b} | {kind:'v', x}
+  // (vertical line); pts: [[x, y, label?]]; range [lo, hi] (square) or {x:[lo,hi], y:[lo,hi]}; step for labels.
+  let GRAPH_ID = 0;
+  // fs = label size and lw = line width (bigger for small answer-choice pictures).
+  function graph({ fns = [], pts = [], range = [-6, 6], step = 2, labels = true, w = 300, fs = 10, lw = 0 } = {}) {
+    const R = Array.isArray(range) ? { x: range, y: range } : range, [xl, xh] = R.x, [yl, yh] = R.y;
+    const pad = 22, H = w * Math.min(1.1, Math.max(0.62, (yh - yl) / (xh - xl))), // square for equal ranges; never too tall or flat
+      sx = (w - 2 * pad) / (xh - xl), sy = (H - 2 * pad) / (yh - yl);
+    const X = (v) => pad + (v - xl) * sx, Y = (v) => pad + (yh - v) * sy;
+    let b = '';
+    const gx = Math.max(1, Math.round((xh - xl) / 12)), gy = Math.max(1, Math.round((yh - yl) / 12));
+    for (let v = Math.ceil(xl / gx) * gx; v <= xh; v += gx) b += `<line x1="${X(v)}" y1="${Y(yl)}" x2="${X(v)}" y2="${Y(yh)}" class="gr-grid"/>`;
+    for (let v = Math.ceil(yl / gy) * gy; v <= yh; v += gy) b += `<line x1="${X(xl)}" y1="${Y(v)}" x2="${X(xh)}" y2="${Y(v)}" class="gr-grid"/>`;
+    if (yl <= 0 && yh >= 0) b += `<line x1="${X(xl)}" y1="${Y(0)}" x2="${X(xh)}" y2="${Y(0)}" class="fg-stroke" style="stroke-width:1.8"/>`;
+    if (xl <= 0 && xh >= 0) b += `<line x1="${X(0)}" y1="${Y(yl)}" x2="${X(0)}" y2="${Y(yh)}" class="fg-stroke" style="stroke-width:1.8"/>`;
+    if (labels) {
+      const ax = yl <= 0 && yh >= 0 ? Y(0) : Y(yl), ay = xl <= 0 && xh >= 0 ? X(0) : X(xl);
+      for (let v = Math.ceil(xl / step) * step; v <= xh; v += step) if (v) b += `<text x="${X(v)}" y="${ax + fs + 3}" class="fg-text" font-size="${fs}" text-anchor="middle">${String(v).replace('-', '−')}</text>`;
+      let sy2 = step; while ((yh - yl) / sy2 > 12) sy2 = [1, 2, 4, 5].includes(sy2) ? { 1: 2, 2: 4, 4: 5, 5: 10 }[sy2] : sy2 * 2; // at most ~12 labels up the side
+      for (let v = Math.ceil(yl / sy2) * sy2; v <= yh; v += sy2) if (v) b += `<text x="${ay - 4}" y="${Y(v) + fs * 0.35}" class="fg-text" font-size="${fs}" text-anchor="end">${String(v).replace('-', '−')}</text>`;
+    }
+    const COLORS = ['gr-c0', 'gr-c1', 'gr-c2'], cid = `grc${++GRAPH_ID}`;
+    // graphs stop at the grid's edge (a clip path), instead of running along its border
+    b += `<clipPath id="${cid}"><rect x="${pad}" y="${pad}" width="${w - 2 * pad}" height="${H - 2 * pad}"/></clipPath><g clip-path="url(#${cid})">`;
+    fns.forEach((f, i) => {
+      if (f.kind === 'v') { b += `<line x1="${X(f.x)}" y1="${Y(yl)}" x2="${X(f.x)}" y2="${Y(yh)}" class="gr-fn ${COLORS[i % 3]}"${lw ? ` style="stroke-width:${lw}"` : ''}/>`; return; }
+      const val = (x) => (f.kind === 'lin' ? f.m * x + f.b : f.kind === 'quad' ? f.a * (x - f.h) ** 2 + f.k : f.a * f.b ** x);
+      let d = '', on = false;
+      for (let k = 0; k <= 120; k++) {
+        const x = xl + (k / 120) * (xh - xl), y = val(x);
+        if (!Number.isFinite(y) || y < yl - (yh - yl) || y > yh + (yh - yl)) { on = false; continue; }
+        const yc = Math.max(yl - 1, Math.min(yh + 1, y));
+        d += `${on ? 'L' : 'M'}${X(x).toFixed(1)} ${Y(yc).toFixed(1)} `; on = true;
+      }
+      b += `<path d="${d}" class="gr-fn ${COLORS[i % 3]}"${lw ? ` style="stroke-width:${lw}"` : ''}/>`;
+      if (f.label) b += `<text x="${X(xh) - 4}" y="${Y(Math.max(yl, Math.min(yh, val(xh)))) - 6}" class="fg-text" font-size="12" text-anchor="end">${f.label}</text>`;
+    });
+    b += '</g>';
+    pts.forEach(([x, y, l]) => { b += `<circle cx="${X(x)}" cy="${Y(y)}" r="4.5" class="tf-a"/>${l ? `<text x="${X(x) + 7}" y="${Y(y) - 7}" class="fg-text" font-size="12">${l}</text>` : ''}`; });
+    return `<svg viewBox="0 0 ${w} ${H}" width="${w}" role="img" aria-label="A coordinate graph${fns.length ? ` with ${fns.length} graph${fns.length > 1 ? 's' : ''}` : ''}${pts.length ? ` and ${pts.length} point${pts.length > 1 ? 's' : ''}` : ''}">${b}<rect x="${pad}" y="${pad}" width="${w - 2 * pad}" height="${H - 2 * pad}" class="fg-stroke" style="fill:none;stroke-width:1"/></svg>`;
+  }
+  // Solution of an inequality on a number line: x op v (op: < > ≤ ≥), or a compound [v1, op1, op2, v2].
+  function ineqLine(v, op, lo = v - 6, hi = v + 6) {
+    const W = 420, pad = 26, y = 44, X = (t) => pad + ((t - lo) / (hi - lo)) * (W - 2 * pad);
+    let b = `<line x1="${pad - 12}" y1="${y}" x2="${W - pad + 12}" y2="${y}" class="fg-stroke"/>`;
+    for (let t = Math.ceil(lo); t <= hi; t++) b += `<line x1="${X(t)}" y1="${y - 7}" x2="${X(t)}" y2="${y + 7}" class="fg-stroke" style="stroke-width:1.5"/><text x="${X(t)}" y="${y + 26}" class="fg-text" font-size="12" text-anchor="middle">${String(t).replace('-', '−')}</text>`;
+    const closed = op === '≤' || op === '≥', right = op === '>' || op === '≥';
+    b += `<line x1="${X(v)}" y1="${y}" x2="${right ? W - pad + 10 : pad - 10}" y2="${y}" class="gr-fn gr-c0" style="stroke-width:6"/>`;
+    b += `<path d="M${right ? W - pad + 14 : pad - 14} ${y} l${right ? -12 : 12} -8 v16 z" class="ck-pin"/>`;
+    b += `<circle cx="${X(v)}" cy="${y}" r="8" class="${closed ? 'tf-a' : 'pc-cell'}" style="stroke-width:3"/>`;
+    return `<svg viewBox="0 0 ${W} 80" width="${W}" role="img" aria-label="Number line: x ${op} ${v}">${b}</svg>`;
+  }
+
   return { blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
     tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
-    table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig };
+    table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig, graph, ineqLine };
 })();

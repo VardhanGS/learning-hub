@@ -438,6 +438,8 @@
       case 'tap': return q.a.map((i) => q.words[i].replace(/[.,!?;:]+$/, '')).join(', ');
       case 'sort': return q.items.map((it) => `${it.w} → ${q.bins[it.b]}`).join('\n');
       case 'num': return `${q.pre || ''}${q.a}${q.unit ? ' ' + q.unit : ''}`;
+      case 'expr': return `${q.pre || ''}${q.a}`;
+      case 'plot': return q.plot.kind === 'points' ? q.plot.pts.map(([x, y]) => `(${x}, ${y})`).join(', ') : (q.why || '');
       case 'multi': return q.a.join(', ');
       case 'line': return lineLabel(q, lineIndex(q, q.a));
       case 'shade': return `Shade ${q.a} of the ${q.parts} equal parts.`;
@@ -458,6 +460,8 @@
       case 'order': { const seq = st.picked.map((i) => q.pool[i].text); return seq.join('|') === q.parts.join('|') || (q.alts || []).some((alt) => alt.join('|') === seq.join('|')); }
       case 'tap': return [...st.sel].sort((a, b) => a - b).join(',') === [...q.a].sort((a, b) => a - b).join(',');
       case 'sort': return q.items.every((it, i) => st.place[i] === it.b);
+      case 'expr': return Alg.equiv(st.typed, q.a) && (!q.form || Alg.formOk(st.typed, q.form)) && (!q.gcf || Math.abs(Alg.leadNum(st.typed)) === q.gcf);
+      case 'plot': return plotOk(q, st.sel);
       case 'num': { const v = N.parse(st.typed); return !!v && [q.a, ...(q.accept || [])].some((a) => N.eq(v, N.parse(a))) && (!q.simplest || N.simplest(st.typed)); }
       case 'multi': return [...st.sel].sort().join('|') === [...q.a].sort().join('|');
       case 'line': return st.chosen === lineIndex(q, q.a);
@@ -483,6 +487,7 @@
     if (!q.miss) return '';
     if (q.t === 'mc') return q.miss[st.chosen] || '';
     if (q.t === 'num') { const v = N.parse(st.typed); const k = v && Object.keys(q.miss).find((m) => N.eq(v, N.parse(m))); return k ? q.miss[k] : ''; }
+    if (q.t === 'expr') { const k = Object.keys(q.miss).find((m) => Alg.equiv(st.typed, m)); return k ? q.miss[k] : ''; }
     return '';
   }
 
@@ -500,6 +505,11 @@
     if (Q.mode === 'test') { submitTest(); return; }
     const q = cur(), st = Q.st;
     if (st.done) return;
+    if (q.t === 'expr') {
+      if (!Alg.tryParse(st.typed)) { st.msg = { kind: 'try', title: 'Check your expression', body: 'Something is missing, like a closing parenthesis or a number after a sign.' }; SFX.play('tryAgain'); render(); return; }
+      if (q.gcf && Alg.equiv(st.typed, q.a) && (!q.form || Alg.formOk(st.typed, q.form)) && Math.abs(Alg.leadNum(st.typed)) !== q.gcf) { st.msg = { kind: 'try', title: 'Almost!', body: 'That is factored, but not completely. Is there a greater common factor you can take out?' }; SFX.play('tryAgain'); render(); return; }
+      if (q.form && Alg.equiv(st.typed, q.a) && !Alg.formOk(st.typed, q.form)) { st.msg = { kind: 'try', title: 'Almost!', body: q.form === 'expanded' ? 'That is equal to the answer. Now write it expanded: multiply out the parentheses and combine like terms.' : q.form === 'monomial' ? 'That is equal to the answer. Now simplify it to a single term, like 6x^5.' : 'That is equal to the answer. Now write it factored, as a product.' }; SFX.play('tryAgain'); render(); return; }
+    }
     if (q.t === 'num') {
       // Not a number yet, or the right value written the long way: a nudge that does not use up a try.
       const v = N.parse(st.typed);
@@ -525,7 +535,8 @@
       if (st.tries === 1) {
         st.msg = { kind: 'try', title: 'Not quite. Try again!', body: mistake || q.hint || 'Look carefully and give it another try.' };
         if (q.t === 'mc') st.wrongOpts.push(st.chosen);
-        if (q.t === 'num') st.typed = '';
+        if (q.t === 'num' || q.t === 'expr') st.typed = '';
+        if (q.t === 'plot') st.sel = [];
         if (q.t === 'multi' || q.t === 'shade') st.sel = [];
         if (q.t === 'line') st.chosen = null;
         if (q.t === 'coins' || q.t === 'pop') st.picked = [];
@@ -664,7 +675,8 @@
     if (q.t === 'build') ready = st.picked.length > 0;
     if (q.t === 'order') ready = st.picked.length === q.pool.length;
     if (q.t === 'tap') ready = st.sel.length > 0;
-    if (q.t === 'type' || q.t === 'spell' || q.t === 'num') ready = st.typed.trim().length > 0;
+    if (q.t === 'type' || q.t === 'spell' || q.t === 'num' || q.t === 'expr') ready = st.typed.trim().length > 0;
+    if (q.t === 'plot') ready = st.sel.length === (q.n || 1);
     if (q.t === 'multi' || q.t === 'shade') ready = st.sel.length > 0;
     if (q.t === 'line') ready = st.chosen != null;
     if (q.t === 'coins') ready = st.picked.length > 0;
@@ -753,6 +765,8 @@
         }).join('')}</div>`;
       }
       case 'line': return renderLine(q, st);
+      case 'expr': return renderExpr(q, st);
+      case 'plot': return renderPlot(q, st);
       case 'shade': return renderShade(q, st);
       case 'clock': return renderClock(q, st);
       case 'hot': return renderHot(q, st);
@@ -797,6 +811,65 @@
     if (st.msg && st.msg.kind === 'try') st.msg = null;
     SFX.play('typeKey');
     render();
+  }
+
+  // ---- algebra entry: a keypad with x, y, powers, and parentheses; equivalent answers are accepted ----
+  const ALG_KEYS = (q) => [...(q.vars || 'x').split(''), '^', '(', ')', ...(q.sqrt ? ['√'] : [])];
+  function renderExpr(q, st) {
+    const cls = st.done ? (st.correct ? 'right' : 'wrong') : '';
+    const shown = st.typed ? fmt(T(Alg.tex(st.typed))) : '<span class="ph">?</span>';
+    const k = (key, label = key, alt = false, aria = label) => `<button class="kp-key ${alt ? 'alt' : ''}" data-act="akey" data-k="${esc(key)}" aria-label="${esc(aria)}">${label}</button>`;
+    return `<div class="num-entry alg-entry">
+        <div class="num-display ${cls}" style="font-size:${(st.typed || '').length > 18 ? 1.15 : (st.typed || '').length > 11 ? 1.45 : 2}rem" aria-live="polite" aria-label="Your answer: ${esc(st.typed || 'empty')}">${q.pre ? `<span class="aff">${fmt(q.pre)}</span>` : ''}<span class="val">${shown}</span></div>
+        ${st.done ? '' : `<div class="kp" role="group" aria-label="Algebra keys">
+          <div class="kp-extra">${ALG_KEYS(q).map((c) => k(c === '√' ? 'r(' : c, c === '^' ? '<span class="kv">x</span><sup class="kv">y</sup>' : /^[a-z]$/.test(c) ? `<span class="kv">${c}</span>` : c, true, c === '^' ? 'power' : c === '√' ? 'square root' : c)).join('')}</div>
+          <div class="kp-alg">
+            <div class="kp-grid">${[7, 8, 9, 4, 5, 6, 1, 2, 3].map((n) => k(String(n))).join('')}${k('clear', 'C', true, 'Clear')}${k('0')}${k('back', '⌫', true, 'Delete')}</div>
+            <div class="kp-ops">${k('+', '+', true, 'plus')}${k('-', '−', true, 'minus')}${k('*', '×', true, 'times')}${k('/', '÷', true, 'divided by')}${k('.', '.', true, 'point')}</div>
+          </div>
+        </div>`}
+      </div>`;
+  }
+  function pressAlgKey(key) {
+    const st = Q.st;
+    if (st.done) return;
+    if (key === 'back') st.typed = st.typed.slice(0, -1);
+    else if (key === 'clear') st.typed = '';
+    else if (st.typed.length < 40) st.typed += key;
+    if (st.msg && st.msg.kind === 'try') st.msg = null;
+    SFX.play('typeKey');
+    render();
+  }
+  // ---- coordinate grid: tap points (q.n of them); for a line, any two of its points ----
+  const plotRange = (q) => q.range || [-6, 6];
+  function plotOk(q, sel) {
+    const pts = sel.map((s) => s.split(',').map(Number)), P = q.plot;
+    if (pts.length !== (q.n || 1)) return false;
+    if (P.kind === 'points') return P.pts.length === pts.length && P.pts.every(([x, y]) => pts.some(([a, b]) => a === x && b === y));
+    if (pts.length !== 2 || (pts[0][0] === pts[1][0] && pts[0][1] === pts[1][1])) return false;
+    if (P.kind === 'vline') return pts.every(([x]) => x === P.x);
+    return pts.every(([x, y]) => Math.abs(y - (P.m * x + P.b)) < 1e-9);
+  }
+  function renderPlot(q, st) {
+    const [lo, hi] = plotRange(q), n = hi - lo, W = 340, pad = 20, g = (W - 2 * pad) / n, X = (v) => pad + (v - lo) * g, Y = (v) => pad + (hi - v) * g;
+    let body = `<clipPath id="plclip"><rect x="${X(lo)}" y="${Y(hi)}" width="${X(hi) - X(lo)}" height="${Y(lo) - Y(hi)}"/></clipPath>`;
+    for (let v = lo; v <= hi; v++) body += `<line x1="${X(v)}" y1="${Y(lo)}" x2="${X(v)}" y2="${Y(hi)}" class="gr-grid"/><line x1="${X(lo)}" y1="${Y(v)}" x2="${X(hi)}" y2="${Y(v)}" class="gr-grid"/>`;
+    body += `<line x1="${X(lo)}" y1="${Y(0)}" x2="${X(hi)}" y2="${Y(0)}" class="pl-axis"/><line x1="${X(0)}" y1="${Y(lo)}" x2="${X(0)}" y2="${Y(hi)}" class="pl-axis"/>`;
+    for (let v = lo; v <= hi; v += 2) if (v) body += `<text x="${X(v)}" y="${Y(0) + 14}" class="fg-text" font-size="10" text-anchor="middle">${String(v).replace("-", "−")}</text><text x="${X(0) - 5}" y="${Y(v) + 4}" class="fg-text" font-size="10" text-anchor="end">${String(v).replace("-", "−")}</text>`;
+    const pts = st.sel.map((s) => s.split(',').map(Number));
+    const drawLine = (a, b, cls) => { if (a[0] === b[0]) return `<line x1="${X(a[0])}" y1="${Y(lo)}" x2="${X(a[0])}" y2="${Y(hi)}" class="${cls}"/>`; const m = (b[1] - a[1]) / (b[0] - a[0]), f = (x) => a[1] + m * (x - a[0]); return `<line x1="${X(lo)}" y1="${Y(f(lo))}" x2="${X(hi)}" y2="${Y(f(hi))}" class="${cls}" clip-path="url(#plclip)"/>`; };
+    if (q.plot.kind !== 'points' && pts.length === 2) body += drawLine(pts[0], pts[1], st.done ? (st.correct ? 'pl-line right' : 'pl-line wrong') : 'pl-line');
+    if (st.done && !st.correct) {
+      const P = q.plot;
+      if (P.kind === 'points') P.pts.forEach(([x, y]) => { body += `<circle cx="${X(x)}" cy="${Y(y)}" r="7" class="pl-dot right"/>`; });
+      else if (P.kind === 'vline') body += drawLine([P.x, 0], [P.x, 1], 'pl-line right');
+      else body += drawLine([0, P.b], [1, P.m + P.b], 'pl-line right');
+    }
+    pts.forEach(([x, y]) => { body += `<circle cx="${X(x)}" cy="${Y(y)}" r="7" class="pl-dot ${st.done ? (st.correct ? 'right' : 'wrong') : 'sel'}"/>`; });
+    let hits = '';
+    if (!st.done) for (let x = lo; x <= hi; x++) for (let y = lo; y <= hi; y++) hits += `<circle class="pl-hit" data-act="plotPick" data-x="${x}" data-y="${y}" cx="${X(x)}" cy="${Y(y)}" r="${g / 2 - 0.5}" aria-label="Point ${x}, ${y}"/>`;
+    return `<p class="howto">${q.plot.kind === 'points' ? `Tap ${q.n === 1 ? 'the point' : `${q.n} points`} on the grid. Tap again to remove.` : 'Tap two points on the line. Tap again to remove.'}</p>
+      <svg class="plotgrid" viewBox="0 0 ${W} ${W}" role="group" aria-label="Coordinate grid from ${lo} to ${hi}">${body}${hits}</svg>`;
   }
 
   // ---- number line ----
@@ -1020,6 +1093,12 @@
   const demoInner = () => renderBody(Q.demo, Q.demoSt) + feedback(Q.demoSt);
   const paintDemo = () => { const b = document.getElementById('demoBody'); if (b) b.innerHTML = demoInner(); };
 
+  // Two grid points on the line y = m x + b (prefers points near the middle).
+  function plotPick2(q) {
+    const [lo, hi] = plotRange(q), out = [];
+    for (const x of [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6]) { const y = q.plot.m * x + q.plot.b; if (x >= lo && x <= hi && Number.isInteger(Math.round(y * 1e9) / 1e9) && y >= lo && y <= hi) out.push([x, Math.round(y)]); if (out.length === 2) break; }
+    return out;
+  }
   function demoSteps(q) {
     const steps = [];
     if (q.t === 'mc') steps.push({ sel: `.opt[data-v="${CSS.escape(q.a)}"]`, apply: (st) => { st.chosen = q.a; } });
@@ -1050,6 +1129,8 @@
     if (q.t === 'tap') q.a.forEach((i) => steps.push({ sel: `.tapw[data-i="${i}"]`, apply: (st) => { st.sel.push(i); } }));
     if (q.t === 'type') [...q.a[0]].forEach((_, n) => steps.push({ sel: '#typeAns', apply: (st) => { st.typed = q.a[0].slice(0, n + 1); }, sound: 'typeKey', after: 140, still: n > 0 }));
     if (q.t === 'spell') [...q.a].forEach((_, n) => steps.push({ sel: '#typeAns', apply: (st) => { st.typed = q.a.slice(0, n + 1); }, sound: 'typeKey', after: 220, still: n > 0 }));
+    if (q.t === 'expr') { const keys = Alg.clean(q.a).replace(/r\(/g, '\u221a').split('').map((c) => (c === '\u221a' ? 'r(' : c)); keys.forEach((ch, n) => steps.push({ sel: `.kp-key[data-k="${CSS.escape(ch)}"]`, apply: (st) => { st.typed = keys.slice(0, n + 1).join(''); }, sound: 'typeKey', after: 320 })); }
+    if (q.t === 'plot') { const want = q.plot.kind === 'points' ? q.plot.pts : q.plot.kind === 'vline' ? [[q.plot.x, 0], [q.plot.x, 2]] : plotPick2(q); want.forEach(([x, y]) => steps.push({ sel: `.pl-hit[data-x="${x}"][data-y="${y}"]`, apply: (st) => { st.sel.push(`${x},${y}`); }, sound: 'place', after: 500 })); }
     if (q.t === 'num') [...q.a].forEach((ch, n) => steps.push({ sel: `.kp-key[data-k="${ch === ' ' ? 'sp' : ch}"]`, apply: (st) => { st.typed = q.a.slice(0, n + 1); }, sound: 'typeKey', after: 380 }));
     if (q.t === 'multi') q.a.forEach((o) => steps.push({ sel: `.opt[data-v="${CSS.escape(o)}"]`, apply: (st) => { st.sel.push(o); } }));
     if (q.t === 'line') { const i = lineIndex(q, q.a); steps.push({ sel: `.nl-hit[data-i="${i}"]`, apply: (st) => { st.chosen = i; }, sound: 'place' }); }
@@ -1786,6 +1867,15 @@
     unpick: (ds) => { SFX.play('unplace'); Q.st.picked.splice(+ds.p, 1); render(); },
     clearPick: () => { Q.st.picked = []; render(); },
     key: (ds) => pressKey(ds.k),
+    akey: (ds) => pressAlgKey(ds.k),
+    plotPick: (ds) => {
+      const q = cur(), st = Q.st, id = `${ds.x},${ds.y}`;
+      if (st.done) return;
+      if (st.sel.includes(id)) st.sel = st.sel.filter((s) => s !== id);
+      else { st.sel.push(id); if (st.sel.length > (q.n || 1)) st.sel.shift(); }
+      if (st.msg && st.msg.kind === 'try') st.msg = null;
+      SFX.play('place'); render();
+    },
     hotPick: (ds) => {
       if (Q.st.done) return;
       const i = +ds.i, q = cur(), s0 = Q.st.sel;
@@ -2054,6 +2144,12 @@
       e.preventDefault(); const n = lineCount(cur()); Q.st.chosen = Math.max(0, Math.min(n, (Q.st.chosen ?? Math.round(n / 2)) + (e.key === 'ArrowRight' ? 1 : -1))); SFX.play('tap'); render(); return;
     }
     if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.bin[data-act], .nl-hit[data-act], .sh-part[data-act], .ck-hit[data-act]')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); return; }
+    if (view.name === 'quiz' && Q && !modal && cur().t === 'expr' && !Q.st.done && !e.metaKey && !e.ctrlKey) {
+      const map = { Backspace: 'back', Escape: 'clear', '−': '-', '×': '*', '÷': '/' };
+      const k = map[e.key] || (/^[0-9.+\-*/^()xyabmnt]$/.test(e.key) ? e.key : null);
+      if (k) { e.preventDefault(); pressAlgKey(k); return; }
+      if (e.key === 'Enter' && Q.st.typed) { e.preventDefault(); check(); return; }
+    }
     if (view.name === 'quiz' && Q && !modal && cur().t === 'num' && !Q.st.done && !e.metaKey && !e.ctrlKey) {
       const map = { Backspace: 'back', Escape: 'clear', ' ': 'sp', '−': '-' };
       const k = map[e.key] || (/^[0-9./-]$/.test(e.key) ? e.key : null);
@@ -2096,7 +2192,7 @@
   });
 
   // ---------- boot ----------
-  if (location.hash === '#debug') window.__hub = { Q: () => Q, P: () => P, S: SUBJECTS, demoSteps, isCorrect, freshSt, prep, renderBody, answerFor, ACT, go, view: () => view, startRound };
+  if (location.hash === '#debug') window.__hub = { Q: () => Q, P: () => P, S: SUBJECTS, demoSteps, isCorrect, freshSt, prep, renderBody, answerFor, ACT, go, view: () => view, startRound, plotOk };
   if (activeId && profiles.some((p) => p.id === activeId)) loadProfile(activeId);
   else if (profiles.length) loadProfile(profiles[0].id);
   render();
