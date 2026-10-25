@@ -57,7 +57,8 @@
       const d = U.pick([2, 3, 4, 8]), n = U.int(1, d - 1), b = U.int(3, 9), ans = M4.simp([n * b, d]);
       return tag(U.num(`${name} uses ${fx([n, d])} cup of flour for each batch of pancakes. How many cups does ${he} need for ${b} batches?\nType a mixed number (use the space key) or a fraction.`, ftyped(ans, true), { keys: 'mixed', unit: 'cups', fig: Fig.fracStrips(Array(Math.min(b, 4)).fill([n, d])), meta: { kind: 'fexpr', args: [[b, 1], '×', [n, d]] }, miss: missMap([[`${n}/${d * b}`, 'More batches need MORE flour. Multiply the top by the number of batches.'], [`${n + b}/${d}`, 'Each batch uses the same amount: multiply.']], ftyped(ans, true)), hint: `${b} groups of ${fx([n, d])}.`, why: `${b} × ${fx([n, d])} = ${fx(ans)} = ${fx(ans, true)} cups` }), '4.NF.B.4c', 206, 'algebra');
     }
-    const n = U.int(3, 6), price = U.int(115, 495), total = n * price, item = U.pick(['notebooks', 'pens', 'snacks', 'stickers packs'.replace(' packs', '')]);
+    // prices and totals never end in .00 or .01 (they would be said as "dollars" or "1 cent")
+    const n = U.int(3, 6), price = U.intWhere(115, 495, (x) => x % 100 > 1 && (n * x) % 100 > 1), total = n * price, item = U.pick(['notebooks', 'pens', 'snacks', 'stickers packs'.replace(' packs', '')]);
     return tag(U.num(`${cap(item)} cost $${dec(price, 2)} each. ${name} buys ${n}. How much does ${he} spend?`, decTrim(total, 2), { pre: '$', keys: 'dec', fig: Fig.table([['Item', 'Cost'], ...[...Array(n)].map((_, i) => [`${i + 1}`, `$${dec(price, 2)}`]), ['Total', '?']]), meta: { kind: 'dexpr', args: [`${n} * ${dec(price, 2)}`] }, miss: missMap([[decTrim(total * 10, 2), 'Check the decimal point: money has two places after it.'], [decTrim(n * 100 + price, 2), 'Multiply the price by the number bought.']], decTrim(total, 2)), hint: `Multiply $${dec(price, 2)} by ${n}.`, why: `${n} × $${dec(price, 2)} = $${dec(total, 2)}` }), '5.NBT.B.7', 212, 'algebra');
   }
 
