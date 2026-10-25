@@ -37,7 +37,48 @@ const COMPUTE = {
   value: ([v]) => N.parse(String(v)),
   frac: ([n, d]) => R(n, d),
   count: ([k]) => R(k),
+  div: ([a, b]) => (a % b === 0 ? R(a / b) : null),
+  sum: (xs) => R(xs.reduce((t, x) => t + x, 0)),
+  mulSub: ([g, n, x]) => R(g * n - x),
+  estHundreds: ([a, b]) => R(r100(a) + r100(b)),
+  round: ([n, to]) => R(Math.floor(n / to + 0.5) * to),
+  len: ([s, e]) => R(e - s),
+  perim: ([w, h]) => R(2 * (w + h)),
+  area: ([w, h]) => R(w * h),
+  sideFromPerim: ([P, w]) => R(P / 2 - w),
+  cents: (list) => R(list.reduce((t, k) => t + COINV[k], 0)),
+  change: ([price, qty, paid]) => R(paid - price * qty),
+  pick: ([vals, i]) => R(vals[i]),
+  diff: ([a, b]) => R(Math.abs(a - b)),
+  countVal: ([vals, v]) => R(vals.filter((x) => x === v).length),
+  size: ([vals]) => R(vals.length),
+  sides: ([k]) => R(SIDES[k]),
+  cube: ([prop]) => R({ faces: 6, 'corners (vertices)': 8, edges: 12 }[prop]),
 };
+// Answers that are words or times, recomputed here.
+const r100 = (n) => Math.floor(n / 100 + 0.5) * 100;
+const COINV = { q: 25, d: 10, n: 5, p: 1, b: 100 };
+const SIDES = { triangle: 3, square: 4, rectangle: 4, rhombus: 4, trapezoid: 4, parallelogram: 4, pentagon: 5, hexagon: 6, octagon: 8, circle: 0 };
+const hm = (h, m) => `${h}:${String(m).padStart(2, '0')}`;
+const TEXT = {
+  digit: ([n, place]) => String(n).padStart(3, '0')[{ hundreds: 0, tens: 1, ones: 2 }[place]],
+  cmp: ([a, b]) => (a > b ? '>' : a < b ? '<' : '='),
+  max: (xs) => String(Math.max(...xs)),
+  parity: ([n]) => (n % 2 ? 'odd' : 'even'),
+  arrayEq: ([r, c]) => `${Array(r).fill(c).join(' + ')} = ${r * c}`,
+  time: ([h, m]) => hm(h, m),
+  elapsed: ([h, m, d]) => { const t = ((h % 12) * 60 + m + d) % 720; return hm(Math.floor(t / 60) || 12, t % 60); },
+  ampm: ([i]) => ['a.m.', 'a.m.', 'p.m.', 'p.m.', 'p.m.', 'p.m.', 'a.m.', 'p.m.'][i],
+  shapeName: ([k]) => k,
+  quadFact: ([i]) => ['square', 'rhombus', 'rectangle', 'trapezoid'][i],
+};
+// An equation like "13 − 6 = 7": is it true, and which numbers does it use?
+function equation(e) {
+  const m = plain(e).match(/^(\d+) ([+−-]) (\d+) = (\d+)$/);
+  if (!m) return null;
+  const a = +m[1], b = +m[3], c = +m[4], plus = m[2] === '+';
+  return { ok: plus ? a + b === c : a - b === c, nums: [a, b, c].sort((x, y) => x - y).join(',') };
+}
 function lineIndex(q, a) {
   const den = q.den || 1, step = q.step || 1, v = N.parse(String(a));
   if (!v) return -1;
@@ -70,7 +111,7 @@ function checkItem(where, q, levelStd) {
   if (!q.q || typeof q.q !== 'string') fail(where, q, 'missing prompt');
   if (!levelStd) fail(where, q, 'level has no standard code');
   if (!MathText.spoken(q.q)) fail(where, q, 'prompt has nothing to say aloud');
-  const math = ['num', 'line', 'shade', 'multi'].includes(q.t) || (q.t === 'mc' && q.meta);
+  const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins'].includes(q.t) || (q.t === 'mc' && q.meta);
   if (math && !q.meta) fail(where, q, 'math item without meta (answer cannot be recomputed)');
 
   if (q.t === 'mc' || q.t === 'multi') {
@@ -100,6 +141,13 @@ function checkItem(where, q, levelStd) {
     if (q.shape === 'grid' && q.parts % (q.rows || 2)) fail(where, q, 'grid parts do not fill the rows');
   }
 
+  if (q.fig && /graph:/.test(q.fig) && q.meta && Array.isArray(q.meta.args[0])) {
+    const label = (q.fig.match(/aria-label="([^"]*)"/) || [])[1] || '';
+    q.meta.args[0].forEach((v) => { if (!label.includes(` ${v}`)) fail(where, q, `graph does not show the value ${v} used for the answer`); });
+  }
+  if (q.t === 'clock' && !q.meta) fail(where, q, 'clock without meta');
+  if (q.t === 'coins' && !(Number.isInteger(q.a) && q.a > 0)) fail(where, q, 'coins amount must be a whole number of cents');
+
   // recompute
   if (q.meta) {
     const { kind, args } = q.meta;
@@ -110,9 +158,24 @@ function checkItem(where, q, levelStd) {
     } else if (kind === 'equivHalf') {
       q.a.forEach((o) => { const v = N.parse(plain(o)); if (!N.eq(v, R(1, 2))) fail(where, q, `${plain(o)} is marked right but is not 1/2`); });
       q.opts.filter((o) => !q.a.includes(o)).forEach((o) => { const v = N.parse(plain(o)); if (N.eq(v, R(1, 2))) fail(where, q, `${plain(o)} equals 1/2 but is marked wrong`); });
+    } else if (kind === 'family') {
+      const fam = [...args].sort((x, y) => x - y).join(',');
+      q.opts.forEach((o) => {
+        const e = equation(o);
+        if (!e || !e.ok) fail(where, q, `option ${o} is not a true equation`);
+        else if ((e.nums === fam) !== q.a.includes(o)) fail(where, q, `${o} is ${e.nums === fam ? '' : 'not '}in the family but marked the other way`);
+      });
+    } else if (kind === 'sidesIs') {
+      q.opts.forEach((o) => { if ((SIDES[o] === args[0]) !== q.a.includes(o)) fail(where, q, `${o} has ${SIDES[o]} sides but is marked the other way`); });
+    } else if (TEXT[kind]) {
+      const want = TEXT[kind](args);
+      const got = q.t === 'clock' ? hm(q.h, q.m) : String(q.a);
+      if (want !== got) fail(where, q, `answer ${got} but ${kind}(${args}) = ${want}`);
+      if (q.t === 'clock' && (q.h < 1 || q.h > 12 || q.m < 0 || q.m > 59 || q.m % (q.step || 5))) fail(where, q, 'clock time cannot be set with this clock');
     } else if (COMPUTE[kind]) {
       const want = COMPUTE[kind](args);
-      const got = q.t === 'shade' ? R(q.a) : N.parse(String(q.a));
+      const got = q.t === 'shade' || q.t === 'coins' ? R(q.a) : N.parse(String(q.a));
+      if (!want) { fail(where, q, `${kind}(${args}) is not a whole answer`); return; }
       if (!N.eq(want, got)) fail(where, q, `answer ${q.a} but ${kind}(${args}) = ${N.str(want)}`);
     } else fail(where, q, `unknown meta kind ${kind}`);
   }

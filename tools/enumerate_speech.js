@@ -12,7 +12,7 @@ const ROOT = path.join(__dirname, '..');
 const appId = process.argv[2];
 if (!appId) { console.log('Usage: node tools/enumerate_speech.js <appId> [runs]'); process.exit(2); }
 const RUNS = +(process.argv[3] || 250);
-const WHOLE_LIMIT = 150; // a level with at most this many distinct number lines records them whole
+const WHOLE_LIMIT = 60; // a level with at most this many distinct number lines records them whole
 
 const ctx = { console, window: {}, CSS: { escape: (s) => s }, TextEncoder };
 ctx.window = ctx;
@@ -62,7 +62,6 @@ for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
     const before = seen.size;
     for (const q of L.gen({})) {
       Voice.build.question(q).forEach(note);
-      [q.hint, q.why, ...Object.values(q.miss || {})].filter(Boolean).forEach(note);
       if (q.passage) Voice.build.passage(q.passage).forEach(note);
       Voice.build.demoEnd(q).forEach(note);
     }

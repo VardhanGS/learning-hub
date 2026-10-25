@@ -11,6 +11,8 @@
 //   multi {t:'multi', q, opts[], a:[correct opts]}                       choose all that apply
 //   line  {t:'line', q, min, max, step, snap?, labels?:'all'|'ends'|[values], a:number, frac?:bool}   place a point
 //   shade {t:'shade', q, shape:'bar'|'circle'|'grid', parts, rows?, a:number of parts to shade}
+//   clock {t:'clock', q, h, m, step?:5|1}                                set the hands
+//   coins {t:'coins', q, a:cents, coins?:['q','d','n','p','b']}          make the amount with coins
 // Any question may carry fig (SVG/HTML from Fig.*), meta ({kind, args} so the validator can recompute the answer),
 // and the MAP tags goal, std, rit.
 const U = {
@@ -85,6 +87,8 @@ const U = {
   multi(q, right, wrong, extra = {}) { return { t: 'multi', q, a: [...right].map(String), opts: U.shuffle([...right, ...wrong].map(String)), ...extra }; },
   line(q, a, opts, extra = {}) { return { t: 'line', q, a, ...opts, ...extra }; },
   shade(q, a, opts, extra = {}) { return { t: 'shade', q, a, ...opts, ...extra }; },
+  clock(q, h, m, extra = {}) { return { t: 'clock', q, h, m, a: `${h}:${String(m).padStart(2, '0')}`, ...extra }; },
+  coins(q, cents, extra = {}) { return { t: 'coins', q, a: cents, ...extra }; },
 
   // Build a round of `n` questions from a list of generator functions, skipping repeats.
   mix(n, fns) {

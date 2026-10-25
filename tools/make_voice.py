@@ -3,6 +3,7 @@
 
 Steps:  node tools/enumerate_speech.js <appId>             -> apps/<appId>/.speech-lines.json
         tools/.venv/bin/python tools/make_voice.py <appId>  -> apps/<appId>/voice/<bundle>.mp4 + data/voice-clips.js
+        (faster: tools/voice_all.sh <appId> runs 4 shards in parallel, then packs)
 Clips are cached in tools/.voice-cache/ by what is spoken, so re-runs (and other apps) only synthesize new lines.
 """
 import hashlib, json, os, re, subprocess, sys, time
@@ -12,7 +13,7 @@ import soundfile as sf
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from sweet_voice import synth, SR
+from sweet_voice import synth, SR, VOICE_ID
 
 CACHE = os.path.join(HERE, '.voice-cache')
 PAD = 0.14  # seconds of silence around each clip inside a bundle
@@ -24,7 +25,7 @@ def trim(a, thr=0.004):
     return a[s:e]
 
 def cache_file(l):
-    return os.path.join(CACHE, hashlib.sha1(f"{l['kind']}|{l['say']}".encode()).hexdigest()[:20] + '.flac')
+    return os.path.join(CACHE, hashlib.sha1(f"{VOICE_ID}|{l['kind']}|{l['say']}".encode()).hexdigest()[:20] + '.flac')
 
 def main():
     app = sys.argv[1]
@@ -32,7 +33,12 @@ def main():
     OUT = os.path.join(APPDIR, 'voice')
     lines = json.load(open(os.path.join(APPDIR, '.speech-lines.json')))
     os.makedirs(CACHE, exist_ok=True); os.makedirs(OUT, exist_ok=True)
+    # --shard i/n: synthesize every n-th missing line (run n of these at once), then run once with --pack.
+    shard = next((a.split('=')[1] for a in sys.argv if a.startswith('--shard=')), None)
     todo = [l for l in lines if not os.path.exists(cache_file(l))]
+    if shard:
+        i, n = map(int, shard.split('/'))
+        todo = todo[i::n]
     print(f'{len(lines)} lines, {len(todo)} to synthesize', flush=True)
     t0 = time.time()
     for i, l in enumerate(todo):
@@ -45,6 +51,8 @@ def main():
             el = time.time() - t0
             print(f'  {i}/{len(todo)}  {el/60:.1f} min elapsed, ~{el / max(1, i) * (len(todo) - i) / 60:.0f} min left', flush=True)
 
+    if shard:
+        return
     # pack bundles
     bundles = sorted({l['bundle'] for l in lines}, key=lambda b: (b != 'common', b))
     manifest = {}

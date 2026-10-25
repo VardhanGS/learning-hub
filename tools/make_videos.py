@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
-"""Render ELA Quest video lessons to MP4.
+"""Render an app's video lessons to MP4 (adapted from ELA Quest's tools/make_videos.py).
 
 Each video is a list of scenes; each scene has "beats" (one narrated line each). Narration comes from
 Kokoro (voice af_heart, via sweet_voice.py), animation is drawn with Pillow, chimes/music are synthesized with numpy,
 and ffmpeg muxes everything. Captions are burned in with read-along word highlighting.
 
-Usage:  python3 tools/make_videos.py            # all videos
-        python3 tools/make_videos.py magic-e    # one video
-Outputs videos/<id>.mp4, videos/<id>.jpg and data/videos.js (catalog read by the app).
+Usage:  tools/.venv/bin/python tools/make_videos.py <appId>            # all of that app's videos
+        tools/.venv/bin/python tools/make_videos.py <appId> regroup    # one video
+Scripts: apps/<appId>/video_scripts.py. Outputs apps/<appId>/videos/<id>.mp4|jpg and apps/<appId>/data/videos.js.
+Math pictures (scene type "image") are drawn by core/engine/fig.js and rendered to PNG by headless Chrome.
 """
 import hashlib, json, math, os, subprocess, sys, tempfile, wave
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FONTS = os.path.join(ROOT, 'tools', 'fonts')
+HUB = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FONTS = os.path.join(HUB, 'tools', 'fonts')
+APP_ID = sys.argv[1] if len(sys.argv) > 1 else None
+ROOT = os.path.join(HUB, 'apps', APP_ID) if APP_ID else HUB
 OUT = os.path.join(ROOT, 'videos')
+APP_NAME = json.loads(subprocess.run(['node', '-e', f"const window={{}};{open(os.path.join(ROOT, 'config.js')).read()};process.stdout.write(JSON.stringify(window.APP.name))"], capture_output=True, text=True).stdout) if APP_ID else 'Learning Hub'
 W, H, FPS, SR = 1280, 720, 24, 24000  # SR matches the Kokoro voice
 GAP = 0.45  # silence after each narrated line
 
 PAPER, SURFACE, INK, MUTED, LINE, RULE, RULE_MID = '#f5f8fd', '#ffffff', '#1d2640', '#5b6684', '#dfe6f2', '#b9cdee', '#e6a3a8'
-COLORS = {'phonics': '#dc6a12', 'grammar': '#1f8f4e', 'reading': '#2b5fd0', 'writing': '#c42f69', 'mix': '#6a4fd0', 'spelling': '#b07800', 'vocab': '#0d8585'}
+COLORS = {'c1': '#2b5fd0', 'c2': '#1f8f4e', 'c3': '#dc6a12', 'c4': '#c42f69', 'c5': '#0d8585', 'c6': '#6a4fd0', 'phonics': '#dc6a12', 'grammar': '#1f8f4e', 'reading': '#2b5fd0', 'writing': '#c42f69', 'mix': '#6a4fd0', 'spelling': '#b07800', 'vocab': '#0d8585'}
 GOOD, GOLD = '#1c8f50', '#f2b01e'
 TAGC = {'noun': '#2b5fd0', 'verb': '#1f8f4e', 'adj': '#dc6a12'}
 TAGL = {'noun': 'noun', 'verb': 'verb', 'adj': 'adjective'}
@@ -121,9 +125,9 @@ def pop(img, spr, cx, cy, t0, t, anchor='c'):
 
 # ---------------- audio ----------------
 def tts(text, path):
-    """Natural narration (Kokoro af_heart, see sweet_voice.py), cached per line."""
-    from sweet_voice import synth
-    cache = os.path.join(os.path.dirname(__file__), '.voice-cache', 'video_' + hashlib.md5(text.encode()).hexdigest()[:16] + '.npy')
+    """Natural narration (the family's chosen Kokoro voice, see sweet_voice.py), cached per line."""
+    from sweet_voice import synth, VOICE_ID
+    cache = os.path.join(os.path.dirname(__file__), '.voice-cache', 'video_' + hashlib.md5(f'{VOICE_ID}|{text}'.encode()).hexdigest()[:16] + '.npy')
     if os.path.exists(cache): return np.load(cache)
     a = synth(text)
     os.makedirs(os.path.dirname(cache), exist_ok=True); np.save(cache, a)
@@ -455,7 +459,8 @@ def r_oreo(img, sc, t, st, col, C):
 def r_levels(img, sc, t, st, col, C):
     if 'c' not in C:
         C['c'] = []
-        for name, grade, desc, c2, stars in [('Starter', 'GRADE 2', 'Learn the basics', '#6fbf73', 1), ('Star', 'GRADE 2', 'Harder practice', '#3f8fd8', 2), ('Challenge', 'GRADE 3', 'Grade 3 work!', '#9a5cd6', 3)]:
+        lv = sc.get('levels') or [('Starter', 'GRADE 2', 'Learn the basics'), ('Star', 'GRADE 2', 'Harder practice'), ('Challenge', 'GRADE 3', 'Grade 3 work!')]
+        for (name, grade, desc), c2, stars in zip(lv, ['#6fbf73', '#3f8fd8', '#9a5cd6'], [1, 2, 3]):
             c = card(330, 300, fill=SURFACE, outline=mix(c2, SURFACE, 0.4), width=4)
             d = ImageDraw.Draw(c)
             d.rounded_rectangle((2, 2, 332, 26), 22, fill=c2); d.rectangle((2, 16, 332, 26), fill=c2)
@@ -471,6 +476,32 @@ def r_levels(img, sc, t, st, col, C):
         if k + 1 < len(st): pop(img, c, W / 2 + (k - 1) * 370, 360, st[k + 1], t)
     if len(st) > 4: pop(img, C['badge'], W / 2, 555, st[4], t)
 
+# A math picture from core/engine/fig.js. sc['figs'] is a list of fig expressions; sc['show'][beat] says which one
+# is on screen from that beat on (default: the first). sc['notes'] are lines revealed on later beats, beside it.
+def r_image(img, sc, t, st, col, C):
+    if 'figs' not in C:
+        from fig_png import fig_png
+        C['h'] = text_block(sc['heading'], font('display', 48), col, 1100) if sc.get('heading') else None
+        maxw = 640 if sc.get('notes') else 900
+        C['figs'] = []
+        for e in sc['figs']:
+            im = fig_png(e)
+            k = min(maxw / im.width, (380 if C['h'] else 440) / im.height)
+            C['figs'].append(im.resize((max(1, int(im.width * k)), max(1, int(im.height * k))), Image.LANCZOS))
+        C['n'] = [chip(n, font('bold', 34), INK, SURFACE, outline=mix(col, SURFACE, 0.4), padx=22, pady=10, radius=16) for n in sc.get('notes', [])]
+    if C['h']: pop(img, C['h'], W / 2, 145, st[0], t)
+    show = sc.get('show', [0] * len(sc['beats']))
+    cur = 0
+    for bi, k in enumerate(show):
+        if bi < len(st) and t >= st[bi] and k is not None: cur = k
+    cx = 380 if C['n'] else W / 2
+    cy = 370 if C['h'] else 340
+    pop(img, C['figs'][cur], cx, cy, st[0] if cur == 0 else st[show.index(cur)], t)
+    nn = len(C['n'])
+    for k, c in enumerate(C['n']):
+        bi = k + 1 + (sc.get('note_from', 1) - 1)
+        if bi < len(st): pop(img, c, 940, cy - (nn - 1) * 48 + k * 96, st[bi], t)
+
 def r_outro(img, sc, t, st, col, C):
     if 'a' not in C:
         C['a'] = text_block(sc['title'], font('display', 76), col, 1100)
@@ -483,7 +514,7 @@ def r_outro(img, sc, t, st, col, C):
     pop(img, C['b'], W / 2, 420, 0.4, t)
 
 RENDER = {'title': r_title, 'bullets': r_bullets, 'wordmath': r_wordmath, 'sentence': r_sentence, 'sort': r_sort, 'quiz': r_quiz,
-          'tablelegs': r_tablelegs, 'boxes': r_boxes, 'beforeafter': r_beforeafter, 'oreo': r_oreo, 'levels': r_levels, 'outro': r_outro}
+          'tablelegs': r_tablelegs, 'boxes': r_boxes, 'beforeafter': r_beforeafter, 'oreo': r_oreo, 'levels': r_levels, 'outro': r_outro, 'image': r_image}
 
 # ---------------- base frame & captions ----------------
 def base_frame(title, color, subject_label):
@@ -496,7 +527,7 @@ def base_frame(title, color, subject_label):
         d.line((0, y + 60, W, y + 60), fill=hexa(RULE, 70), width=2)
     d.rectangle((0, 0, W, 84), fill=color)
     d.text((36, 42), title, font=font('display', 34), fill='#ffffff', anchor='lm')
-    d.text((W - 36, 42), f'ELA Quest · {subject_label}', font=font('bold', 24), fill=hexa('#ffffff', 220), anchor='rm')
+    d.text((W - 36, 42), f'{APP_NAME} · {subject_label}', font=font('bold', 24), fill=hexa('#ffffff', 220), anchor='rm')
     return im
 
 class Captions:
@@ -526,7 +557,7 @@ class Captions:
 
 # ---------------- build ----------------
 def build(video, tmp):
-    vid = video['id']; color = COLORS[video['subject']]
+    vid = video['id']; color = COLORS[video.get('color') or video['subject']]
     beats = []  # (scene_idx, beat_idx, text, audio, dur, sfx)
     for si, sc in enumerate(video['scenes']):
         for bi, b in enumerate(sc['beats']):
@@ -555,7 +586,7 @@ def build(video, tmp):
         sc = video['scenes'][si]
         if a is not None: add(a, st, 0.95)
         if fx: add(sfx(fx), st)
-        elif sc['type'] in ('bullets', 'wordmath', 'boxes', 'oreo', 'levels', 'tablelegs', 'beforeafter') and (bi > 0 or not sc.get('heading', sc['type'] != 'boxes')):
+        elif sc['type'] in ('bullets', 'wordmath', 'boxes', 'oreo', 'levels', 'tablelegs', 'beforeafter', 'image') and (bi > 0 or not sc.get('heading', sc['type'] != 'boxes')):
             add(sfx('pop'), st)
         elif sc['type'] == 'sort' and bi > 0: add(sfx('pop'), st + 0.55)
         if sc['type'] == 'quiz' and sc['beats'][bi].get('role') == 'count':
@@ -610,11 +641,18 @@ def build(video, tmp):
 
 if __name__ == '__main__':
     sys.path.insert(0, os.path.dirname(__file__))
+    sys.path.insert(0, ROOT)
     from video_scripts import VIDEOS
     os.makedirs(OUT, exist_ok=True)
-    only = set(sys.argv[1:])
+    only = set(sys.argv[2:])
     cat_path = os.path.join(OUT, 'durations.json')
     durs = json.load(open(cat_path)) if os.path.exists(cat_path) else {}
+    # Draw every math picture first (headless Chrome), so a slow render cannot stop a video halfway.
+    from fig_png import fig_png
+    for v in VIDEOS:
+        if only and v['id'] not in only: continue
+        for sc in v['scenes']:
+            for e in sc.get('figs', []): fig_png(e)
     with tempfile.TemporaryDirectory() as tmp:
         for v in VIDEOS:
             if only and v['id'] not in only: continue

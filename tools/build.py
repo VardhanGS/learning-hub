@@ -142,6 +142,10 @@ def build_hub(cfgs):
     copytree(os.path.join(ROOT, 'hub'), out)
     make_icons({'icon': '🧭', 'iconLabel': '', 'theme': {'primary': '#2b5fd0'}}, os.path.join(out, 'hub-icons'))
     open(os.path.join(out, '.nojekyll'), 'w').close()
+    # local test helpers (deploy.sh never publishes _test/)
+    os.makedirs(os.path.join(out, '_test'), exist_ok=True)
+    for f in ('playthrough.js', 'shot-frame.html'):
+        shutil.copy2(os.path.join(HERE, f), os.path.join(out, '_test', f))
     print('built dist/index.html (hub)')
 
 

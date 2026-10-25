@@ -7,7 +7,9 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE = 'af_heart'      # warm, gentle American English female voice
-SPEED = 0.92            # a touch slower than normal for young listeners
+BLEND = [('af_heart', 0.7), ('af_nicole', 0.3)]  # chosen by the family (sample "D"): af_heart, a little softer
+VOICE_ID = 'heart70-nicole30-s090'  # part of the clip cache key, so changing the voice re-records everything
+SPEED = 0.90            # a touch slower than normal for young listeners
 SR = 24000
 
 _k = None
@@ -15,7 +17,12 @@ def kokoro():
     global _k
     if _k is None:
         from kokoro_onnx import Kokoro
-        _k = Kokoro(os.path.join(HERE, 'tts-models', 'kokoro-v1.0.onnx'), os.path.join(HERE, 'tts-models', 'voices-v1.0.bin'))
+        import onnxruntime as rt
+        # VOICE_THREADS caps the threads per process, so several make_voice.py shards can share the CPU.
+        opts = rt.SessionOptions()
+        opts.intra_op_num_threads = int(os.environ.get('VOICE_THREADS', '0'))
+        sess = rt.InferenceSession(os.path.join(HERE, 'tts-models', 'kokoro-v1.0.onnx'), sess_options=opts, providers=['CPUExecutionProvider'])
+        _k = Kokoro.from_session(sess, os.path.join(HERE, 'tts-models', 'voices-v1.0.bin'))
     return _k
 
 PUNCT = {'.': 'period', '?': 'question mark', '!': 'exclamation mark', ',': 'comma'}
@@ -41,6 +48,7 @@ def synth(text, kind='', words=frozenset(), speed=None):
     t = prepare(text, kind, words)
     sp = speed or (0.62 if kind == 'slow' else SPEED)
     ph = fix_phonemes(k.tokenizer.phonemize(t, 'en-us'))
-    audio, sr = k.create(ph, voice=VOICE, speed=sp, is_phonemes=True)
+    style = sum(w * k.get_voice_style(n) for n, w in BLEND)
+    audio, sr = k.create(ph, voice=style, speed=sp, is_phonemes=True)
     assert sr == SR
     return np.asarray(audio, dtype=np.float32)

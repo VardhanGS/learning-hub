@@ -393,6 +393,8 @@
       case 'multi': return q.a.join(', ');
       case 'line': return lineLabel(q, lineIndex(q, q.a));
       case 'shade': return `Shade ${q.a} of the ${q.parts} equal parts.`;
+      case 'clock': return `${q.h}:${String(q.m).padStart(2, '0')}`;
+      case 'coins': return `${coinsFor(q).map((k) => Fig.COIN[k].name).join(', ')} (${fmtCents(q.a)})`;
       default: return '';
     }
   }
@@ -410,6 +412,8 @@
       case 'multi': return [...st.sel].sort().join('|') === [...q.a].sort().join('|');
       case 'line': return st.chosen === lineIndex(q, q.a);
       case 'shade': return st.sel.length === q.a;
+      case 'clock': return (st.h ?? 12) === q.h && (st.m ?? 0) === q.m;
+      case 'coins': return st.picked.reduce((t, k) => t + Fig.COIN[k].v, 0) === q.a;
       default: return false;
     }
   }
@@ -470,6 +474,7 @@
         if (q.t === 'num') st.typed = '';
         if (q.t === 'multi' || q.t === 'shade') st.sel = [];
         if (q.t === 'line') st.chosen = null;
+        if (q.t === 'coins') st.picked = [];
         if (q.t === 'sort') { st.wrongItems = q.items.map((it, i) => (st.place[i] !== it.b ? i : -1)).filter((i) => i >= 0); st.wrongItems.forEach((i) => delete st.place[i]); }
         if (q.t === 'build' || q.t === 'order') st.picked = [];
         if (q.t === 'tap') st.sel = [];
@@ -596,6 +601,7 @@
     if (q.t === 'type' || q.t === 'spell' || q.t === 'num') ready = st.typed.trim().length > 0;
     if (q.t === 'multi' || q.t === 'shade') ready = st.sel.length > 0;
     if (q.t === 'line') ready = st.chosen != null;
+    if (q.t === 'coins') ready = st.picked.length > 0;
     return `<button class="btn primary big" data-act="check" ${ready ? '' : 'disabled'}>Check</button>`;
   }
 
@@ -678,6 +684,8 @@
       }
       case 'line': return renderLine(q, st);
       case 'shade': return renderShade(q, st);
+      case 'clock': return renderClock(q, st);
+      case 'coins': return renderCoins(q, st);
       default: return '';
     }
   }
@@ -750,6 +758,47 @@
         <path d="M${pad - 18} ${y} l10 -7 v14 z M${W - pad + 18} ${y} l-10 -7 v14 z" class="nl-arrow"/>
         ${ticks}${marks}${st.done ? '' : hits}
       </svg>`;
+  }
+
+  // ---- set the clock: tap a number for the hour hand, tap (or drag) around the edge for the minute hand ----
+  function renderClock(q, st) {
+    const h = st.h ?? 12, m = st.m ?? 0, c = 100, step = q.step || 5;
+    let marks = '', hits = '';
+    for (let i = 0; i < 60; i++) {
+      const a = (i * 6 - 90) * Math.PI / 180, r1 = i % 5 ? 84 : 78;
+      marks += `<line x1="${c + r1 * Math.cos(a)}" y1="${c + r1 * Math.sin(a)}" x2="${c + 90 * Math.cos(a)}" y2="${c + 90 * Math.sin(a)}" class="fg-stroke" style="stroke-width:${i % 5 ? 1.5 : 3}"/>`;
+    }
+    for (let n = 1; n <= 12; n++) {
+      const a = (n * 30 - 90) * Math.PI / 180;
+      marks += `<text x="${c + 64 * Math.cos(a)}" y="${c + 64 * Math.sin(a) + 7}" class="fg-text ${h === n ? 'ck-on' : ''}" font-size="20" text-anchor="middle">${n}</text>`;
+      hits += `<circle cx="${c + 64 * Math.cos(a)}" cy="${c + 64 * Math.sin(a)}" r="15" class="ck-hit" data-act="clockSet" data-k="h" data-v="${n}" aria-label="Hour ${n}"/>`;
+    }
+    for (let mm = 0; mm < 60; mm += step) {
+      const a = (mm * 6 - 90) * Math.PI / 180;
+      hits += `<circle cx="${c + 92 * Math.cos(a)}" cy="${c + 92 * Math.sin(a)}" r="${step === 1 ? 4 : 10}" class="ck-hit" data-act="clockSet" data-k="m" data-v="${mm}" aria-label="${mm} minutes"/>`;
+    }
+    const cls = st.done ? (st.correct ? 'right' : 'wrong') : '';
+    return `<p class="howto">Tap a <b>number</b> to move the short hour hand. Tap or drag around the <b>edge</b> to move the long minute hand.</p>
+      <div class="clock-wrap"><svg class="clockface ${cls}" viewBox="-8 -8 216 216" data-step="${step}" role="group" aria-label="Clock">
+        <circle cx="${c}" cy="${c}" r="96" class="ck-face"/>${marks}${Fig.hands(h, m, c)}${st.done ? '' : hits}
+      </svg></div>
+      ${st.done && !st.correct ? `<div class="fig small">${Fig.clock(q.h, q.m, 150)}</div>` : ''}`;
+  }
+
+  // ---- make an amount with coins ----
+  const fmtCents = (c) => (c >= 100 ? `$${(c / 100).toFixed(2)}` : `${c}¢`);
+  function coinsFor(q) {
+    // Fewest coins for the answer (shown when the answer is revealed and used by the demo).
+    let left = q.a; const out = [];
+    [...(q.coins || ['q', 'd', 'n', 'p'])].sort((x, y) => Fig.COIN[y].v - Fig.COIN[x].v).forEach((k) => { while (left >= Fig.COIN[k].v) { out.push(k); left -= Fig.COIN[k].v; } });
+    return out;
+  }
+  function renderCoins(q, st) {
+    const kinds = q.coins || ['q', 'd', 'n', 'p'];
+    const purse = st.picked.length ? st.picked.map((k, i) => `<button class="coin in" data-act="coinOut" data-i="${i}" ${st.done ? 'disabled' : ''} aria-label="Take out a ${Fig.COIN[k].name}">${Fig.coinSvg(k)}</button>`).join('') : '<span class="muted">Tap coins below to put them here.</span>';
+    return `<div class="purse ${st.done ? (st.correct ? 'right' : 'wrong') : ''}" aria-label="Your coins">${purse}</div>
+      ${st.done ? `<p class="howto">${st.picked.length} coin${st.picked.length === 1 ? '' : 's'} = <b>${fmtCents(st.picked.reduce((t, k) => t + Fig.COIN[k].v, 0))}</b></p>` : `<p class="howto">Tap a coin in the box to take it out. <b>${st.picked.length}</b> coin${st.picked.length === 1 ? '' : 's'} so far.</p>
+      <div class="coin-tray">${kinds.map((k) => `<button class="coin" data-act="coinIn" data-k="${k}" aria-label="Add a ${Fig.COIN[k].name}">${Fig.coinSvg(k)}<small>${Fig.COIN[k].name}</small></button>`).join('')}</div>`}`;
   }
 
   // ---- shade a fraction model ----
@@ -904,6 +953,11 @@
     if (q.t === 'num') [...q.a].forEach((ch, n) => steps.push({ sel: `.kp-key[data-k="${ch === ' ' ? 'sp' : ch}"]`, apply: (st) => { st.typed = q.a.slice(0, n + 1); }, sound: 'typeKey', after: 380 }));
     if (q.t === 'multi') q.a.forEach((o) => steps.push({ sel: `.opt[data-v="${CSS.escape(o)}"]`, apply: (st) => { st.sel.push(o); } }));
     if (q.t === 'line') { const i = lineIndex(q, q.a); steps.push({ sel: `.nl-hit[data-i="${i}"]`, apply: (st) => { st.chosen = i; }, sound: 'place' }); }
+    if (q.t === 'clock') {
+      steps.push({ sel: `.ck-hit[data-k="h"][data-v="${q.h}"]`, apply: (st) => { st.h = q.h; }, sound: 'place', after: 600 });
+      steps.push({ sel: `.ck-hit[data-k="m"][data-v="${q.m}"]`, apply: (st) => { st.m = q.m; }, sound: 'place' });
+    }
+    if (q.t === 'coins') coinsFor(q).forEach((k) => steps.push({ sel: `.coin[data-k="${k}"]`, apply: (st) => { st.picked.push(k); }, sound: 'place', after: 420 }));
     if (q.t === 'shade') [...Array(q.a)].forEach((_, i) => steps.push({ sel: `.sh-part[data-i="${i}"]`, apply: (st) => { st.sel.push(i); }, after: 420 }));
     return steps;
   }
@@ -1621,6 +1675,9 @@
     unpick: (ds) => { SFX.play('unplace'); Q.st.picked.splice(+ds.p, 1); render(); },
     clearPick: () => { Q.st.picked = []; render(); },
     key: (ds) => pressKey(ds.k),
+    clockSet: (ds) => { if (Q.st.done) return; Q.st[ds.k] = +ds.v; SFX.play('place'); if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null; render(); },
+    coinIn: (ds) => { if (Q.st.done || Q.st.picked.length >= 20) return; Q.st.picked.push(ds.k); SFX.play('place'); if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null; render(); },
+    coinOut: (ds) => { if (Q.st.done) return; Q.st.picked.splice(+ds.i, 1); SFX.play('unplace'); render(); },
     multiPick: (ds) => { if (Q.st.done) return; const s = Q.st.sel; SFX.play(s.includes(ds.v) ? 'unplace' : 'pop'); Q.st.sel = s.includes(ds.v) ? s.filter((x) => x !== ds.v) : [...s, ds.v]; render(); },
     linePick: (ds) => { if (Q.st.done) return; SFX.play('place'); Q.st.chosen = +ds.i; if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null; render(); },
     shadePick: (ds) => { if (Q.st.done) return; const i = +ds.i, s = Q.st.sel; SFX.play(s.includes(i) ? 'unplace' : 'pop'); Q.st.sel = s.includes(i) ? s.filter((x) => x !== i) : [...s, i]; render(); },
@@ -1851,16 +1908,32 @@
     const i = Math.max(0, Math.min(n, Math.round(((x - pad) / (W - 2 * pad)) * n)));
     if (i !== Q.st.chosen) { Q.st.chosen = i; if (Q.st.msg && Q.st.msg.kind === 'try') Q.st.msg = null; SFX.play('tap'); render(); }
   };
-  document.addEventListener('pointerdown', (e) => { if (e.target.closest && e.target.closest('.quiz .nline')) { lineDrag = true; lineAt(e); } });
-  document.addEventListener('pointermove', (e) => { if (lineDrag) { e.preventDefault(); lineAt(e); } }, { passive: false });
-  document.addEventListener('pointerup', () => { if (lineDrag) { lineDrag = false; SFX.play('place'); } });
-  document.addEventListener('pointercancel', () => { lineDrag = false; });
+  // Dragging around the edge of a clock moves the minute hand.
+  let clockDrag = false;
+  const clockAt = (e) => {
+    const el = document.querySelector('.quiz .clockface');
+    if (!el || !Q || Q.st.done || view.name !== 'quiz') return;
+    const b = el.getBoundingClientRect(), k = 216 / b.width;
+    const x = (e.clientX - b.left) * k - 8 - 100, y = (e.clientY - b.top) * k - 8 - 100;
+    if (Math.hypot(x, y) < 76) return; // inside: numbers set the hour (by tapping)
+    const step = +el.dataset.step || 5;
+    const mm = (Math.round(((Math.atan2(y, x) * 180 / Math.PI + 90 + 360) % 360) / 6 / step) * step) % 60;
+    if (mm !== Q.st.m) { Q.st.m = mm; SFX.play('tap'); render(); }
+  };
+  document.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest) return;
+    if (e.target.closest('.quiz .nline')) { lineDrag = true; lineAt(e); }
+    else if (e.target.closest('.quiz .clockface') && !(e.target.dataset && e.target.dataset.k === 'h')) { clockDrag = true; clockAt(e); }
+  });
+  document.addEventListener('pointermove', (e) => { if (lineDrag) { e.preventDefault(); lineAt(e); } else if (clockDrag) { e.preventDefault(); clockAt(e); } }, { passive: false });
+  document.addEventListener('pointerup', () => { if (lineDrag) { lineDrag = false; SFX.play('place'); } clockDrag = false; });
+  document.addEventListener('pointercancel', () => { lineDrag = false; clockDrag = false; });
 
   document.addEventListener('keydown', (e) => {
     if (view.name === 'quiz' && Q && !modal && cur().t === 'line' && !Q.st.done && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       e.preventDefault(); const n = lineCount(cur()); Q.st.chosen = Math.max(0, Math.min(n, (Q.st.chosen ?? Math.round(n / 2)) + (e.key === 'ArrowRight' ? 1 : -1))); SFX.play('tap'); render(); return;
     }
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.bin[data-act], .nl-hit[data-act], .sh-part[data-act]')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); return; }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.bin[data-act], .nl-hit[data-act], .sh-part[data-act], .ck-hit[data-act]')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); return; }
     if (view.name === 'quiz' && Q && !modal && cur().t === 'num' && !Q.st.done && !e.metaKey && !e.ctrlKey) {
       const map = { Backspace: 'back', Escape: 'clear', ' ': 'sp', '−': '-' };
       const k = map[e.key] || (/^[0-9./-]$/.test(e.key) ? e.key : null);
@@ -1898,6 +1971,17 @@
   if (activeId && profiles.some((p) => p.id === activeId)) loadProfile(activeId);
   else if (profiles.length) loadProfile(profiles[0].id);
   render();
+  // Screenshot mode for testing: #shot=<subject>.<skill>.<level>.<type>[.answer|.wrong|.demo] opens that level on a
+  // question of that type (used by tools/shots.sh with headless Chrome; never linked from the app).
+  if (location.hash.startsWith('#shot=')) {
+    const [s, k, l, t, mode] = decodeURIComponent(location.hash.slice(6)).split('.');
+    if (!P) { profiles = [{ id: 'shot', name: 'Sam', avatar: '🦊' }]; loadProfile('shot'); }
+    let tries = 0;
+    do { startRound({ mode: 'skill', s, k, l: +l, noExample: mode !== 'demo' }); } while (Q && Q.qs[0].t !== t && ++tries < 60);
+    if (mode === 'demo') { Q.demo = prep(Q.qs.find((q) => q.t === t) || Q.qs[0]); Q.demoRaw = Q.demo; Q.demoStarted = true; Q.demoSt = answerFor(Q.demo); Q.demoSt.done = true; Q.demoSt.correct = true; Q.demoSt.msg = { kind: 'good', title: 'That is the answer!', body: Q.demo.why || '' }; Q.demoDone = true; render(); }
+    else if (mode === 'answer') { Object.assign(Q.st, answerFor(cur())); check(); }
+    else if (mode === 'wrong') { const q = cur(); if (q.t === 'mc') { Q.st.chosen = Object.keys(q.miss || {})[0] || q.opts.find((o) => o !== q.a); check(); } }
+  }
   if (me() && me().cloud) pull();
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.HUB_NO_SW) {

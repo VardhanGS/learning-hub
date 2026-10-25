@@ -61,7 +61,11 @@ const MathText = (() => {
       .replace(/[{}\\]/g, ' ') + ' ');
     t = t
       .replace(/²/g, ' squared').replace(/³/g, ' cubed').replace(/√(\w+)/g, 'the square root of $1')
-      .replace(/(\d)\s*¢/g, '$1 cents').replace(/\$(\d+(?:\.\d+)?)/g, '$1 dollars')
+      .replace(/\b(\d{1,2}):00\b/g, "$1 o'clock").replace(/\b(\d{1,2}):0(\d)\b/g, '$1 oh $2').replace(/\b(\d{1,2}):(\d\d)\b/g, '$1 $2')
+      .replace(/\ba\.m\./g, 'A M').replace(/\bp\.m\./g, 'P M')
+      .replace(/\$(\d+)\.(\d\d)\b/g, (_m, d, c) => (+d ? `${d} dollar${+d === 1 ? '' : 's'}${+c ? ` and ${+c} cent${+c === 1 ? '' : 's'}` : ''}` : `${+c} cent${+c === 1 ? '' : 's'}`))
+      .replace(/\$(\d+)\b/g, (_m, d) => `${d} dollar${+d === 1 ? '' : 's'}`)
+      .replace(/(\d)\s*¢/g, '$1 cents')
       .replace(/(\d)\s*%/g, '$1 percent').replace(/(\d)\s*°/g, '$1 degrees')
       .replace(/_{2,}|□/g, ' blank ')
       .replace(/\s[−-]\s/g, ' minus ').replace(/\s\+\s/g, ' plus ').replace(/\s[×·]\s/g, ' times ').replace(/\s÷\s/g, ' divided by ')
