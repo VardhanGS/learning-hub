@@ -781,3 +781,27 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 .goal-row .gname { font-weight: 700; }
 .goal-row .gband { font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; text-align: right; }
 .goal-row .gmeta { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 0.88rem; }
+
+/* ---------- reading passages and fluency practice ---------- */
+.passage-fig { text-align: center; margin: 4px 0 10px; }
+.passage-fig svg { max-width: 100%; height: auto; max-height: 300px; } /* tall enough for charts, tables, and diagrams */
+.flu-card { border: 2px solid color-mix(in srgb, var(--c4) 40%, var(--line)); }
+.flu-steps { padding-left: 1.2em; display: grid; gap: 8px; }
+.flu-bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 6px 0 18px; }
+.flu-bar i { display: block; height: 100%; background: var(--c1); transition: width 0.25s linear; }
+.flu-sentence { font-size: 1.6rem; line-height: 1.45; min-height: 4.4em; text-align: center; font-family: var(--f-display); }
+.flu-yn { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.flu-yn .yes { border-color: color-mix(in srgb, var(--c2) 60%, var(--line)); }
+.flu-yn .no { border-color: color-mix(in srgb, var(--c4) 60%, var(--line)); }
+.flu-read p { font-size: 1.35rem; line-height: 1.7; }
+.flu-read .fig svg, .flu-card svg { max-width: 100%; height: auto; max-height: 140px; }
+.flu-words { line-height: 2.4; margin: 10px 0; }
+.fw { font: inherit; font-size: 1.12rem; padding: 2px 6px; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--ink); }
+.fw.err { background: color-mix(in srgb, var(--c4) 22%, var(--surface)); border-color: var(--c4); text-decoration: line-through; }
+.fw.unread { opacity: 0.35; }
+.flu-audio { width: 100%; margin: 6px 0; }
+.flu-look { max-height: 40vh; overflow: auto; padding: 8px 12px; border: 1px dashed var(--line); border-radius: 12px; margin-bottom: 10px; }
+.flu-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+.flu-stats div { padding: 12px; border-radius: 14px; background: var(--paper); text-align: center; }
+.flu-stats b { display: block; font-size: 1.8rem; font-family: var(--f-display); }
+.flu-stats span { font-size: 0.85rem; color: var(--muted); }

@@ -22,6 +22,7 @@ window.APP = {
   speech: { frac: 'ordinal' },   // "3 fourths" (elementary); Algebra apps use 'over' ("3 over 4")
   features: { studio: false, katex: true },
   data: ['skills.js', 'lessons.js'],
+  picturesOptional: true, // an engine demo for grown-ups; the learning apps must have a picture on every question
   about: 'A small demo of the Learning Hub engine. Standards are the 2023 New Jersey Student Learning Standards for Mathematics.',
   disclaimer: null,
 };

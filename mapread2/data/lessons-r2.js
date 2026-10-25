@@ -1,0 +1,42 @@
+// "Watch first" mini-lessons for MAP Reading 2. Key: `${skillId}.${level}`. Each has a picture (fig).
+// (ELA Quest's own lessons are not loaded; the reused skills get new lessons here, with pictures.)
+const LESSONS = {
+  // ---- reused from ELA Quest ----
+  'stories.0': { rule: 'Good readers ask: Who is in the story? Where does it happen? What happens first, next, and last?', ex: 'Characters · Setting · Events', video: 'story-parts', fig: () => Fig.picture(['🧒', '🏞️', '➡️'], 'Who? Where? What happens?') },
+  'stories.1': { rule: 'Most stories have a problem and a solution. Notice how the characters fix the problem and what they learn.', ex: 'Problem: the kite crashes. Solution: add a tail.', video: 'story-parts', fig: () => Fig.picture(['🪁', '💥', '🔧'], 'Problem → solution') },
+  'stories.2': { rule: 'Character traits tell what a character is like. A fable is a short story that teaches a lesson called a moral.', ex: 'shy · brave · clever · Moral: Keep trying!', video: 'story-parts', fig: () => Fig.picture(['🦊', '🐦‍⬛'], 'A fable teaches a lesson') },
+  'facts.0': { rule: 'Nonfiction tells true facts. Find the main topic (what it is all about) and key details (facts that tell more).', ex: 'Topic: bees. Detail: bees make honey.', video: 'main-idea2', fig: () => Fig.picture(['🐝', '🍯'], 'Topic and details') },
+  'facts.1': { rule: 'Science texts explain how things work. Look for words that compare and words that show steps.', ex: 'Stems have tubes, kind of like straws.', video: 'main-idea2', fig: () => Fig.picture(['🌿', '🥤'], 'Stems work like straws') },
+  'facts.2': { rule: 'Find the main idea, the causes (why) and effects (what happened), and why the author wrote it.', ex: 'Cause: no wind on the moon. Effect: footprints stay.', video: 'main-idea2', fig: () => Fig.picture(['🌕', '👣'], 'Cause → effect') },
+  'context.0': { rule: 'Don\'t know a word? Be a word detective! Read the words around it for clues.', ex: 'The puppy was so tiny it fit in my hand. → tiny = very small', video: 'context-clues', fig: () => Fig.picture(['🐶', '✋'], 'tiny = very small') },
+  'context.1': { rule: 'The clue might be in the next sentence.', ex: 'The desert is arid. It hardly ever rains there. → arid = dry', video: 'context-clues', fig: () => Fig.picture(['🏜️', '☀️'], 'arid = dry') },
+  'context.2': { rule: 'Some words have more than one meaning. Use the sentence to pick the right one.', ex: 'The dog began to bark. · The bark on the tree was rough.', video: 'context-clues', fig: () => Fig.picture(['🐕', '🌳'], 'bark and bark') },
+  // ---- poems ----
+  'poems.0': { rule: 'Poems are written in lines. Many poems have rhyming words: words that end with the same sound.', ex: 'tight · sight · bright', video: 'poems2', fig: () => Fig.picture(['🎵', '📝'], 'tight, sight, bright') },
+  'poems.1': { rule: 'A stanza is a group of lines in a poem. Poets repeat lines and use sound words and sense words.', ex: 'Tap, tap, tap on the roof (a sound you can hear)', video: 'poems2', fig: () => Fig.picture(['🌧️', '🏠'], 'Tap, tap, tap!') },
+  'poems.2': { rule: 'The speaker is the voice in the poem. Ask: What big idea or message does the poem share?', ex: 'An acorn grows into an oak one small step at a time → big things take time.', video: 'poems2', fig: () => Fig.picture(['🌰', '➡️', '🌳'], 'Small steps, big tree') },
+  // ---- characters ----
+  'characters.0': { rule: 'Characters have problems. Look for what the character wants, what goes wrong, and how they feel.', ex: 'Max cannot find his shoe → he feels worried → he remembers where it is.', fig: () => Fig.picture(['👟', '❓'], 'Problem and feelings') },
+  'characters.1': { rule: 'Characters change. Compare how a character feels at the beginning and at the end, and ask why.', ex: 'Rosa: nervous at the start → confident at the end', fig: () => Fig.picture(['😟', '➡️', '😊'], 'How did the character change?') },
+  'characters.2': { rule: 'A character trait tells what someone is like inside. Use what the character says and does as clues.', ex: 'Ava makes a fair plan even though she is nervous → brave and fair', fig: () => Fig.picture(['🧒', '🦁', '⚖️'], 'brave · fair') },
+  // ---- text features ----
+  'features.0': { rule: 'Text features help you find facts: the heading tells the topic, a caption tells about a picture, and bold words are important.', ex: 'Heading: Frogs Need Water · Caption: A frog rests on a lily pad.', video: 'text-features', fig: () => RK.pageFig({ heading: 'Frogs Need Water', icon: '🐸', caption: 'A frog rests on a lily pad.', bold: 'tadpole' }) },
+  'features.1': { rule: 'A table of contents shows the chapters and their page numbers. A glossary tells what important words mean.', ex: 'Contents: Sharp Teeth … page 8 · Glossary: hive — the home where bees live', video: 'text-features', fig: () => RK.listFig('All About Sharks: Contents', [['Sharks Are Fish', 4], ['Sharp Teeth', 8], ['What Sharks Eat', 12]]) },
+  'features.2': { rule: 'A diagram is a picture with labels. Read the labels and the text together.', ex: 'The label "roots" points under the ground; the text says roots take in water.', video: 'text-features', fig: () => RK.diagramFig('Parts of a Plant', '🌻', ['flower', 'leaf', 'stem', 'roots']) },
+  // ---- purpose ----
+  'purpose.0': { rule: 'Ask why the author wrote it: to explain or tell facts, to tell a story, or to make you think or do something.', ex: 'Steps for brushing teeth → to explain how · A talking snowman → to entertain', fig: () => Fig.picture(['📘', '😂', '📣'], 'Explain · entertain · persuade') },
+  'purpose.1': { rule: 'Authors give reasons to support their point. Find the point first, then the reasons that back it up.', ex: 'Point: our school needs a garden. Reasons: we learn, we eat healthy food, it looks nice.', fig: () => Fig.picture(['🌻', '🥕', '🏫'], 'A point and its reasons') },
+  'purpose.2': { rule: 'Two texts can be about the same topic in different ways. Compare what each one tells.', ex: 'Text 1: how bees make honey (facts) · Text 2: a visit to beehives (a story)', fig: () => Fig.picture(['🐝', '🍯', '📖'], 'Two texts, one topic') },
+  // ---- steps ----
+  'steps.0': { rule: 'How-to texts give steps in order. Time words like first, next, then, and finally help you follow them.', ex: 'First fill the cup. Next make a hole. Then drop in the seed.', video: 'steps2', fig: () => Fig.picture(['1️⃣', '2️⃣', '3️⃣'], 'First, next, then') },
+  'steps.1': { rule: 'Some texts tell how one thing leads to the next, like a life cycle or a journey.', ex: 'egg → tadpole → tadpole with legs → frog', video: 'steps2', fig: () => Fig.picture(['🥚', '➡️', '🐸'], 'A life cycle') },
+  'steps.2': { rule: 'A cause is why something happens. An effect is what happens. A problem can have a solution.', ex: 'The dam blocks the water (cause), so a pond forms (effect).', video: 'steps2', fig: () => Fig.picture(['🦫', '🪵', '🌊'], 'Cause → effect') },
+  // ---- word parts ----
+  'wordparts.0': { rule: 'A compound word is made of two smaller words. The small words help you know the meaning.', ex: 'rain + coat = raincoat (a coat for the rain)', video: 'word-parts', fig: () => Fig.picture(['🌧️', '➕', '🧥'], 'rain + coat') },
+  'wordparts.1': { rule: 'A prefix goes at the start of a word; a suffix goes at the end. Each one changes the meaning.', ex: 'un- = not (unhappy) · re- = again (reread) · -ful = full of (helpful) · -less = without (fearless)', video: 'word-parts', fig: () => Fig.picture(['🔁', '📖'], 're + read = read again') },
+  'wordparts.2': { rule: 'More word parts: -able (can be), -ness (being), -ly (in a way). Roots carry meaning too.', ex: 'washable = can be washed · tele = far (telephone)', video: 'word-parts', fig: () => Fig.picture(['☎️', '🌍'], 'tele = far') },
+  // ---- word play ----
+  'wordplay.0': { rule: 'Some words mean almost the same thing but are stronger or weaker. Opposites mean completely different things.', ex: 'cool → cold → freezing · empty ↔ full', fig: () => Fig.picture(['🥶'], 'cool → cold → freezing') },
+  'wordplay.1': { rule: 'Some words have more than one meaning. Read the sentence to find the meaning that fits.', ex: 'The bat flew (an animal) · Leo swung the bat (a stick)', fig: () => Fig.picture(['🦇', '🏏'], 'bat and bat') },
+  'wordplay.2': { rule: 'Figurative language does not mean exactly what it says. A simile compares with "like" or "as." An idiom is a saying.', ex: 'as soft as a cloud = very soft · a piece of cake = easy', fig: () => Fig.picture(['🐱', '☁️'], 'as soft as a cloud') },
+};

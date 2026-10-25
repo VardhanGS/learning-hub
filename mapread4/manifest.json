@@ -1,0 +1,29 @@
+{
+  "name": "MAP Reading 4",
+  "short_name": "MAP Reading 4",
+  "description": "Grade 4 reading \u00b7 MAP Growth\u2013style practice (unofficial) \u00b7 Reading 2\u20135",
+  "id": "./?app=mapread4",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2fbfb",
+  "theme_color": "#0d8585",
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
