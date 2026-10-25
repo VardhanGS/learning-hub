@@ -784,7 +784,7 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 
 /* ---------- reading passages and fluency practice ---------- */
 .passage-fig { text-align: center; margin: 4px 0 10px; }
-.passage-fig svg { max-width: 100%; height: auto; max-height: 130px; }
+.passage-fig svg { max-width: 100%; height: auto; max-height: 300px; } /* tall enough for charts, tables, and diagrams */
 .flu-card { border: 2px solid color-mix(in srgb, var(--c4) 40%, var(--line)); }
 .flu-steps { padding-left: 1.2em; display: grid; gap: 8px; }
 .flu-bar { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; margin: 6px 0 18px; }

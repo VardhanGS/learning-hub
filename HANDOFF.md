@@ -147,9 +147,23 @@ Nothing is running. Phase 3 is complete, committed and PUBLISHED:
    grades 3–5 (section letter + continued list number). The same publish shipped shared fixes to all apps (avatar
    grid, MAP history table scroll); Math Quest 2 and MAP Math 2 were re-played in the browser first.
    Not done: nobody has listened to the g4 voice or watched the 6 videos end to end — ask the family.
-3. Phase 5: MAP Reading 2 (ELA Quest G2 banks + MAP formats; MAP Reading Fluency practice: read-aloud passages with a
-   timer and a grown-up-scored words-per-minute check — verify iPad speech recognition before promising automatic
-   scoring), MAP Reading 4 (new G4 passages), MAP Reading 8 (ELA Quest G8 banks + more passages). No Language Usage.
+3. Phase 5: MAP Reading 2 / 4 / 8 — BUILT 2026-10-25 (publish pending at time of writing; see git log).
+   - Shared: apps/mapread2/data/readkit.js (RK: passages, mc/ev(hot evidence)/multi/order(pop) specs, passLevel,
+     shortLevel, genLevel, solo; sentence splitter handles titles, a.m./p.m., play headings, parentheses). Reading
+     figures (pageFig, listFig, diagramFig) live in core Fig. core/modes/fluency.js = fluency practice (timed silent
+     sentence check, read-aloud with optional on-device recording, grown-up error marking, 3 literal questions,
+     Hasbrouck & Tindal 2017 norms, history, dashboard); tools/flurun.js tests it. Map pool uses L.all() when a level
+     lists all items. Tools read ELA Quest data read-only via 'elaquest:file.js' (ELA Quest is never modified).
+   - Validator: hotEvidence/multiText/popSeq kinds; answer-length check (right answer VISIBLY longest ≤15%; all
+     reading apps 2–8%, visibly shortest 0–1%); missing pictures now FAIL (hubdemo has picturesOptional).
+   - mapread2: 7 new skills + ELA G2 stories/facts/context (70% new); fluency (G2). mapread4: 10 all-new skills;
+     fluency (G4). mapread8: 7 new + ELA G8 g8stories/g8articles/g8argeval (70% new); no fluency (RF is pre-K–5).
+     Reused ELA items get longer wrong choices via LONGER tables in each map-bank.js (ELA files untouched).
+   - Tested: validate, mutation 7/7 (reading kinds), maptest (R2 150–210, R4 170–230, R8 175–230 after lowering
+     Starter tags), browser play-through at 375px, flurun, 3 MAP tests each, light/dark shots; voices (R2, R4 full
+     coverage), 16 videos (R2, R4), R8 voice+7 videos rendering in background at time of writing.
+   - Not verified: item-format mix of real MAP Reading (no NWEA source found); RIT tags are hand-set estimates;
+     nobody has listened to the reading voices or watched the reading videos end to end.
 4. Phase 6: Algebra 1 Quest (full course; level-up = Geometry/Algebra 2 previews; expression entry checked by random
    evaluation, coordinate-grid plotting) — voice `g8`, `speech.frac: 'over'`.
 5. Phase 7: MAP Algebra 1 (+ prerequisite review; course-specific goal areas above; not grade-normed — the 2022
