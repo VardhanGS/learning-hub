@@ -59,6 +59,7 @@ const MathText = (() => {
     t = t.replace(/⟪([^⟫]+)⟫/g, (_, tex) => ' ' + tex
       .replace(/(\d)\s*\\frac/g, '$1 \\frac')
       .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, (_m, a, b) => (/^-?\d+$/.test(a) && /^\d+$/.test(b) ? `${a}/${b}` : `${a} over ${b}`))
+      .replace(/\\sqrt\[3\]\{([^{}]+)\}/g, 'the cube root of $1')
       .replace(/\\sqrt\{([^{}]+)\}/g, 'the square root of $1')
       // algebra: logs, subscripts, absolute value, and a minus sign that starts a quantity ("= -25", "-(x + 2)")
       .replace(/\\log_\{?(\w+)\}?\s*/g, ' log base $1 of ').replace(/_\{?(\w+)\}?/g, ' sub $1').replace(/\|([^|]+)\|/g, ' the absolute value of $1 ')
@@ -69,6 +70,8 @@ const MathText = (() => {
       .replace(/\\times\b|\\cdot\b/g, ' times ').replace(/\\div\b/g, ' divided by ').replace(/\\pi\b/g, ' pi ')
       .replace(/[{}\\]/g, ' ') + ' ');
     t = t
+      // superscript powers like 10⁻⁹ or 10¹⁰ (a lone ² or ³ is still "squared" / "cubed")
+      .replace(/[⁻⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, (m) => (m === '²' || m === '³' ? m : ' to the power of ' + [...m].map((c) => '-0123456789'['⁻⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(c)]).join('')))
       .replace(/²/g, ' squared').replace(/³/g, ' cubed').replace(/√(\w+)/g, 'the square root of $1')
       .replace(/\b(\d{1,2}):00\b/g, "$1 o'clock").replace(/\b(\d{1,2}):0(\d)\b/g, '$1 oh $2').replace(/\b(\d{1,2}):(\d\d)\b/g, '$1 $2')
       .replace(/\ba\.m\./g, 'A M').replace(/\bp\.m\./g, 'P M')

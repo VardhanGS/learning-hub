@@ -26,7 +26,18 @@ const MapCore = (() => {
 
   // Normal distribution helpers (percentiles are an approximation from NWEA's published means and SDs).
   function normCdf(z) { const t = 1 / (1 + 0.2316419 * Math.abs(z)); const d = 0.3989423 * Math.exp(-z * z / 2); const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - p : p; }
-  const percentile = (rit, norm) => Math.max(1, Math.min(99, Math.round(100 * normCdf((rit - norm.mean) / norm.sd))));
+  // With a published percentile table (norm.table = scores at the 5th, 10th, … 95th percentiles), read the percentile
+  // from it by straight-line interpolation; outside the table (or without one) use the normal curve.
+  const PCTS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95];
+  function percentile(rit, norm) {
+    const T = norm.table;
+    if (T && rit >= T[0] && rit <= T[T.length - 1]) {
+      let i = 0; while (i < T.length - 2 && rit > T[i + 1]) i++;
+      const f = T[i + 1] === T[i] ? 0 : (rit - T[i]) / (T[i + 1] - T[i]);
+      return Math.round(PCTS[i] + f * (PCTS[i + 1] - PCTS[i]));
+    }
+    return Math.max(1, Math.min(99, Math.round(100 * normCdf((rit - norm.mean) / norm.sd))));
+  }
   // NWEA's achievement descriptors use these percentile bands.
   const describe = (pct) => (pct < 21 ? 'Low' : pct <= 40 ? 'LoAvg' : pct <= 60 ? 'Avg' : pct <= 80 ? 'HiAvg' : 'High');
   const DESC_LONG = { Low: 'Low', LoAvg: 'Low average', Avg: 'Average', HiAvg: 'High average', High: 'High' };
@@ -90,6 +101,6 @@ const MapCore = (() => {
     return out;
   }
 
-  return { estimate, pRight, guess, buildPool, pickNext, report, percentile, describe, DESC_LONG, termOf, TERM_NAME, normCdf };
+  return { estimate, pRight, guess, buildPool, pickNext, report, percentile, PCTS, describe, DESC_LONG, termOf, TERM_NAME, normCdf };
 })();
 if (typeof module !== 'undefined') module.exports = MapCore;

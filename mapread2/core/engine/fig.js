@@ -621,6 +621,18 @@ const Fig = (() => {
     pts.forEach(([x, y, l]) => { b += `<circle cx="${X(x)}" cy="${Y(y)}" r="4.5" class="tf-a"/>${l ? `<text x="${X(x) + 7}" y="${Y(y) - 7}" class="fg-text" font-size="12">${l}</text>` : ''}`; });
     return `<svg viewBox="0 0 ${w} ${H}" width="${w}" role="img" aria-label="A coordinate graph${fns.length ? ` with ${fns.length} graph${fns.length > 1 ? 's' : ''}` : ''}${pts.length ? ` and ${pts.length} point${pts.length > 1 ? 's' : ''}` : ''}">${b}<rect x="${pad}" y="${pad}" width="${w - 2 * pad}" height="${H - 2 * pad}" class="fg-stroke" style="fill:none;stroke-width:1"/></svg>`;
   }
+  // Box plot of a five-number summary [min, Q1, median, Q3, max] above a number line from lo to hi (tick every step).
+  function boxPlot(five, lo, hi, step = 5, title = '') {
+    const W = 440, pad = 26, X = (v) => pad + ((v - lo) / (hi - lo)) * (W - 2 * pad), yb = title ? 44 : 30, yl = yb + 56;
+    let b = title ? `<text x="${W / 2}" y="16" class="fg-text" font-size="14" text-anchor="middle">${title}</text>` : '';
+    const [mn, q1, md, q3, mx] = five;
+    b += `<line x1="${X(mn)}" y1="${yb + 20}" x2="${X(q1)}" y2="${yb + 20}" class="fg-stroke"/><line x1="${X(q3)}" y1="${yb + 20}" x2="${X(mx)}" y2="${yb + 20}" class="fg-stroke"/>`;
+    b += `<line x1="${X(mn)}" y1="${yb + 10}" x2="${X(mn)}" y2="${yb + 30}" class="fg-stroke"/><line x1="${X(mx)}" y1="${yb + 10}" x2="${X(mx)}" y2="${yb + 30}" class="fg-stroke"/>`;
+    b += `<rect x="${X(q1)}" y="${yb}" width="${X(q3) - X(q1)}" height="40" class="pc-head" style="stroke-width:2.5"/><line x1="${X(md)}" y1="${yb}" x2="${X(md)}" y2="${yb + 40}" class="fg-stroke" style="stroke-width:4"/>`;
+    b += `<line x1="${pad - 8}" y1="${yl}" x2="${W - pad + 8}" y2="${yl}" class="fg-stroke"/>`;
+    for (let v = lo; v <= hi + 1e-9; v += step) b += `<line x1="${X(v)}" y1="${yl - 6}" x2="${X(v)}" y2="${yl + 6}" class="fg-stroke" style="stroke-width:1.5"/><text x="${X(v)}" y="${yl + 22}" class="fg-text" font-size="13" text-anchor="middle">${v}</text>`;
+    return svg(W, yl + 30, b, `Box plot${title ? ` ${title}` : ''}: minimum ${mn}, first quartile ${q1}, median ${md}, third quartile ${q3}, maximum ${mx}`);
+  }
   // Solution of an inequality on a number line: x op v (op: < > ≤ ≥), or a compound [v1, op1, op2, v2].
   function ineqLine(v, op, lo = v - 6, hi = v + 6) {
     const W = 420, pad = 26, y = 44, X = (t) => pad + ((t - lo) / (hi - lo)) * (W - 2 * pad);
@@ -635,5 +647,5 @@ const Fig = (() => {
 
   return { blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
     tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
-    table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig, graph, ineqLine };
+    table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig, graph, ineqLine, boxPlot };
 })();

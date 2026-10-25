@@ -15,6 +15,9 @@
   let term = MapCore.termOf();
   let run = null; // the test in progress: {pool, used, answers, est, prior, term, started}
   let lastResult = null;
+  // Who the student is compared with: a grade (Math 2–5, Reading) or everyone who took a course test (Algebra 1).
+  const GROUP = M.group || `grade ${M.grade}`, GROUP_SHORT = M.groupShort || 'vs grade', AVG = M.avgLabel || 'grade avg';
+  const [BLO, BHI] = M.bandRange || [140, 240];
 
   // ---------- home card ----------
   function home() {
@@ -42,7 +45,7 @@
       </ul>
       <span class="lbl">Which test season is this?</span>
       <div class="seg">${['fall', 'winter', 'spring'].map((t) => `<button class="${term === t ? 'on' : ''}" data-act="mapTerm" data-t="${t}">${MapCore.TERM_NAME[t]}</button>`).join('')}</div>
-      <label class="toggle"><input type="checkbox" data-set="testAudio" ${audio ? 'checked' : ''}><span>Grown-ups: allow read-aloud during the test (only if the school gives your child text-to-speech; MAP Growth 2–5 has no read-aloud otherwise)</span></label>
+      <label class="toggle"><input type="checkbox" data-set="testAudio" ${audio ? 'checked' : ''}><span>${esc(M.audioNote || 'Grown-ups: allow read-aloud during the test (only if the school gives your child text-to-speech; MAP Growth 2–5 has no read-aloud otherwise)')}</span></label>
       <button class="btn primary big" data-act="mapStart">Begin the test</button>
       <button class="btn ghost" data-act="nav" data-to="home">Not now</button>
       <p class="fine">${esc(APP.disclaimer)}</p>
@@ -97,10 +100,10 @@
 
   // ---------- report ----------
   function bandBar(r, norm) {
-    const lo = 140, hi = 240, W = 520, x = (v) => 20 + ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (W - 40);
+    const lo = BLO, hi = BHI, W = 520, x = (v) => 20 + ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (W - 40);
     let body = `<line x1="20" y1="40" x2="${W - 20}" y2="40" class="fg-stroke"/>`;
     for (let v = lo; v <= hi; v += 20) body += `<line x1="${x(v)}" y1="34" x2="${x(v)}" y2="46" class="fg-stroke"/><text x="${x(v)}" y="64" class="fg-text" font-size="13" text-anchor="middle">${v}</text>`;
-    if (norm) body += `<line x1="${x(norm.mean)}" y1="14" x2="${x(norm.mean)}" y2="52" class="ru-guide"/><text x="${x(norm.mean)}" y="11" class="fg-text" font-size="11" text-anchor="middle">grade avg ${norm.mean}</text>`;
+    if (norm) body += `<line x1="${x(norm.mean)}" y1="14" x2="${x(norm.mean)}" y2="52" class="ru-guide"/><text x="${x(norm.mean)}" y="11" class="fg-text" font-size="11" text-anchor="middle">${esc(AVG)} ${norm.mean}</text>`;
     body += `<rect x="${x(r.lo)}" y="30" width="${x(r.hi) - x(r.lo)}" height="20" rx="6" class="band"/><circle cx="${x(r.rit)}" cy="40" r="6" class="tf-a"/>`;
     return `<svg viewBox="0 0 ${W} 72" class="band-svg" role="img" aria-label="Estimated band ${r.lo} to ${r.hi}">${body}</svg>`;
   }
@@ -133,15 +136,15 @@
       <p class="muted">${MapCore.TERM_NAME[r.term]} · ${new Date(r.at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} · ${r.correct} of ${r.n} right</p>
       <div class="big-band"><span class="band-num">${r.lo}–${r.hi}</span><span class="muted">estimated practice band</span></div>
       ${bandBar(r, norm)}
-      ${r.pct ? `<p>That is about the <b>${r.pct}th percentile</b> for grade ${M.grade} in the ${MapCore.TERM_NAME[r.term].toLowerCase()} ${chip(r.desc)}.</p>` : ''}
+      ${r.pct ? `<p>That is about the <b>${r.pct}th percentile</b> for ${esc(GROUP)} in the ${MapCore.TERM_NAME[r.term].toLowerCase()} ${chip(r.desc)}.</p>` : ''}
       ${before ? `<p>Change since your last practice test: <b>${r.rit - before.rit >= 0 ? '+' : ''}${r.rit - before.rit}</b> (typical ${growthTypical(before.term, r.term)}).</p>` : ''}
       <h2>Goal areas</h2>
       ${goalTable(r)}
       <h2>Practice next</h2>
-      <ul class="plain">${nextSteps(r) || '<li class="muted">Great work! Keep exploring the Grade 3 Challenge levels.</li>'}</ul>
+      <ul class="plain">${nextSteps(r) || `<li class="muted">Great work! Keep exploring the ${esc(api.LEVEL_NAMES[2].long)} levels.</li>`}</ul>
       <details class="fine"><summary>For grown-ups: how this is worked out</summary>
         <p>Time taken: ${fmtMin(r.secs)} (not shown during the test). ${r.fresh} of ${r.n} questions came from this app's own MAP-style skills.</p>
-        <p>The band is an estimate from an adaptive practice test, on a RIT-like scale: each question has an estimated difficulty, and the test picks harder or easier questions after each answer. The band adds extra room because the difficulties are estimates. Percentiles are approximate, worked out from the published means and standard deviations in ${esc(M.normsSource)}. Goal-area ratings use NWEA's percentile bands (Low under 21, LoAvg 21–40, Avg 41–60, HiAvg 61–80, High over 80) but are based on far fewer questions, so treat them as a rough guide.</p>
+        <p>The band is an estimate from an adaptive practice test, on a RIT-like scale: each question has an estimated difficulty, and the test picks harder or easier questions after each answer. The band adds extra room because the difficulties are estimates. Percentiles are approximate, worked out from ${M.norms.fall.table ? 'the published percentile tables' : 'the published means and standard deviations'} in ${esc(M.normsSource)}.${M.normsNote ? ' ' + esc(M.normsNote) : ''} Goal-area ratings use NWEA's percentile bands (Low under 21, LoAvg 21–40, Avg 41–60, HiAvg 61–80, High over 80) but are based on far fewer questions, so treat them as a rough guide.</p>
         <p>${esc(APP.disclaimer)}</p></details>
       <div class="row"><button class="btn primary" data-act="nav" data-to="home">Done</button><button class="btn" data-act="nav" data-to="mapHistory">My growth</button></div>
     </section>`;
@@ -157,7 +160,7 @@
   // ---------- growth over time ----------
   function growthChart(list) {
     if (!list.length) return '';
-    const W = 560, H = 220, pad = 40, lo = Math.min(...list.map((t) => t.lo), 150) - 5, hi = Math.max(...list.map((t) => t.hi), M.norms.spring.mean + 10) + 5;
+    const W = 560, H = 220, pad = 40, lo = Math.min(...list.map((t) => t.lo), M.chartLo || 150) - 5, hi = Math.max(...list.map((t) => t.hi), M.norms.spring.mean + 10) + 5;
     const x = (i) => pad + (list.length === 1 ? (W - 2 * pad) / 2 : (i / (list.length - 1)) * (W - 2 * pad));
     const y = (v) => H - 30 - ((v - lo) / (hi - lo)) * (H - 60);
     let body = '';
@@ -169,13 +172,13 @@
       if (i) body += `<line x1="${x(i - 1)}" y1="${y(list[i - 1].rit)}" x2="${x(i)}" y2="${y(t.rit)}" class="jp-arc"/>`;
       body += `<circle cx="${x(i)}" cy="${y(t.rit)}" r="5" class="tf-a"/><text x="${x(i)}" y="${H - 10}" class="fg-text" font-size="11" text-anchor="middle">${MapCore.TERM_NAME[t.term]} ${new Date(t.at).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}</text>`;
     });
-    return `<svg viewBox="0 0 ${W} ${H}" class="growth-svg" role="img" aria-label="Practice estimates over time">${body}</svg><p class="fine">Bars: estimated band. Dashed line: the average for grade ${M.grade} at that time of year (NWEA 2025 norms).</p>`;
+    return `<svg viewBox="0 0 ${W} ${H}" class="growth-svg" role="img" aria-label="Practice estimates over time">${body}</svg><p class="fine">Bars: estimated band. Dashed line: the average for ${esc(GROUP)} at that time of year (${esc(M.normsShort || 'NWEA 2025 norms')}).${M.normsNote ? ' ' + esc(M.normsNote) : ''}</p>`;
   }
   function history() {
     const list = tests();
     return `<h1 class="page-h">My growth</h1>
       <section class="card">${list.length ? growthChart(list) : '<p class="muted">Take a practice test to see your growth here.</p>'}</section>
-      ${list.length ? `<section class="card dash-wrap"><div class="dash-scroll"><table class="dash"><thead><tr><th>Date</th><th>Season</th><th>Estimated band</th><th>Compared with grade ${M.grade}</th><th>Right</th><th>Time</th></tr></thead><tbody>
+      ${list.length ? `<section class="card dash-wrap"><div class="dash-scroll"><table class="dash"><thead><tr><th>Date</th><th>Season</th><th>Estimated band</th><th>Compared with ${esc(GROUP)}</th><th>Right</th><th>Time</th></tr></thead><tbody>
         ${[...list].reverse().map((t) => `<tr><td>${new Date(t.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td><td>${MapCore.TERM_NAME[t.term]}</td><td class="num"><b>${t.lo}–${t.hi}</b></td><td>${chip(t.desc)}</td><td class="num">${t.correct}/${t.n}</td><td class="num">${fmtMin(t.secs)}</td></tr>`).join('')}
       </tbody></table></div></section>` : ''}
       <p class="fine">${esc(APP.disclaimer)}</p>`;
@@ -186,7 +189,7 @@
     const withTests = rows.filter((r) => (r.st.prog.data.tests || []).some((t) => t.kind === 'map'));
     if (!withTests.length) return '';
     return `<h2 class="sec">MAP-style practice tests</h2><section class="card dash-wrap"><div class="dash-scroll"><table class="dash">
-      <thead><tr><th>Student</th><th>Latest</th><th>Season</th><th>Band</th><th>vs grade</th>${GOALS.map((g) => `<th>${esc(g.name)}</th>`).join('')}<th>Growth</th><th>Time</th></tr></thead>
+      <thead><tr><th>Student</th><th>Latest</th><th>Season</th><th>Band</th><th>${esc(GROUP_SHORT)}</th>${GOALS.map((g) => `<th>${esc(g.name)}</th>`).join('')}<th>Growth</th><th>Time</th></tr></thead>
       <tbody>${withTests.map(({ st }) => {
         const ts = (st.prog.data.tests || []).filter((t) => t.kind === 'map').sort((a, b) => a.at - b.at), t = ts[ts.length - 1], first = ts[0];
         return `<tr><td><b>${esc(st.name)}</b></td><td>${new Date(t.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td><td>${MapCore.TERM_NAME[t.term]}</td><td class="num"><b>${t.lo}–${t.hi}</b></td><td>${chip(t.desc)}</td>

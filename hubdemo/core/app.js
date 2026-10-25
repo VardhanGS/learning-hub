@@ -1225,7 +1225,7 @@
     const v = VIDS().find((x) => x.id === view.id);
     if (!v) return screenVideos();
     const more = [...VIDEOS.filter((x) => x.id !== v.id && x.subject === v.subject), ...VIDEOS.filter((x) => x.subject !== v.subject)].slice(0, 4);
-    const pr = v.practice;
+    const pr = v.practice && skillOf(v.practice[0], v.practice[1]) ? v.practice : null; // a borrowed video may point at a skill this app does not have
     return `
       <section class="vpage s-${(subj(v.subject) || { color: 'mix' }).color}">
         <div class="player-top"><button class="back" data-act="videoBack" aria-label="Back">←</button><span class="kind">${esc(v.label)} · ${fmtSecs(v.secs)}</span></div>
