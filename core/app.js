@@ -1978,7 +1978,7 @@
     if (!P) { profiles = [{ id: 'shot', name: 'Sam', avatar: '🦊' }]; loadProfile('shot'); }
     let tries = 0;
     do { startRound({ mode: 'skill', s, k, l: +l, noExample: mode !== 'demo' }); } while (Q && Q.qs[0].t !== t && ++tries < 60);
-    if (mode === 'demo') { Q.demo = prep(Q.qs.find((q) => q.t === t) || Q.qs[0]); Q.demoRaw = Q.demo; Q.demoStarted = true; Q.demoSt = answerFor(Q.demo); Q.demoSt.done = true; Q.demoSt.correct = true; Q.demoSt.msg = { kind: 'good', title: 'That is the answer!', body: Q.demo.why || '' }; Q.demoDone = true; render(); }
+    if (mode === 'demo') { demoToken++; Voice.stop(); Q.demo = prep(Q.qs.find((q) => q.t === t) || Q.qs[0]); Q.demoRaw = Q.demo; Q.demoStarted = true; Q.demoSt = answerFor(Q.demo); Q.demoSt.done = true; Q.demoSt.correct = true; Q.demoSt.msg = { kind: 'good', title: 'That is the answer!', body: Q.demo.why || '' }; Q.demoDone = true; render(); }
     else if (mode === 'answer') { Object.assign(Q.st, answerFor(cur())); check(); }
     else if (mode === 'wrong') { const q = cur(); if (q.t === 'mc') { Q.st.chosen = Object.keys(q.miss || {})[0] || q.opts.find((o) => o !== q.a); check(); } }
   }

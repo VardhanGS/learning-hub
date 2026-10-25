@@ -13,7 +13,7 @@ const VIDEOS = [
   ],
   "src": "videos/regroup.mp4",
   "poster": "videos/regroup.jpg",
-  "secs": 0
+  "secs": 78
  },
  {
   "id": "place-value",
@@ -28,7 +28,7 @@ const VIDEOS = [
   ],
   "src": "videos/place-value.mp4",
   "poster": "videos/place-value.jpg",
-  "secs": 0
+  "secs": 59
  },
  {
   "id": "clock",
@@ -58,7 +58,7 @@ const VIDEOS = [
   ],
   "src": "videos/money.mp4",
   "poster": "videos/money.jpg",
-  "secs": 0
+  "secs": 53
  },
  {
   "id": "fractions",
@@ -73,7 +73,7 @@ const VIDEOS = [
   ],
   "src": "videos/fractions.mp4",
   "poster": "videos/fractions.jpg",
-  "secs": 0
+  "secs": 61
  },
  {
   "id": "multiply",
@@ -88,7 +88,7 @@ const VIDEOS = [
   ],
   "src": "videos/multiply.mp4",
   "poster": "videos/multiply.jpg",
-  "secs": 0
+  "secs": 49
  },
  {
   "id": "area-perimeter",
@@ -103,7 +103,7 @@ const VIDEOS = [
   ],
   "src": "videos/area-perimeter.mp4",
   "poster": "videos/area-perimeter.jpg",
-  "secs": 0
+  "secs": 59
  },
  {
   "id": "word-problems",
@@ -118,6 +118,6 @@ const VIDEOS = [
   ],
   "src": "videos/word-problems.mp4",
   "poster": "videos/word-problems.jpg",
-  "secs": 0
+  "secs": 60
  }
 ];

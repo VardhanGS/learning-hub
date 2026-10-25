@@ -50,8 +50,10 @@ const MathText = (() => {
   }
 
   // Text -> what the narrator should say, with numbers kept as tokens: "3/4", "27", "-5", "1 1/2", "3.25".
+  const ALONE = { '>': 'greater than', '<': 'less than', '=': 'equal to', '≥': 'greater than or equal to', '≤': 'less than or equal to', '≠': 'not equal to' };
   function spoken(text) {
     let t = String(text ?? '');
+    if (ALONE[t.trim()]) return ALONE[t.trim()]; // a comparison sign on its own (an answer choice)
     t = t.replace(/⟪([^⟫]+)⟫/g, (_, tex) => ' ' + tex
       .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, (_m, a, b) => (/^-?\d+$/.test(a) && /^\d+$/.test(b) ? `${a}/${b}` : `${a} over ${b}`))
       .replace(/\\sqrt\{([^{}]+)\}/g, 'the square root of $1')
