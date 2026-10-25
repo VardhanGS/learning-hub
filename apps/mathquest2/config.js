@@ -7,7 +7,7 @@ window.APP = {
   icon: '🔢',
   iconLabel: '',
   theme: { primary: '#1f8f4e', bg: '#f4fbf7' },
-  firebase: { apiKey: 'AIzaSyC5LJI3n6mcb7aG8oR7pyQFvG9UA0E_CSo', projectId: 'ela-quest', appId: '' },
+  firebase: { apiKey: 'AIzaSyC5LJI3n6mcb7aG8oR7pyQFvG9UA0E_CSo', projectId: 'ela-quest', appId: '1:327475844624:web:f34097f1ded3804d3a5c95' }, // registered as "Math Quest 2"
   tracks: {
     g2: {
       label: 'Grade 2 → 3 · NJ', short: 'Grade 2', ready: 'Grade 3',
