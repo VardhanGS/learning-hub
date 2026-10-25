@@ -108,9 +108,9 @@ leave it empty; delete only the specific temporary student ids you create.
 
 ## What was RUNNING when the old session ended (check first)
 
-1. Voice recording, Grade 2 profile, for mathquest2 → mapmath2 → hubdemo (`tools/voice_all.sh <app> 4`).
-   Check: `ls learning-hub/apps/*/data/voice-clips.js -la` (fresh timestamps) and
-   `tail -2 /tmp/voice-<app>-0.log`. If incomplete, re-run `tools/voice_all.sh <app> 4` (cached clips are reused).
+1. Voice recording, Grade 2 profile — FINISHED 2026-10-25 03:05 (exit 0): mathquest2 2,388 clips / 50 bundles,
+   mapmath2 2,085 clips / 44 bundles, hubdemo 1,518 clips / 11 bundles. Nothing is running now.
+   Still to do: the in-page voice-coverage check (below).
 
 ## PENDING — next steps, in order
 
