@@ -125,16 +125,14 @@ leave it empty; delete only the specific temporary student ids you create.
     in-browser tests at θ 160–205 all inside the band ✓; phone screenshots reviewed and 4 layout fixes made.
     Bugs found and fixed: duplicate-digit tiles, identical picture choices (validator now checks both).
 
-## Status at the end of the old session (2026-10-25)
+## Status at the end of the old session (2026-10-25, Phase 5)
 
-Nothing is running. Phase 3 is complete, committed and PUBLISHED:
-- Grade 2 voice for mathquest2 / mapmath2 / hubdemo; `node tools/voicecheck.js <app>` passes on all three.
-- Fixed: negative answer choices in Grade 2 MAP items (validator now rejects them in g2/g4 apps); clock answers
-  wrapping on phones (playthrough now flags one-word answers that break across lines).
-- Videos re-rendered in the Grade 2 voice (8 Math Quest 2 + map-tips). Validate, maptest, playthrough at 375px
-  (1,008 + 1,152 questions), 3 in-browser MAP tests, light/dark shots: all pass.
-- `mapmath2` is marked live in hub/index.html. Firebase web-app registration is NOT needed (REST sync uses only
-  apiKey + projectId; rules already allow mapmath2).
+Published: hub, hubdemo, mathquest2, mapmath2, mapmath4. Built, tested, committed but NOT yet published: mapread2,
+mapread4, mapread8 (+ shared core fixes since the last publish; all 8 apps re-played at 375px after them).
+Was RUNNING: `tools/voice_all.sh mapread8 4` → `node tools/voicecheck.js mapread8` → `make_videos.py mapread8`.
+Check: `tail -2 /tmp/voice-mapread8-0.log`, `ls apps/mapread8/videos/*.mp4 | wc -l` (expect 7),
+`node tools/voicecheck.js mapread8` (expect "every line has a recorded voice"). If incomplete, re-run that chain
+(cached clips are reused). The user said "publish when done" for Phase 5.
 
 ## PENDING — next steps, in order
 
