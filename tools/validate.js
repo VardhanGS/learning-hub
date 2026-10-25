@@ -170,7 +170,8 @@ function checkItem(where, q, levelStd) {
   if (!q.fig && !(q.passage && q.passage.fig) && !['line', 'shade', 'clock', 'coins', 'hot'].includes(q.t) && !(q.t === 'hot')) noFig++;
   if (q.passage && (!q.passage.title || !q.passage.text || q.passage.text.length < 20)) fail(where, q, 'passage without a title or text');
   // answer-length bias: is the right answer the single longest choice?
-  if (q.t === 'mc' && q.opts.length >= 3 && !q.meta) { lenStats.n++; const L = q.opts.map((o) => plain(o).length), mx = Math.max(...L); if (plain(q.a).length === mx && L.filter((x) => x === mx).length === 1) lenStats.longest++; }
+  // counted only when the right answer is VISIBLY longest: at least 20% and 8 characters longer than every wrong choice
+  if (q.t === 'mc' && q.opts.length >= 3 && !q.meta) { lenStats.n++; const al = plain(q.a).length, nxt = Math.max(...q.opts.filter((o) => o !== q.a).map((o) => plain(o).length)); if (al >= nxt * 1.2 && al - nxt >= 8) lenStats.longest++; }
   if (!q.q || typeof q.q !== 'string') fail(where, q, 'missing prompt');
   if (!levelStd) fail(where, q, 'level has no standard code');
   if (!MathText.spoken(q.q)) fail(where, q, 'prompt has nothing to say aloud');
@@ -355,7 +356,7 @@ if (noFig && !ctx.APP.picturesOptional) { console.log('✗ every question needs 
 // Word-choice questions: if the right answer is the longest choice too often, a child can guess by length.
 if (lenStats.n >= 200) {
   const share = lenStats.longest / lenStats.n;
-  console.log(`Answer-length check: the right answer is the single longest choice in ${Math.round(100 * share)}% of word questions (chance is about 25%; limit 40%)`);
-  if (share > 0.4) { console.log('✗ right answers are too often the longest choice'); process.exit(1); }
+  console.log(`Answer-length check: the right answer is visibly the longest choice in ${Math.round(100 * share)}% of word questions (limit 15%)`);
+  if (share > 0.15) { console.log('✗ right answers are too often visibly the longest choice'); process.exit(1); }
 }
 console.log('✓ all checks passed');

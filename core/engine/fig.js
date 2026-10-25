@@ -538,7 +538,39 @@ const Fig = (() => {
     return `<svg viewBox="0 0 ${wa + gap + wb} ${H}" width="${wa + gap + wb}" role="img" aria-label="Two pictures"><g transform="translate(0 ${(H - ha) / 2})">${inner(a)}</g><g transform="translate(${wa + gap} ${(H - hb) / 2})">${inner(b)}</g></svg>`;
   }
 
+  // ---- reading: pictures of nonfiction pages (text features), lists, and labeled diagrams ----
+  const escT = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  // A book page: heading, a picture with a caption, text lines with one bold word, and an optional mark ('?')
+  // pointing at one part: 'heading' | 'caption' | 'bold' | 'picture'.
+  function pageFig({ heading, icon, caption, bold, mark = null }) {
+    const W = 320, H = 230;
+    let b = `<rect x="4" y="4" width="${W - 8}" height="${H - 8}" rx="10" class="pc-cell"/>`;
+    b += `<text x="20" y="34" class="fg-text" font-size="19" font-weight="800">${escT(heading)}</text>`;
+    b += `<rect x="20" y="48" width="120" height="96" rx="8" class="pc-head"/><text x="80" y="110" font-size="44" text-anchor="middle">${icon}</text>`;
+    b += `<text x="80" y="162" class="fg-text" font-size="11" text-anchor="middle" font-style="italic">${escT(caption)}</text>`;
+    for (let i = 0; i < 6; i++) b += `<rect x="156" y="${54 + i * 16}" width="${i === 5 ? 90 : 140}" height="7" rx="3" class="gr-grid" style="fill:var(--line)"/>`;
+    b += `<text x="156" y="168" class="fg-text" font-size="14" font-weight="800">${escT(bold)}</text><rect x="156" y="174" width="140" height="7" rx="3" style="fill:var(--line)"/><rect x="20" y="190" width="276" height="7" rx="3" style="fill:var(--line)"/><rect x="20" y="206" width="200" height="7" rx="3" style="fill:var(--line)"/>`;
+    const at = { heading: [W - 40, 28], caption: [150, 160], bold: [W - 18, 164], picture: [150, 96] }[mark];
+    if (at) b += `<circle cx="${at[0]}" cy="${at[1]}" r="13" class="tf-a"/><text x="${at[0]}" y="${at[1] + 6}" class="fg-text" font-size="16" text-anchor="middle">?</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="A page with the heading ${escT(heading)}, a picture with a caption, and a bold word${mark ? `; a question mark points at the ${mark}` : ''}">${b}</svg>`;
+  }
+  // A table of contents or a glossary/index as a picture.
+  function listFig(title, rows, right = true) {
+    const W = 300, H = 46 + rows.length * 30;
+    let b = `<rect x="4" y="4" width="${W - 8}" height="${H - 8}" rx="10" class="pc-cell"/><text x="${W / 2}" y="32" class="fg-text" font-size="17" font-weight="800" text-anchor="middle">${escT(title)}</text>`;
+    rows.forEach(([l, r], i) => { const y = 60 + i * 30; b += `<text x="20" y="${y}" class="fg-text" font-size="14">${escT(l)}</text>${right ? `<text x="${W - 20}" y="${y}" class="fg-text" font-size="14" text-anchor="end">${escT(r)}</text><line x1="${20 + l.length * 7.6}" y1="${y - 4}" x2="${W - 24 - String(r).length * 8}" y2="${y - 4}" class="gr-grid" style="stroke-dasharray:2 4"/>` : `<text x="20" y="${y + 14}" class="fg-text" font-size="12" style="opacity:.75">${escT(r)}</text>`}`; });
+    return `<svg viewBox="0 0 ${W} ${right ? H : H + rows.length * 14}" width="${W}" role="img" aria-label="${escT(title)}: ${rows.map((r) => r.join(' ')).join('; ')}">${b}</svg>`;
+  }
+  // A labeled diagram: an emoji in the middle with labels around it.
+  function diagramFig(title, icon, labels) {
+    const W = 320, H = 230, cx = 160, cy = 125;
+    let b = `<text x="${cx}" y="24" class="fg-text" font-size="16" font-weight="800" text-anchor="middle">${escT(title)}</text><text x="${cx}" y="${cy + 30}" font-size="90" text-anchor="middle">${icon}</text>`;
+    const spots = [[30, 70, 110, 95], [290, 70, 210, 95], [30, 200, 115, 160], [290, 200, 205, 160]];
+    labels.slice(0, 4).forEach((l, i) => { const [lx, ly, tx, ty] = spots[i]; b += `<line x1="${lx < cx ? lx + 50 : lx - 50}" y1="${ly - 4}" x2="${tx}" y2="${ty}" class="fg-stroke" style="stroke-width:1.5"/><text x="${lx}" y="${ly}" class="fg-text" font-size="14" text-anchor="${lx < cx ? 'start' : 'end'}">${escT(l)}</text>`; });
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Diagram: ${escT(title)}, labeled ${labels.join(', ')}">${b}</svg>`;
+  }
+
   return { blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
     tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
-    table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair };
+    table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig };
 })();

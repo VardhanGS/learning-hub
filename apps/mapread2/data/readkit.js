@@ -15,8 +15,8 @@ const RK = (() => {
   function sentences(text) {
     const out = [];
     // titles like "Ms." and "Dr." do not end a sentence
-    const keep = (x) => x.replace(/\b(Mr|Ms|Mrs|Dr|St)\./g, '$1\u2024'), back = (x) => x.replace(/\u2024/g, '.');
-    text.split('\n').forEach((line) => { (keep(line).match(/[^.!?]+[.!?]+["”’')]*|[^.!?]+$/g) || []).forEach((s) => { const t = back(s.trim()); if (t.length > 2) out.push(t); }); });
+    const keep = (x) => x.replace(/\b([ap])\.m\.(?=\s+[a-z])/g, '$1\u2024m\u2024').replace(/\b([ap])\.m\./g, '$1\u2024m.').replace(/\b(Mr|Ms|Mrs|Dr|St)\./gi, '$1\u2024'), back = (x) => x.replace(/\u2024/g, '.');
+    text.split('\n').forEach((line) => { (keep(line).match(/[^.!?]+[.!?]+["”’')]*|[^.!?]+$/g) || []).forEach((s) => { const t = back(s.trim()); if (t.length > 2 && !/^(CAST|SETTING|Text \d|Scene \d|Account [A-Z]|Act \d)\b/.test(t)) out.push(t); }); }); // headings are not sentences
     return out;
   }
   const wrongOf = (w) => (Array.isArray(w) ? w : [w, '']);
@@ -71,37 +71,7 @@ const RK = (() => {
     ws.map(wrongOf).forEach(([w, note]) => { if (note) miss[w] = note; });
     return { t: 'mc', q: sentence ? `${sentence}\n\n${q}` : q, a, opts: U.shuffle([a, ...ws.map((w) => wrongOf(w)[0])]), miss, why, hint, fig, std, goal, rit: base + (TAG_RIT[tag] ?? 0), tag: TAG_NAME[tag] || tag };
   }
-  // ---- pictures of nonfiction pages (text features) ----
-  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  // A book page: heading, a picture with a caption, text lines with one bold word, and an optional mark ('?')
-  // pointing at one part: 'heading' | 'caption' | 'bold' | 'picture'.
-  function pageFig({ heading, icon, caption, bold, mark = null }) {
-    const W = 320, H = 230;
-    let b = `<rect x="4" y="4" width="${W - 8}" height="${H - 8}" rx="10" class="pc-cell"/>`;
-    b += `<text x="20" y="34" class="fg-text" font-size="19" font-weight="800">${esc(heading)}</text>`;
-    b += `<rect x="20" y="48" width="120" height="96" rx="8" class="pc-head"/><text x="80" y="110" font-size="44" text-anchor="middle">${icon}</text>`;
-    b += `<text x="80" y="162" class="fg-text" font-size="11" text-anchor="middle" font-style="italic">${esc(caption)}</text>`;
-    for (let i = 0; i < 6; i++) b += `<rect x="156" y="${54 + i * 16}" width="${i === 5 ? 90 : 140}" height="7" rx="3" class="gr-grid" style="fill:var(--line)"/>`;
-    b += `<text x="156" y="168" class="fg-text" font-size="14" font-weight="800">${esc(bold)}</text><rect x="156" y="174" width="140" height="7" rx="3" style="fill:var(--line)"/><rect x="20" y="190" width="276" height="7" rx="3" style="fill:var(--line)"/><rect x="20" y="206" width="200" height="7" rx="3" style="fill:var(--line)"/>`;
-    const at = { heading: [W - 40, 28], caption: [150, 160], bold: [W - 18, 164], picture: [150, 96] }[mark];
-    if (at) b += `<circle cx="${at[0]}" cy="${at[1]}" r="13" class="tf-a"/><text x="${at[0]}" y="${at[1] + 6}" class="fg-text" font-size="16" text-anchor="middle">?</text>`;
-    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="A page with the heading ${esc(heading)}, a picture with a caption, and a bold word${mark ? `; a question mark points at the ${mark}` : ''}">${b}</svg>`;
-  }
-  // A table of contents or a glossary/index as a picture.
-  function listFig(title, rows, right = true) {
-    const W = 300, H = 46 + rows.length * 30;
-    let b = `<rect x="4" y="4" width="${W - 8}" height="${H - 8}" rx="10" class="pc-cell"/><text x="${W / 2}" y="32" class="fg-text" font-size="17" font-weight="800" text-anchor="middle">${esc(title)}</text>`;
-    rows.forEach(([l, r], i) => { const y = 60 + i * 30; b += `<text x="20" y="${y}" class="fg-text" font-size="14">${esc(l)}</text>${right ? `<text x="${W - 20}" y="${y}" class="fg-text" font-size="14" text-anchor="end">${esc(r)}</text><line x1="${20 + l.length * 7.6}" y1="${y - 4}" x2="${W - 24 - String(r).length * 8}" y2="${y - 4}" class="gr-grid" style="stroke-dasharray:2 4"/>` : `<text x="20" y="${y + 14}" class="fg-text" font-size="12" style="opacity:.75">${esc(r)}</text>`}`; });
-    return `<svg viewBox="0 0 ${W} ${right ? H : H + rows.length * 14}" width="${W}" role="img" aria-label="${esc(title)}: ${rows.map((r) => r.join(' ')).join('; ')}">${b}</svg>`;
-  }
-  // A labeled diagram: an emoji in the middle with labels around it.
-  function diagramFig(title, icon, labels) {
-    const W = 320, H = 230, cx = 160, cy = 125;
-    let b = `<text x="${cx}" y="24" class="fg-text" font-size="16" font-weight="800" text-anchor="middle">${esc(title)}</text><text x="${cx}" y="${cy + 30}" font-size="90" text-anchor="middle">${icon}</text>`;
-    const spots = [[30, 70, 110, 95], [290, 70, 210, 95], [30, 200, 115, 160], [290, 200, 205, 160]];
-    labels.slice(0, 4).forEach((l, i) => { const [lx, ly, tx, ty] = spots[i]; b += `<line x1="${lx < cx ? lx + 50 : lx - 50}" y1="${ly - 4}" x2="${tx}" y2="${ty}" class="fg-stroke" style="stroke-width:1.5"/><text x="${lx}" y="${ly}" class="fg-text" font-size="14" text-anchor="${lx < cx ? 'start' : 'end'}">${esc(l)}</text>`; });
-    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Diagram: ${esc(title)}, labeled ${labels.join(', ')}">${b}</svg>`;
-  }
+  const { pageFig, listFig, diagramFig } = Fig; // drawn in core/engine/fig.js (videos use them too)
   return { P, sentences, item, passLevel, shortLevel, genLevel, solo, TAG_RIT, TAG_NAME, pageFig, listFig, diagramFig };
 })();
 const READ_SKILLS = [];
