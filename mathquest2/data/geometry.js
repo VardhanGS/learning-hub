@@ -30,13 +30,13 @@
   function fourSides() {
     const right = U.sample(['square', 'rectangle', 'trapezoid', 'rhombus'], U.int(2, 3));
     const wrong = U.sample(['triangle', 'pentagon', 'hexagon', 'circle'], 3);
-    return tag(U.multi('Choose all the shapes that have exactly 4 sides.', right, wrong, { meta: { kind: 'sidesIs', args: [4] }, hint: 'Squares, rectangles, rhombuses, and trapezoids all have 4 sides.', why: 'Shapes with 4 sides are called quadrilaterals.' }), '2.G.A.1', 180, 'geometry');
+    return tag(U.multi('Choose all the shapes that have exactly 4 sides.', right, wrong, { fig: Fig.shapeRow(U.shuffle([...right, ...wrong])), meta: { kind: 'sidesIs', args: [4] }, hint: 'Squares, rectangles, rhombuses, and trapezoids all have 4 sides.', why: 'Shapes with 4 sides are called quadrilaterals.' }), '2.G.A.1', 180, 'geometry');
   }
   function quads() {
     if (U.pick([true, false])) {
       const right = U.sample(['square', 'rectangle', 'rhombus', 'trapezoid', 'parallelogram'], U.int(2, 4));
       const wrong = U.sample(['triangle', 'pentagon', 'hexagon', 'circle'], 2);
-      return tag(U.multi('Choose all the quadrilaterals.', right, wrong, { meta: { kind: 'sidesIs', args: [4] }, hint: '"Quad" means four. A quadrilateral has 4 sides and 4 angles.', why: 'Squares, rectangles, rhombuses, trapezoids, and parallelograms all have 4 sides.' }), '3.G.A.1', 196, 'geometry');
+      return tag(U.multi('Choose all the quadrilaterals.', right, wrong, { fig: Fig.shapeRow(U.shuffle([...right, ...wrong])), meta: { kind: 'sidesIs', args: [4] }, hint: '"Quad" means four. A quadrilateral has 4 sides and 4 angles.', why: 'Squares, rectangles, rhombuses, trapezoids, and parallelograms all have 4 sides.' }), '3.G.A.1', 196, 'geometry');
     }
     const facts = [
       ['Which shape has 4 equal sides and 4 square corners?', 'square', [['rhombus', 'A rhombus has 4 equal sides, but its corners are not always square.'], ['rectangle', 'A rectangle has 4 square corners, but its sides are not always all equal.']]],
@@ -45,7 +45,7 @@
       ['Which shape has exactly one pair of parallel sides (sides that never meet)?', 'trapezoid', [['rectangle', 'A rectangle has two pairs of parallel sides.'], ['triangle', 'A triangle has no parallel sides.']]],
     ];
     const i = U.int(0, facts.length - 1), [qq, a, w] = facts[i];
-    return tag(U.mcMiss(qq, a, [...w, ['pentagon', 'A pentagon has 5 sides.']], { meta: { kind: 'quadFact', args: [i] }, hint: 'Think about the sides AND the corners.', why: `That describes a ${a}.` }), '3.G.A.1', 202, 'geometry');
+    return tag(U.mcMiss(qq, a, [...w, ['pentagon', 'A pentagon has 5 sides.']], { fig: Fig.shapeRow(['square', 'rhombus', 'rectangle', 'trapezoid']), meta: { kind: 'quadFact', args: [i] }, hint: 'Think about the sides AND the corners.', why: `That describes a ${a}.` }), '3.G.A.1', 202, 'geometry');
   }
 
   // ---------- Equal parts ----------
@@ -77,7 +77,7 @@
     const right = U.sample(['2/4', '3/6', '4/8'], U.int(2, 3));
     const wrong = U.sample(['1/3', '2/3', '1/4', '3/4', '2/6', '5/8', '3/8'], 3);
     const tex = (f) => T(`\\frac{${f.split('/')[0]}}{${f.split('/')[1]}}`);
-    return tag(U.multi(`Choose all the fractions equal to ${T('\\frac{1}{2}')}.`, right.map(tex), wrong.map(tex), { meta: { kind: 'equivHalf', args: [] }, hint: 'A fraction equals one half when the top number is half of the bottom number.', why: '2/4, 3/6, and 4/8 are all equal to 1/2: the top is half of the bottom.' }), '3.NF.A.3', 198, 'number');
+    return tag(U.multi(`Choose all the fractions equal to ${T('\\frac{1}{2}')}.`, right.map(tex), wrong.map(tex), { fig: Fig.fraction('bar', 2, 1), meta: { kind: 'equivHalf', args: [] }, hint: 'A fraction equals one half when the top number is half of the bottom number.', why: '2/4, 3/6, and 4/8 are all equal to 1/2: the top is half of the bottom.' }), '3.NF.A.3', 198, 'number');
   }
 
   // ---------- Rows, columns, area ----------
@@ -90,7 +90,7 @@
   function rowsColumns() {
     const r = U.int(2, 5), c = U.intWhere(2, 6, (x) => x !== r);
     const right = Array(r).fill(c).join(' + ') + ` = ${r * c}`;
-    return tag(U.mcMiss(`A rectangle has ${pl(r, 'row')} with ${c} squares in each row. Which shows the total?`, right, [[`${r} + ${c} = ${r + c}`, 'Add the squares in every row, not just the rows and columns.'], [Array(r).fill(c + 1).join(' + ') + ` = ${r * (c + 1)}`, `Each row has ${c} squares.`], [Array(r + 1).fill(c).join(' + ') + ` = ${(r + 1) * c}`, `There are ${pl(r, 'row')}. Add ${c} only ${r} times.`]].filter(([v]) => v !== right), { meta: { kind: 'arrayEq', args: [r, c] }, hint: `Add ${c} once for each of the ${pl(r, 'row')}.`, why: right }), '2.G.A.2', 180, 'geometry');
+    return tag(U.mcMiss(`A rectangle has ${pl(r, 'row')} with ${c} squares in each row. Which shows the total?`, right, [[`${r} + ${c} = ${r + c}`, 'Add the squares in every row, not just the rows and columns.'], [Array(r).fill(c + 1).join(' + ') + ` = ${r * (c + 1)}`, `Each row has ${c} squares.`], [Array(r + 1).fill(c).join(' + ') + ` = ${(r + 1) * c}`, `There are ${pl(r, 'row')}. Add ${c} only ${r} times.`]].filter(([v]) => v !== right), { fig: Fig.rect(c, r), meta: { kind: 'arrayEq', args: [r, c] }, hint: `Add ${c} once for each of the ${pl(r, 'row')}.`, why: right }), '2.G.A.2', 180, 'geometry');
   }
   function areaGrade3() {
     const w = U.int(3, 9), h = U.intWhere(2, 8, (x) => x !== w), unit = U.pick(['cm', 'in', 'm', 'ft']);

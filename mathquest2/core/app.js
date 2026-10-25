@@ -880,6 +880,8 @@
   let demoToken = 0;
   const VIDS = () => (typeof VIDEOS !== 'undefined' ? VIDEOS : []).filter((v) => (v.track || T0) === trackOf());
   const lessonOf = (k, l) => (typeof LESSONS !== 'undefined' ? LESSONS[`${k}.${l}`] : null);
+  // A lesson's picture: `fig` is a function returning SVG (drawn by Fig), so it follows light/dark mode.
+  const lessonFig = (les) => { try { return les && les.fig ? `<div class="fig lesson-fig">${typeof les.fig === 'function' ? les.fig() : les.fig}</div>` : ''; } catch { return ''; } };
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const fmtSecs = (n) => `${Math.floor(n / 60)}:${String(Math.round(n) % 60).padStart(2, '0')}`;
 
@@ -900,6 +902,7 @@
             <div class="lesson-head"><span class="kind">💡 Learn it</span><button class="icon-btn speak" data-act="readLesson" aria-label="Read the lesson aloud">🔊</button></div>
             <p class="rule">${fmt(les.rule)}</p>
             ${les.ex ? `<p class="ex">${fmt(les.ex)}</p>` : ''}
+            ${lessonFig(les)}
             ${vid ? `<button class="btn small video-link" data-act="openVideo" data-id="${vid.id}" data-back="example">🎬 Watch the video lesson · ${fmtSecs(vid.secs)}</button>` : ''}
           </section>
           <section class="card demo-card" id="demoCard">
@@ -1637,7 +1640,7 @@
     readLesson: () => { const les = lessonOf(Q.k, Q.l); if (les) Voice.say(Voice.build.lesson(les)); },
     showLesson: () => {
       const les = lessonOf(Q.k, Q.l) || { rule: skillOf(Q.s, Q.k).levels[Q.l].desc };
-      modal = `<span class="kind">💡 Remember</span><p class="rule">${esc(les.rule)}</p>${les.ex ? `<p class="ex">${esc(les.ex)}</p>` : ''}<div class="row end"><button class="btn" data-act="readLesson">🔊 Read it</button><button class="btn primary" data-act="closeModal">Got it</button></div>`;
+      modal = `<span class="kind">💡 Remember</span><p class="rule">${fmt(les.rule)}</p>${les.ex ? `<p class="ex">${fmt(les.ex)}</p>` : ''}${lessonFig(les)}<div class="row end"><button class="btn" data-act="readLesson">🔊 Read it</button><button class="btn primary" data-act="closeModal">Got it</button></div>`;
       SFX.play('open'); render();
     },
     openVideo: (ds) => { demoToken++; SFX.play('open'); go('video', { id: ds.id, back: ds.back || '' }); },

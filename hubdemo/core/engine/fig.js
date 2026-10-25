@@ -154,11 +154,11 @@ const Fig = (() => {
     return svg(W, H, body, `An array with ${rows} rows and ${cols} columns`);
   }
   // A rectangle: grid of unit squares, or just side labels (labels = true).
-  function rect(w, h, { grid = true, labels = false, unit = '' } = {}) {
+  function rect(w, h, { grid = true, labels = false, unit = '', hLabel = null } = {}) {
     const g = Math.min(32, 240 / Math.max(w, h)), x0 = labels ? 62 : 4, y0 = 4, W = w * g, H = h * g;
     let body = `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" class="fg-fill"/>`;
     if (grid) { for (let i = 1; i < w; i++) body += `<line x1="${x0 + i * g}" y1="${y0}" x2="${x0 + i * g}" y2="${y0 + H}" class="fg-stroke" style="stroke-width:1.5"/>`; for (let j = 1; j < h; j++) body += `<line x1="${x0}" y1="${y0 + j * g}" x2="${x0 + W}" y2="${y0 + j * g}" class="fg-stroke" style="stroke-width:1.5"/>`; }
-    if (labels) body += `<text x="${x0 + W / 2}" y="${y0 + H + 22}" class="fg-text" font-size="15" text-anchor="middle">${w} ${unit}</text><text x="${x0 - 8}" y="${y0 + H / 2 + 5}" class="fg-text" font-size="15" text-anchor="end">${h} ${unit}</text>`;
+    if (labels) body += `<text x="${x0 + W / 2}" y="${y0 + H + 22}" class="fg-text" font-size="15" text-anchor="middle">${w} ${unit}</text><text x="${x0 - 8}" y="${y0 + H / 2 + 5}" class="fg-text" font-size="15" text-anchor="end">${hLabel ?? `${h} ${unit}`}</text>`;
     return svg(x0 + W + 6, y0 + H + (labels ? 30 : 6), body, `A rectangle ${w} by ${h}`);
   }
   const SHAPES = {
@@ -178,5 +178,145 @@ const Fig = (() => {
     return svg(W, H, `<polygon points="${pts.map((p) => p.join(',')).join(' ')}" class="fg-fill"/>`, `a ${kind}`);
   }
 
-  return { blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape };
+  // ---- ten-frames: a red counters, then b blue counters; the last `away` counters are crossed out ----
+  function tenFrames(a, b = 0, away = 0) {
+    const total = a + b, frames = Math.max(1, Math.ceil(total / 10)), c = 30, W = frames * (5 * c + 16) - 16 + 8, H = 2 * c + 8;
+    let body = '';
+    for (let f = 0; f < frames; f++) {
+      const x0 = 4 + f * (5 * c + 16);
+      body += `<rect x="${x0}" y="4" width="${5 * c}" height="${2 * c}" class="fg-stroke" style="fill:var(--surface)"/>`;
+      for (let k = 1; k < 5; k++) body += `<line x1="${x0 + k * c}" y1="4" x2="${x0 + k * c}" y2="${4 + 2 * c}" class="fg-stroke" style="stroke-width:1.5"/>`;
+      body += `<line x1="${x0}" y1="${4 + c}" x2="${x0 + 5 * c}" y2="${4 + c}" class="fg-stroke" style="stroke-width:1.5"/>`;
+      for (let k = 0; k < 10; k++) {
+        const i = f * 10 + k;
+        if (i >= total) break;
+        const cx = x0 + (k % 5) * c + c / 2, cy = 4 + Math.floor(k / 5) * c + c / 2;
+        body += `<circle cx="${cx}" cy="${cy}" r="${c / 2 - 5}" class="${i < a ? 'tf-a' : 'tf-b'}"/>`;
+        if (i >= total - away) body += `<path d="M${cx - 9} ${cy - 9} L${cx + 9} ${cy + 9} M${cx + 9} ${cy - 9} L${cx - 9} ${cy + 9}" class="tf-x"/>`;
+      }
+    }
+    return svg(W, H, body, `Ten-frames showing ${a}${b ? ` and ${b}` : ''}${away ? `, ${away} crossed out` : ''}`);
+  }
+
+  // ---- bar model: a whole bar over its parts (part-part-whole). Values may be '?' ----
+  function barModel(whole, parts, label = '') {
+    const nums = parts.map((p) => (typeof p === 'number' ? p : null));
+    const known = nums.filter((v) => v != null).reduce((t, v) => t + v, 0);
+    const W = 420, x0 = 6, tot = typeof whole === 'number' ? whole : known * 1.6 || 10;
+    const widths = parts.map((p) => (typeof p === 'number' ? (p / tot) * W : Math.max(60, W - (known / tot) * W)));
+    const scale = W / widths.reduce((t, w) => t + w, 0);
+    let x = x0, body = `<rect x="${x0}" y="6" width="${W}" height="40" rx="6" class="bm-whole"/><text x="${x0 + W / 2}" y="33" class="fg-text" font-size="20" text-anchor="middle">${whole}</text>`;
+    parts.forEach((p, i) => {
+      const w = widths[i] * scale;
+      body += `<rect x="${x}" y="56" width="${w}" height="40" rx="6" class="${p === '?' ? 'bm-unknown' : 'bm-part'} bm-p${i % 3}"/><text x="${x + w / 2}" y="83" class="fg-text" font-size="20" text-anchor="middle">${p}</text>`;
+      x += w;
+    });
+    if (label) body += `<text x="${x0 + W / 2}" y="122" class="fg-text" font-size="15" text-anchor="middle" style="opacity:.75">${label}</text>`;
+    return svg(W + 12, label ? 130 : 102, body, `Bar model: ${whole} is made of ${parts.join(' and ')}`);
+  }
+  // ---- compare bars: two lengths with the difference marked '?' ----
+  function compareBars(a, b, la, lb, unit = '') {
+    const W = 400, big = Math.max(a, b), wa = (a / big) * W, wb = (b / big) * W, x0 = 70;
+    let body = `<text x="4" y="31" class="fg-text" font-size="15">${la}</text><rect x="${x0}" y="10" width="${wa}" height="32" rx="6" class="bm-part bm-p0"/><text x="${x0 + wa / 2}" y="32" class="fg-text" font-size="17" text-anchor="middle">${a}${unit}</text>`;
+    body += `<text x="4" y="79" class="fg-text" font-size="15">${lb}</text><rect x="${x0}" y="58" width="${wb}" height="32" rx="6" class="bm-part bm-p1"/><text x="${x0 + wb / 2}" y="80" class="fg-text" font-size="17" text-anchor="middle">${b}${unit}</text>`;
+    const lo = Math.min(wa, wb), hi = Math.max(wa, wb), yy = a > b ? 58 : 10;
+    body += `<rect x="${x0 + lo}" y="${yy}" width="${hi - lo}" height="32" rx="6" class="bm-unknown"/><text x="${x0 + (lo + hi) / 2}" y="${yy + 22}" class="fg-text" font-size="17" text-anchor="middle">?</text>`;
+    return svg(x0 + W + 6, 96, body, `${la} ${a}, ${lb} ${b}: how much more?`);
+  }
+
+  // ---- number bond: a whole and its two parts ----
+  function bond(whole, a, b) {
+    const circ = (x, y, v, cls) => `<circle cx="${x}" cy="${y}" r="28" class="${cls}"/><text x="${x}" y="${y + 8}" class="fg-text" font-size="22" text-anchor="middle">${v}</text>`;
+    return svg(200, 140, `<line x1="100" y1="36" x2="44" y2="104" class="fg-stroke"/><line x1="100" y1="36" x2="156" y2="104" class="fg-stroke"/>${circ(100, 34, whole, 'bm-whole')}${circ(44, 104, a, 'bm-part bm-p0')}${circ(156, 104, b, 'bm-part bm-p1')}`, `Number bond: ${whole} is ${a} and ${b}`);
+  }
+
+  // ---- equal groups: g circles with n dots each ----
+  function groups(g, n, icon = null) {
+    // At most 5 groups per row, so many groups still look big enough on a phone.
+    const per = Math.ceil(Math.sqrt(n)), d = 18, r = (per * d) / 2 + 14, perRow = g > 5 ? Math.ceil(g / 2) : g;
+    const W = perRow * (2 * r + 10) + 4, rowsG = Math.ceil(g / perRow);
+    let body = '';
+    for (let k = 0; k < g; k++) {
+      const cx = 4 + r + (k % perRow) * (2 * r + 10), cy = r + 4 + Math.floor(k / perRow) * (2 * r + 10);
+      body += `<circle cx="${cx}" cy="${cy}" r="${r}" class="gp-ring"/>`;
+      const rows = Math.ceil(n / per);
+      for (let i = 0; i < n; i++) {
+        const x = cx - ((per - 1) * d) / 2 + (i % per) * d, y = cy - ((rows - 1) * d) / 2 + Math.floor(i / per) * d;
+        body += icon ? `<text x="${x}" y="${y + 6}" font-size="15" text-anchor="middle">${icon}</text>` : `<circle cx="${x}" cy="${y}" r="6.5" class="tf-a"/>`;
+      }
+    }
+    return svg(W, rowsG * (2 * r + 10) - 2, body, `${g} groups of ${n}`);
+  }
+  // ---- groups of ten-rods (for 4 × 30) ----
+  function tensGroups(g, tensEach) {
+    const u = 8, gw = tensEach * (u + 4) + 14, W = g * (gw + 10);
+    let body = '';
+    for (let k = 0; k < g; k++) {
+      const x0 = k * (gw + 10) + 4;
+      body += `<rect x="${x0}" y="4" width="${gw}" height="${10 * u + 16}" rx="12" class="gp-ring"/>`;
+      for (let t = 0; t < tensEach; t++) body += `<rect x="${x0 + 9 + t * (u + 4)}" y="12" width="${u}" height="${10 * u}" class="fg-fill"/>`;
+    }
+    return svg(W, 10 * u + 26, body, `${g} groups of ${tensEach} tens`);
+  }
+
+  // ---- place-value chart: numbers stacked in hundreds, tens, ones columns ----
+  function placeChart(nums, op = '', highlight = null) {
+    const cols = ['Hundreds', 'Tens', 'Ones'], cw = 92, x0 = 40, rows = nums.length;
+    let body = cols.map((c, i) => `<rect x="${x0 + i * cw}" y="4" width="${cw}" height="30" class="pc-head ${highlight === i ? 'pc-hi' : ''}"/><text x="${x0 + i * cw + cw / 2}" y="25" class="fg-text" font-size="14" text-anchor="middle">${c}</text>`).join('');
+    nums.forEach((n, r) => {
+      const d = String(n).padStart(3, ' ').split('');
+      d.forEach((ch, i) => { body += `<rect x="${x0 + i * cw}" y="${34 + r * 44}" width="${cw}" height="44" class="pc-cell ${highlight === i ? 'pc-hi' : ''}"/><text x="${x0 + i * cw + cw / 2}" y="${34 + r * 44 + 32}" class="fg-text" font-size="28" text-anchor="middle">${ch.trim()}</text>`; });
+      if (op && r === rows - 1) body += `<text x="${x0 - 22}" y="${34 + r * 44 + 32}" class="fg-text" font-size="28" text-anchor="middle">${op}</text>`;
+    });
+    if (op) body += `<line x1="${x0 - 30}" y1="${38 + rows * 44}" x2="${x0 + 3 * cw}" y2="${38 + rows * 44}" class="fg-stroke" style="stroke-width:3"/>`;
+    return svg(x0 + 3 * cw + 6, 44 + rows * 44 + (op ? 6 : 0), body, `Place-value chart: ${nums.join(op ? ` ${op} ` : ', ')}`);
+  }
+
+  // ---- number line for rounding: n between two tens or hundreds, with the halfway mark ----
+  function roundLine(n, to) {
+    const lo = Math.floor(n / to) * to, hi = lo + to, mid = lo + to / 2, W = 420, x0 = 30, x = (v) => x0 + ((v - lo) / to) * (W - 2 * x0);
+    let body = `<line x1="${x0 - 10}" y1="50" x2="${W - x0 + 10}" y2="50" class="fg-stroke"/>`;
+    for (let i = 0; i <= 10; i++) { const v = lo + (i * to) / 10; body += `<line x1="${x(v)}" y1="${i % 5 ? 44 : 38}" x2="${x(v)}" y2="${i % 5 ? 56 : 62}" class="fg-stroke"/>`; }
+    [lo, mid, hi].forEach((v) => { body += `<text x="${x(v)}" y="84" class="fg-text" font-size="${v === mid ? 14 : 18}" text-anchor="middle">${v}${v === mid ? ' (halfway)' : ''}</text>`; });
+    body += `<circle cx="${x(n)}" cy="50" r="8" class="tf-a"/><text x="${x(n)}" y="26" class="fg-text" font-size="18" text-anchor="middle">${n}</text>`;
+    return svg(W, 92, body, `${n} is between ${lo} and ${hi}`);
+  }
+  // ---- jumps on a number line (skip counting) ----
+  function jumps(start, by, count) {
+    const end = start + by * count, W = 460, x0 = 26, x = (v) => x0 + ((v - start) / (end - start)) * (W - 2 * x0);
+    let body = `<line x1="${x0 - 10}" y1="70" x2="${W - x0 + 10}" y2="70" class="fg-stroke"/>`;
+    for (let k = 0; k <= count; k++) {
+      const v = start + k * by;
+      body += `<line x1="${x(v)}" y1="62" x2="${x(v)}" y2="78" class="fg-stroke"/><text x="${x(v)}" y="98" class="fg-text" font-size="15" text-anchor="middle">${k === count ? '?' : v}</text>`;
+      if (k < count) body += `<path d="M${x(v)} 62 Q${(x(v) + x(v + by)) / 2} 18 ${x(v + by)} 62" class="jp-arc"/><text x="${(x(v) + x(v + by)) / 2}" y="30" class="fg-text" font-size="13" text-anchor="middle">+${by}</text>`;
+    }
+    return svg(W, 106, body, `Jumps of ${by} from ${start}`);
+  }
+
+  // ---- labeled small shapes in a row ----
+  function shapeRow(names) {
+    let x = 0, body = '';
+    names.forEach((n) => {
+      const sv = shape(n);
+      const vb = sv.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/), w = +vb[1], h = +vb[2], k = 70 / Math.max(w, h);
+      body += `<g transform="translate(${x + (90 - w * k) / 2} ${6 + (70 - h * k) / 2}) scale(${k})">${sv.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}</g><text x="${x + 45}" y="96" class="fg-text" font-size="13" text-anchor="middle">${n}</text>`;
+      x += 96;
+    });
+    return svg(x, 104, body, names.join(', '));
+  }
+  // ---- a picture with a caption (time of day, items with prices) ----
+  function picture(icons, caption = '') {
+    const body = `<text x="${icons.length * 30 + 10}" y="56" font-size="52" text-anchor="middle">${icons.join('')}</text>${caption ? `<text x="${icons.length * 30 + 10}" y="96" class="fg-text" font-size="17" text-anchor="middle">${caption}</text>` : ''}`;
+    return svg(icons.length * 60 + 20, caption ? 104 : 72, body, caption || icons.join(' '));
+  }
+  function priceTags(icon, price, qty) {
+    let body = '';
+    for (let k = 0; k < qty; k++) body += `<text x="${40 + k * 90}" y="50" font-size="44" text-anchor="middle">${icon}</text><rect x="${12 + k * 90}" y="62" width="56" height="26" rx="8" class="pc-head"/><text x="${40 + k * 90}" y="81" class="fg-text" font-size="16" text-anchor="middle">${price}¢</text>`;
+    const x = qty * 90 + 20;
+    body += `<rect x="${x}" y="22" width="80" height="44" rx="6" class="cn-bill"/><text x="${x + 40}" y="51" class="cn-text" font-size="18" text-anchor="middle">$1</text><text x="${x + 40}" y="86" class="fg-text" font-size="14" text-anchor="middle">pays</text>`;
+    return svg(x + 90, 94, body, `${qty} items at ${price} cents, paid with a dollar`);
+  }
+
+  return { blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
+    tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags };
 })();
