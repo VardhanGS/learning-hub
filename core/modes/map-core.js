@@ -38,7 +38,8 @@ const MapCore = (() => {
   // levels: [{gen, where}] -> items [{q, b, c, goal, key, where}], several rounds per level, without duplicates.
   function buildPool(levels, rounds, qkey) {
     const seen = new Set(), pool = [];
-    for (const L of levels) for (let r = 0; r < rounds; r++) for (const q of L.gen({})) {
+    // A level can list all of its items (L.all, e.g. every question of every reading passage); otherwise sample rounds.
+    for (const L of levels) for (const q of (L.all ? L.all() : [...Array(rounds)].flatMap(() => L.gen({})))) {
       if (q.rit == null || !q.goal) continue;
       const key = qkey(q);
       if (seen.has(key)) continue;

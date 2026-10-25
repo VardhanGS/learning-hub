@@ -49,7 +49,7 @@ def build(app_id):
     os.makedirs(out)
 
     feats = cfg.get('features', {})
-    modes = [f'core/modes/{m}.js' for m in (['map-core', 'map'] if feats.get('map') else []) + (['sat'] if feats.get('sat') else [])]
+    modes = [f'core/modes/{m}.js' for m in (['map-core', 'map'] if feats.get('map') else []) + (['fluency'] if feats.get('fluency') else []) + (['sat'] if feats.get('sat') else [])]
     # 'otherApp:file.js' borrows a content file from another app (copied into this app's data/ folder)
     data = [f"data/{f.split(':')[-1]}" for f in cfg.get('data', [])]
     if os.path.exists(os.path.join(src, 'data', 'videos.js')) or cfg.get('videosFrom'):
@@ -66,7 +66,9 @@ def build(app_id):
     for f in cfg.get('data', []):
         if ':' in f:
             other, name = f.split(':')
-            copy(os.path.join(ROOT, 'apps', other, 'data', name), os.path.join(out, 'data', name))
+            # 'elaquest:x.js' reads ELA Quest's own file (Documents/ELAQuest/data), which is never modified
+            base = os.path.join(os.path.dirname(ROOT), 'ELAQuest', 'data') if other == 'elaquest' else os.path.join(ROOT, 'apps', other, 'data')
+            copy(os.path.join(base, name), os.path.join(out, 'data', name))
     if cfg.get('videosFrom'):  # borrow another app's video lessons
         other = os.path.join(ROOT, 'apps', cfg['videosFrom'])
         copytree(os.path.join(other, 'videos'), os.path.join(out, 'videos'))
@@ -159,7 +161,7 @@ def build_hub(cfgs):
     open(os.path.join(out, '.nojekyll'), 'w').close()
     # local test helpers (deploy.sh never publishes _test/)
     os.makedirs(os.path.join(out, '_test'), exist_ok=True)
-    for f in ('playthrough.js', 'shot-frame.html', 'maprun.js'):
+    for f in ('playthrough.js', 'shot-frame.html', 'maprun.js', 'flurun.js'):
         shutil.copy2(os.path.join(HERE, f), os.path.join(out, '_test', f))
     print('built dist/index.html (hub)')
 

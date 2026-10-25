@@ -607,9 +607,10 @@
     const pct = ((Q.i + (st.done ? 1 : 0)) / total) * 100;
     const passage = q.passage ? `
       <aside class="passage card">
-        <div class="passage-head"><span class="kind">${esc(q.passage.kind)}</span><button class="btn small" data-act="readPassage">🔊 Read to me</button></div>
+        <div class="passage-head"><span class="kind">${esc(q.passage.kind)}</span>${!test || testAudio() ? '<button class="btn small" data-act="readPassage">🔊 Read to me</button>' : ''}</div>
         <h2>${esc(q.passage.title)}</h2>
-        ${q.passage.text.split('\n\n').map((p) => `<p>${esc(p)}</p>`).join('')}
+        ${q.passage.fig ? `<div class="fig passage-fig">${q.passage.fig}</div>` : ''}
+        ${q.passage.text.split('\n\n').map((p) => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('')}
       </aside>` : '';
     return `
       <div class="quiz s-${color} ${test ? 'testmode' : ''}">

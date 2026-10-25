@@ -22,7 +22,7 @@ const load = (f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'),
 load(`apps/${appId}/config.js`);
 vm.runInContext('var APP = window.APP;', ctx);
 ['core/speech.js', 'core/U.js', 'core/engine/fig.js'].forEach(load);
-const dataPath = (f) => (f.includes(':') ? `apps/${f.split(':')[0]}/data/${f.split(':')[1]}` : `apps/${appId}/data/${f}`);
+const dataPath = (f) => (f.startsWith('elaquest:') ? `../ELAQuest/data/${f.split(':')[1]}` : f.includes(':') ? `apps/${f.split(':')[0]}/data/${f.split(':')[1]}` : `apps/${appId}/data/${f}`);
 for (const f of ctx.APP.data) load(dataPath(f));
 vm.runInContext('this.MAPBANK = typeof MAPBANK === "undefined" ? null : MAPBANK; this.U = U; this.SUBJECTS = SUBJECTS; this.N = N; this.MathText = MathText; this.LESSONS = typeof LESSONS === "undefined" ? {} : LESSONS;', ctx);
 const { SUBJECTS, N, MathText, LESSONS, MAPBANK } = ctx;
@@ -164,9 +164,13 @@ const fail = (where, q, msg) => {
 };
 
 let noFig = 0;
+const lenStats = { n: 0, longest: 0 };
 function checkItem(where, q, levelStd) {
   types[q.t] = (types[q.t] || 0) + 1;
-  if (!q.fig && !['line', 'shade', 'clock', 'coins', 'hot'].includes(q.t) && !(q.t === 'hot')) noFig++;
+  if (!q.fig && !(q.passage && q.passage.fig) && !['line', 'shade', 'clock', 'coins', 'hot'].includes(q.t) && !(q.t === 'hot')) noFig++;
+  if (q.passage && (!q.passage.title || !q.passage.text || q.passage.text.length < 20)) fail(where, q, 'passage without a title or text');
+  // answer-length bias: is the right answer the single longest choice?
+  if (q.t === 'mc' && q.opts.length >= 3 && !q.meta) { lenStats.n++; const L = q.opts.map((o) => plain(o).length), mx = Math.max(...L); if (plain(q.a).length === mx && L.filter((x) => x === mx).length === 1) lenStats.longest++; }
   if (!q.q || typeof q.q !== 'string') fail(where, q, 'missing prompt');
   if (!levelStd) fail(where, q, 'level has no standard code');
   if (!MathText.spoken(q.q)) fail(where, q, 'prompt has nothing to say aloud');
@@ -286,6 +290,19 @@ function checkItem(where, q, levelStd) {
       const top = Math.max(...Object.values(cnt)), mode = +Object.keys(cnt).find((v) => cnt[v] === top);
       const got = N.parse(plain(q.a).replace(` ${unit}`, ''));
       if (!got || !N.eq(got, R(Math.round(mode * den), den))) fail(where, q, `answer ${plain(q.a)} is not the most common value ${mode}`);
+    } else if (kind === 'hotEvidence') {
+      // Each choice is a sentence of the passage; the tapped ones must be exactly the evidence sentences.
+      const text = q.passage.text.replace(/\s+/g, ' ');
+      q.cells.forEach((c) => { if (!text.includes(c.replace(/\s+/g, ' '))) fail(where, q, `choice "${c.slice(0, 40)}" is not a sentence of the passage`); });
+      const want = new Set(args[0]), got = q.a.map((i) => q.cells[i]);
+      if (got.length !== want.size || !got.every((c) => want.has(c))) fail(where, q, 'tapped sentences differ from the evidence');
+      if (q.cells.length - q.a.length < 2) fail(where, q, 'fewer than 2 wrong sentences to choose from');
+    } else if (kind === 'multiText') {
+      const want = new Set(args[0]);
+      if (q.a.length !== want.size || !q.a.every((x) => want.has(x))) fail(where, q, 'multi-select answers differ from the right choices');
+    } else if (kind === 'popSeq') {
+      if (q.accept.length !== 1 || q.accept[0].join('|') !== args[0].join('|')) fail(where, q, 'accepted order differs from the events');
+      if (new Set(q.tiles).size !== q.tiles.length) fail(where, q, 'two event tiles are the same');
     } else if (kind === 'sidesIs') {
       q.opts.forEach((o) => { if ((SIDES[o] === args[0]) !== q.a.includes(o)) fail(where, q, `${o} has ${SIDES[o]} sides but is marked the other way`); });
     } else if (TEXT[kind]) {
@@ -334,4 +351,11 @@ if (errors.length) {
 if (MAPBANK) console.log(`MAP bank: ${Math.round(100 * MAPBANK.freshShare)}% of practice levels are new (minimum ${Math.round(100 * MAPBANK.MIN_FRESH)}%)`);
 if (MAPBANK && MAPBANK.freshShare < MAPBANK.MIN_FRESH) { console.log('✗ not enough new content'); process.exit(1); }
 console.log(`Pictures: ${noFig ? `${noFig} item(s) without a picture` : 'every question that needs one has a picture'}`);
+if (noFig && !ctx.APP.picturesOptional) { console.log('✗ every question needs a picture (the family asked for pictures everywhere)'); process.exit(1); }
+// Word-choice questions: if the right answer is the longest choice too often, a child can guess by length.
+if (lenStats.n >= 200) {
+  const share = lenStats.longest / lenStats.n;
+  console.log(`Answer-length check: the right answer is the single longest choice in ${Math.round(100 * share)}% of word questions (chance is about 25%; limit 40%)`);
+  if (share > 0.4) { console.log('✗ right answers are too often the longest choice'); process.exit(1); }
+}
 console.log('✓ all checks passed');

@@ -13,7 +13,7 @@ const N = +(process.argv[3] || 150);
 const ctx = { console, window: {}, CSS: { escape: (s) => s } };
 ctx.window = ctx;
 vm.createContext(ctx);
-const dataPath = (f) => (f.includes(':') ? `apps/${f.split(':')[0]}/data/${f.split(':')[1]}` : `apps/${appId}/data/${f}`);
+const dataPath = (f) => (f.startsWith('elaquest:') ? `../ELAQuest/data/${f.split(':')[1]}` : f.includes(':') ? `apps/${f.split(':')[0]}/data/${f.split(':')[1]}` : `apps/${appId}/data/${f}`);
 const load = (f) => vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
 load(`apps/${appId}/config.js`);
 vm.runInContext('var APP = window.APP;', ctx);
