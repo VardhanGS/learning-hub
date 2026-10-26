@@ -132,6 +132,14 @@ newer apps (user does it in the console), and family feedback on voices, videos,
 SAT modules). Earlier: Phase 6 DONE and PUBLISHED: Algebra 1 Quest at vardhangs.github.io/learning-hub/algebra1/ (live check passed: sw cache names of all 8 apps match dist; hub shows it live; videos served). Next: Phase 7 (MAP Algebra 1) — ask
 before publishing anything new.
 
+## ELA Quest in the hub (2026-10-26, published)
+
+The user chose "hub tiles": ELA Quest stays its own repo/engine at vardhangs.github.io/ela-quest/ (progress untouched);
+the hub page lists it in the 2nd and 8th grade rows (href '../ela-quest/'). Every hub app's Settings and ELA Quest's
+Settings have an "All family apps → Open the Learning Hub" card. The user lifted ELA Quest's read-only rule ONLY for
+that back-link (ELAQuest commit 5460e80, cache elaquest-v9, pushed as VardhanGS). Otherwise ELA Quest is still
+read-only — ask before any other change.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
