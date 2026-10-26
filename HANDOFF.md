@@ -140,6 +140,40 @@ Settings have an "All family apps → Open the Learning Hub" card. The user lift
 that back-link (ELAQuest commit 5460e80, cache elaquest-v9, pushed as VardhanGS). Otherwise ELA Quest is still
 read-only — ask before any other change.
 
+## NEXT PLAN (from the user, 2026-10-26) — with Claude's notes
+
+1. **Review all the content now.** Go app by app (10 apps + ELA Quest read-only). Read samples from every level
+   (`node <scratchpad>/sample.js <app> 3` style), lessons, videos (watch frames), and voice (spot-listen). Look for:
+   wrong or awkward wording, weak pictures, answer giveaways, levels that are too easy/hard for their band, repeats.
+2. **Check that everything is covered.** Build a coverage table per app: every NJSLS 2023 standard for the grade (math
+   and ELA pages on nj.gov) → which skill/level practices it; list gaps. For MAP apps also map to NWEA goal areas; for
+   SAT, to College Board domains and skill/knowledge testing points (all listed in the Student Guide).
+3. **Add more videos.** Today: Math Quest 2: 8, MAP Math 2: 1 own + 8 borrowed, MAP Math 4: 6, MAP Reading 2/4/8: ~7–9
+   each, Algebra 1: 8, MAP Algebra 1: 1 own + 8 borrowed, SAT: 7. Aim for one video per skill where it helps, starting
+   with the skills that have none (see each app's lessons file: `video:` keys).
+4. **Grades 2 and 4: separate Algebra / Geometry tiles?** The user thinks they are not needed. Claude's opinion: keep
+   the three groups in the MAP apps, because they are the test's own goal areas and the report sends a child from a
+   weak goal area straight to its practice — but rename them in kid words (e.g. "Numbers", "Patterns & Equations",
+   "Shapes, Measuring & Data") and keep NWEA's names in small print. Math Quest 2 already uses topic tiles, not
+   Algebra/Geometry. Decide with the user before changing.
+5. **Are the MAP and SAT questions realistic?** Honest status: formats, lengths, timing, goal areas/domains, norms, and
+   scoring shape are verified from NWEA/College Board documents; the questions are original by rule (no copying), and
+   difficulty tags are hand-set. NOT yet compared against official samples. Next: look at the official free practice
+   material — College Board's Bluebook practice tests and Student Question Bank; NWEA's public practice/warm-up
+   tests if available (check the current URL and login on nwea.org) — and compare style, wording length, picture use,
+   and difficulty, then adjust generators. Do not copy any item.
+6. **Competitive math for all levels** (Math Kangaroo / olympiad style, pictures wherever they help). Verify facts
+   first (Math Kangaroo levels by grade, number of questions, time, 3/4/5-point scoring; MATHCOUNTS / AMC 8 formats for
+   the 8th grader). New app(s) or a section per kid; original problems only; "unofficial" label and trademark notes
+   (Math Kangaroo, MATHCOUNTS, AMC are trademarks of their owners).
+7. **Beast Academy / AoPS-level practice or tutorials.** A deeper problem-solving track (puzzles, multi-step
+   reasoning, "why" explanations, worked solutions, hints that reveal step by step). Original content in that spirit;
+   do not copy or imitate their characters/books; name it something of our own and note that Beast Academy and Art of
+   Problem Solving are trademarks of AoPS, not affiliated.
+
+Suggested order: 1–2 (review + coverage report to the user) → 5 (realism comparison) → 4 (decision) → 3 (videos) →
+6 → 7. Ask before publishing anything new.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
