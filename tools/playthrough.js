@@ -72,7 +72,7 @@
       const tops = new Set();
       const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
       for (let n = walk.nextNode(); n; n = walk.nextNode()) {
-        if (!n.textContent.trim()) continue;
+        if (!n.textContent.trim() || n.parentElement.closest('sup, sub')) continue; // a raised power sits higher on the same line
         const r = document.createRange(); r.selectNodeContents(n);
         [...r.getClientRects()].filter((x) => x.width > 0).forEach((x) => tops.add(Math.round(x.top)));
       }

@@ -86,7 +86,7 @@
     const w = op === '+' ? MQ.addMisses(a, b) : op === '−' ? MQ.subMisses(a, b)
       : [[(Math.floor(a / 10) * b) * 10 + (a % 10), `Multiply the ones too: ${a % 10} × ${b} = ${(a % 10) * b}.`], [Math.floor(a / 10) * 10 * b + ((a % 10) * b) % 10, 'It looks like the tens from the ones product were not regrouped.'], [a + b, `That is ${a} + ${b}. Multiply instead.`]];
     const fig = op === '×' ? Fig.tensGroups(b, Math.floor(a / 10)) : Fig.placeChart([a, b], op);
-    return tag(U.mcMiss(`${a} ${op} ${b} = ?`, String(ans), w.map(([v, why]) => [String(v), why]), { fig, calc: level === 2 && op === '+', meta: { kind: 'expr', args: [`${a} ${op} ${b}`] }, hint: op === '×' ? `Multiply the tens, then the ones, and add.` : 'Line up the places. Regroup when you need to.', why: `${a} ${op} ${b} = ${ans}` }, 3, () => String(U.pick([-10, 10, -1, 1, 100].map((d) => ans + d).filter((v) => v > 0)))), ['2.NBT.B.5', '2.NBT.B.7', '4.NBT.B.5'][level], [176, 190, 206][level], 'number');
+    return tag(U.mcMiss(`${a} ${op} ${b} = ?`, String(ans), w.map(([v, why]) => [String(v), why]), { fig, calc: level === 2 && op === '+', meta: { kind: 'expr', args: [`${a} ${op} ${b}`] }, hint: op === '×' ? `Multiply the tens, then the ones, and add.` : 'Line up the places. Regroup when you need to.', why: `${a} ${op} ${b} = ${ans}` }, 3, () => String(U.pick([-10, 10, -1, 1, 100].map((d) => ans + d).filter((v) => v > 0)))), [...['2.NBT.B.5', '2.NBT.B.7'], op === '×' ? '4.NBT.B.5' : '4.NBT.B.4'][level], [176, 190, 206][level], 'number');
   }
   function computeEntry(level) {
     const a = level === 0 ? U.int(31, 92) : U.int(310, 930);
@@ -170,6 +170,17 @@
     const k = U.int(3, 12), start = U.int(2, 20), seq = [0, 1, 2, 3].map((i) => start + i * k);
     return tag(U.mcMiss(`What is the rule for this pattern?\n${seq.join(', ')}, …`, `add ${k}`, [[`add ${k + 1}`, 'Find the difference between two numbers next to each other.'], [`add ${start}`, 'The first number is not the rule. Look at how much it grows each time.'], [`subtract ${k}`, 'The numbers get bigger, so it is not subtract.']], { fig: Fig.jumps(start, k, 3), meta: { kind: 'ruleAdd', args: [seq] }, hint: 'How much does it grow each time?', why: `Each number is ${k} more than the one before.` }), '3.OA.D.9', 184, 'algebra');
   }
+  // Grade 3 level-up (3.OA.A.4): the unknown can be in any place of a multiplication or division equation.
+  function mulUnknown() {
+    const x = U.int(2, 9), y = U.int(2, 9), p = x * y, form = U.int(0, 3);
+    // form 3 balances two products: x × y = □ × z (z is another factor of p)
+    const zs = [2, 3, 4, 5, 6].filter((z) => z !== y && z !== x && p % z === 0 && p / z <= 12);
+    if (form === 3 && !zs.length) return mulUnknown();
+    const z = U.pick(zs.length ? zs : [1]);
+    const shown = [`□ × ${y} = ${p}`, `${x} × □ = ${p}`, `${p} ÷ □ = ${y}`, `${x} × ${y} = □ × ${z}`][form];
+    const ans = [x, y, x, p / z][form], meta = [[p, y], [p, x], [p, y], [p, z]][form];
+    return tag(U.mcMiss(`What number makes this true?\n${shown}`, String(ans), [[String(p), `${p} is the product. Find the missing factor.`], [String(form === 3 ? p + z : p - (form === 1 ? x : y)), 'That subtracts or adds. Think of a multiplication fact instead.'], [String(ans + 1), `Check: ${ans + 1} in the box does not make it true.`]], { fig: Fig.picture(['✖️', '⚖️'], 'Both sides are the same amount'), meta: { kind: 'div', args: meta }, hint: form === 2 ? `Think: ${y} × □ = ${p}.` : form === 3 ? `${x} × ${y} = ${p}. What times ${z} is also ${p}?` : 'Which multiplication fact fits?', why: `${shown.replace('□', ans)} is true.` }, 3, () => ans + U.pick([-2, -1, 2, 3])), '3.OA.A.4', 194, 'algebra');
+  }
   function storyEquation() {
     const [k, he] = kid(), t = thing(), a = U.int(12, 60), b = U.int(5, 30);
     const kind = U.pick(['gain', 'lose', 'start']);
@@ -195,13 +206,15 @@
   // ===================== GEOMETRY; PROBABILITY & STATISTICS =====================
   function shapesHot(level) {
     const pool = level === 2 ? ['square', 'rectangle', 'rhombus', 'trapezoid', 'parallelogram', 'triangle', 'pentagon', 'hexagon', 'circle'] : ['triangle', 'square', 'rectangle', 'pentagon', 'hexagon', 'circle', 'trapezoid'];
-    const prop = level === 2 ? U.pick(['quad', 'square corners']) : U.pick(['3 sides', '4 sides', '5 vertices', '6 sides', 'no straight sides']);
-    const has = (s) => ({ quad: ['square', 'rectangle', 'rhombus', 'trapezoid', 'parallelogram'].includes(s), 'square corners': ['square', 'rectangle'].includes(s), '3 sides': s === 'triangle', '4 sides': ['square', 'rectangle', 'trapezoid', 'rhombus', 'parallelogram'].includes(s), '5 vertices': s === 'pentagon', '6 sides': s === 'hexagon', 'no straight sides': s === 'circle' }[prop]);
+    // Level 1: four shapes, upright, simple counts. Level 2: six shapes, some turned, vertices and "more than 4 sides".
+    const prop = level === 2 ? U.pick(['quad', 'square corners']) : level === 1 ? U.pick(['4 vertices', '5 vertices', 'more than 4 sides', '6 sides', '4 sides']) : U.pick(['3 sides', '4 sides', '6 sides', 'no straight sides']);
+    const has = (s) => ({ quad: ['square', 'rectangle', 'rhombus', 'trapezoid', 'parallelogram'].includes(s), 'square corners': ['square', 'rectangle'].includes(s), '3 sides': s === 'triangle', '4 sides': ['square', 'rectangle', 'trapezoid', 'rhombus', 'parallelogram'].includes(s), '5 vertices': s === 'pentagon', '4 vertices': ['square', 'rectangle', 'trapezoid', 'rhombus', 'parallelogram'].includes(s), 'more than 4 sides': ['pentagon', 'hexagon'].includes(s), '6 sides': s === 'hexagon', 'no straight sides': s === 'circle' }[prop]);
     let cells;
-    do { cells = U.sample(pool, 5); } while (!cells.some(has) || cells.every(has));
+    const nCells = level === 0 ? 4 : level === 1 ? 6 : 5;
+    do { cells = U.sample(pool, nCells); } while (!cells.some(has) || cells.every(has));
     const a = cells.map((c, i) => (has(c) ? i : -1)).filter((i) => i >= 0);
-    const ask = { quad: 'quadrilaterals', 'square corners': 'shapes with 4 square corners', '3 sides': 'shapes with 3 sides', '4 sides': 'shapes with 4 sides', '5 vertices': 'shapes with 5 vertices (corners)', '6 sides': 'shapes with 6 sides', 'no straight sides': 'shapes with no straight sides' }[prop];
-    return tag({ t: 'hot', q: `Tap all the ${ask}.`, cells: cells.map((c) => Fig.shape(c, c === 'circle' ? 0 : U.pick([0, 0, 20, 45]))), cellNames: cells, layout: 'grid', multi: true, a, meta: { kind: 'hotShape', args: [prop, cells] }, hint: 'Count the sides and corners of each shape.', why: `${pool.filter((c) => cells.includes(c) && has(c)).join(', ')}.` }, level === 2 ? '3.G.A.1' : '2.G.A.1', [168, 176, 196][level], 'geometry');
+    const ask = { quad: 'quadrilaterals', 'square corners': 'shapes with 4 square corners', '3 sides': 'shapes with 3 sides', '4 sides': 'shapes with 4 sides', '5 vertices': 'shapes with 5 vertices (corners)', '4 vertices': 'shapes with 4 vertices (corners)', 'more than 4 sides': 'shapes with more than 4 sides', '6 sides': 'shapes with 6 sides', 'no straight sides': 'shapes with no straight sides' }[prop];
+    return tag({ t: 'hot', q: `Tap all the ${ask}.`, cells: cells.map((c) => Fig.shape(c, c === 'circle' || level === 0 ? 0 : U.pick([0, 0, 20, 45]))), cellNames: cells, layout: 'grid', multi: true, a, meta: { kind: 'hotShape', args: [prop, cells] }, hint: 'Count the sides and corners of each shape.', why: `${pool.filter((c) => cells.includes(c) && has(c)).join(', ')}.` }, level === 2 ? '3.G.A.1' : '2.G.A.1', [168, 176, 196][level], 'geometry');
   }
   function estimateLength() {
     const items = [['a pencil', '7 inches', ['7 feet', '7 yards', '70 inches']], ['a door', '7 feet', ['7 inches', '70 feet', '7 yards']], ['a paper clip', '1 inch', ['1 foot', '10 inches', '1 yard']], ['a school bus', '40 feet', ['40 inches', '4 feet', '400 feet']], ['a crayon', '9 centimeters', ['9 meters', '90 centimeters', '1 centimeter']], ['a classroom', '10 meters', ['10 centimeters', '100 meters', '1 meter']]];
@@ -267,7 +280,7 @@
     { goal: 'algebra', id: 'meq', name: 'Equations', icon: '⚖️', levels: [
       lv('True or false?', '2.OA.B.2', 'Check both sides.', [() => trueEquations(0), makeTruePop]),
       lv('Balance the equation', '2.OA.B.2', 'The = sign means "the same as".', [balance, () => trueEquations(1), makeTruePop]),
-      lv('Equations for stories', '2.OA.A.1', 'Which equation fits?', [storyEquation, balance]) ] },
+      lv('Equations for stories and unknown factors', '2.OA.A.1 · 3.OA.A.4', 'Which equation fits? What is missing?', [storyEquation, mulUnknown, mulUnknown]) ] },
     { goal: 'algebra', id: 'mpat', name: 'Patterns & rules', icon: '🔁', levels: [
       lv('Input and output', '2.OA.B.2', 'Find the rule, fill the table.', [() => ioTable(0)]),
       lv('Rules and patterns', '3.OA.D.9', 'How does it grow?', [() => ioTable(1), ruleMC]),

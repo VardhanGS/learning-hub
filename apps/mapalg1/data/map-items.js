@@ -17,15 +17,16 @@ const MAP_NEW = [];
   // ---- signed numbers and order of operations (grade 7 review) ----
   function intAddSub() {
     const a = nz(-15, 15), b = nz(-15, 15), op = U.pick(['+', '-']), e = `${a} ${op} ${par(b)}`, v = op === '+' ? a + b : a - b;
+    if (a > 0 && b > 0) return intAddSub(); // a signed-numbers review always has a negative
     const miss = { [String(op === '+' ? a - b : a + b)]: op === '-' ? 'Subtracting a negative is the same as adding its opposite.' : 'Check the signs: add a negative by moving left.', [String(-v)]: 'Check the sign of your answer.' };
     return tag(U.num(`Evaluate ${T(e)}.`, String(v), { keys: kp(v), fig: Fig.numLine(-20, 20, 1, { labels: [-20, -10, 0, 10, 20], marks: [{ v: a, label: fx(a) }] }), meta: { kind: 'evalAt', args: [e, {}] }, miss, hint: op === '-' ? 'Subtracting a number is adding its opposite: a − b = a + (−b).' : 'Start at the first number on the number line and move by the second.', why: `${fx(e)} = ${fx(v)}` }), '7.NS.A.1', U.pick([196, 198, 200]), 'real');
   }
   function mulDiv() {
     if (U.pick([true, false])) {
-      const a = nz(-9, 9), b = nz(-9, 9), c = a * b, div = U.pick([true, false]), e = div ? `${c} / ${par(b)}` : `${par(a)} * ${par(b)}`, v = div ? a : c;
+      const a = nz(-9, 9), b = a > 0 ? nz(-9, -1) * (Math.random() < 0.3 ? -1 : 1) : nz(-9, 9), c = a * b, div = U.pick([true, false]), e = div ? `${c} / ${par(b)}` : `${par(a)} * ${par(b)}`, v = div ? a : c;
       return tag(U.num(`Evaluate ${T(div ? `${c} \\div ${par(b)}` : `${par(a)} \\times ${par(b)}`)}.`, String(v), { keys: kp(v), fig: Fig.table([['Signs', 'Result'], ['same signs', 'positive'], ['different signs', 'negative']], 'Multiplying and dividing'), meta: { kind: 'evalAt', args: [e, {}] }, miss: { [String(-v)]: 'Same signs give a positive answer; different signs give a negative answer.' }, hint: 'Multiply or divide the numbers, then decide the sign.', why: `${fx(v)}` }), '7.NS.A.2', 202, 'real');
     }
-    const n1 = nz(-5, 5), d1 = U.int(2, 6), n2 = nz(-5, 5), d2 = U.int(2, 6), v = frac(n1 * n2, d1 * d2), e = `(${n1}/${d1})*(${n2}/${d2})`;
+    const n1 = nz(-5, 5), d1 = U.int(2, 6), n2 = n1 > 0 ? -U.int(1, 5) : nz(-5, 5), d2 = U.int(2, 6), v = frac(n1 * n2, d1 * d2), e = `(${n1}/${d1})*(${n2}/${d2})`;
     return tag(U.num(`Multiply. Write a fraction in lowest terms.\n${T(`\\left(${n1 < 0 ? '-' : ''}\\frac{${Math.abs(n1)}}{${d1}}\\right)\\left(${n2 < 0 ? '-' : ''}\\frac{${Math.abs(n2)}}{${d2}}\\right)`)}`, v, { keys: kp(v), simplest: true, fig: Fig.table([['Tops', 'Bottoms'], [`${fx(n1)} × ${fx(n2)}`, `${d1} × ${d2}`]], 'Multiply across, then simplify'), meta: { kind: 'evalAt', args: [e, {}] }, hint: 'Multiply the tops, multiply the bottoms, then simplify. Decide the sign first.', why: `${fx(n1 * n2)}/${d1 * d2} = ${fx(v)}` }), '7.NS.A.2', 208, 'real');
   }
   function orderOps() {
@@ -74,8 +75,13 @@ const MAP_NEW = [];
   }
   function sciCompare() {
     const [a, k] = U.pick([[1.5, 2], [2, 2], [2.5, 2], [3, 2], [4, 2], [2, 3], [3, 3], [1.5, 4], [2, 4]]), b = a * k, p = U.int(3, 9), d = U.int(1, 4), q = p - d, v = k * 10 ** d;
-    const [big, small] = U.pick([['the Sun', 'the Moon'], ['a blue whale', 'a mouse'], ['Earth', 'a city'], ['a galaxy', 'a star']]);
-    return tag(U.num(`A measurement for ${big} is about ${T(sciTex(b, p))}. The same kind of measurement for ${small} is about ${T(sciTex(a, q))}. How many times larger is the first?`, String(v), { fig: pic(['🔭'], `${b} × 10^${p} vs ${a} × 10^${q}`), meta: { kind: 'evalAt', args: [`(${b}*10^${p})/(${a}*10^${q})`, {}] }, miss: { [String(k * d)]: `The powers of 10 differ by ${d}, so that part is 10^${d} = ${10 ** d}, not ${d}.` }, hint: `Divide: ${b} ÷ ${a} = ${k}, and 10^${p} ÷ 10^${q} = 10^${d}.`, why: `${k} × ${10 ** d} = ${v}` }), '8.EE.A.3', 224, 'real');
+    // concrete quantities with units (real items name what is measured); the places and things are invented
+    const P = (e) => MathText.plain(`10^{${e}}`), ctx = U.pick([
+      [`A country has a population of about ${T(sciTex(b, p))} people. One of its towns has about ${T(sciTex(a, q))} people.`, 'How many times as many people live in the country as in the town?'],
+      [`A lake holds about ${T(sciTex(b, p))} liters of water. A swimming pool holds about ${T(sciTex(a, q))} liters.`, 'How many times as much water does the lake hold?'],
+      [`A hard drive can store about ${T(sciTex(b, p))} bytes. One photo uses about ${T(sciTex(a, q))} bytes.`, 'How many photos of that size can the hard drive store?'],
+      [`A factory made about ${T(sciTex(b, p))} bolts last year. A small workshop made about ${T(sciTex(a, q))} bolts.`, 'How many times as many bolts did the factory make?']]);
+    return tag(U.num(`${ctx[0]} ${ctx[1]}`, String(v), { fig: pic(['🔭'], `${b} × ${P(p)} ÷ (${a} × ${P(q)})`), meta: { kind: 'evalAt', args: [`(${b}*10^${p})/(${a}*10^${q})`, {}] }, miss: { [String(k * d)]: `The powers of 10 differ by ${d}, so that part is ${P(d)} = ${10 ** d}, not ${d}.` }, hint: `Divide: ${b} ÷ ${a} = ${k}, and ${P(p)} ÷ ${P(q)} = ${P(d)}.`, why: `${k} × ${10 ** d} = ${v}` }), '8.EE.A.3', 224, 'real');
   }
 
   // ===================== EXPRESSIONS, EQUATIONS, AND INEQUALITIES =====================
@@ -110,9 +116,10 @@ const MAP_NEW = [];
 
   // ---- equivalent expressions ----
   function multiEquiv() {
-    const k = U.int(2, 5), a = U.int(2, 6), b = nz(-9, 9), c = nz(-4, 4), target = `${k}(${a}x ${sgn(b)}) ${c < 0 ? '-' : '+'} ${Math.abs(c)}x`;
+    const xc = (v) => (Math.abs(v) === 1 ? 'x' : `${Math.abs(v)}x`); // 1x is written x
+    const k = U.int(2, 5), a = U.int(2, 6), b = nz(-9, 9), c = nz(-4, 4), target = `${k}(${a}x ${sgn(b)}) ${c < 0 ? '-' : '+'} ${xc(c)}`;
     const T0 = Alg.parse(target), m = Alg.evalAt(T0, { x: 1 }) - Alg.evalAt(T0, { x: 0 }), n0 = Alg.evalAt(T0, { x: 0 });
-    const rights = uniq([lin(m, n0), `${n0} ${m < 0 ? '-' : '+'} ${Math.abs(m)}x`, `${k * a}x ${sgn(k * b)} ${c < 0 ? '-' : '+'} ${Math.abs(c)}x`]).slice(0, U.int(1, 3));
+    const rights = uniq([lin(m, n0), `${n0} ${m < 0 ? '-' : '+'} ${xc(m)}`, `${k * a}x ${sgn(k * b)} ${c < 0 ? '-' : '+'} ${xc(c)}`]).slice(0, U.int(1, 3));
     const wrongs = uniq([lin(m, b), lin(k * a + c, b), lin(m, -n0), ...(a + c ? [`${k}(${lin(a + c, b)})`] : []), lin(m + 1, n0)].filter((w) => !Alg.equiv(w, target))).slice(0, 6 - rights.length);
     const opts = U.shuffle([...rights, ...wrongs]).map((o) => o.replace(/-/g, '−'));
     return tag({ t: 'multi', q: `Choose ALL the expressions that are equivalent to ${tx(target)}.`, opts, a: opts.filter((o) => rights.map((r) => r.replace(/-/g, '−')).includes(o)), fig: Fig.table([['Distribute', 'Combine like terms']], 'Rewrite, then compare'), meta: { kind: 'multiEquiv', args: [target] }, hint: 'Distribute and combine like terms. Then simplify each choice and compare.', why: `${fx(target)} = ${fx(lin(m, n0))}` }, 'A.SSE.A.2', 216, 'eei');
@@ -144,7 +151,7 @@ const MAP_NEW = [];
   function completeSquare() {
     const p = nz(-6, 6), q = nz(-9, 9), e = Alg.pstr([p * p + q, 2 * p, 1]);
     const tiles = popTiles([fx(p), fx(q)], [2 * p, p * p, -p, p * p + q, -q].map(fx));
-    return tag({ t: 'pop', q: `Complete the square. Fill in the boxes so the two sides are equal.`, template: `${e.replace(/-/g, '−').replace(/\^2/, '²')} = (x + □)² + □`, tiles, accept: [[fx(p), fx(q)]], fig: Fig.table([['x² + bx + c', '(x + b/2)² + (c − (b/2)²)']], 'Half of b, squared'), meta: { kind: 'popAlg', args: [{}] }, hint: `Half of ${2 * p} is ${p}. Then (x + ${fx(p)})² = x² ${sgn(2 * p).replace('-', '−')}x + ${p * p}, so adjust the constant.`, why: `${fx(e)} = (x + ${fx(p)})² + ${fx(q)}` }, 'A.SSE.B.3', 242, 'eei');
+    return tag({ t: 'pop', q: `Complete the square. Fill in the boxes so the two sides are equal.`, template: `${e.replace(/-/g, '−').replace(/\^2/, '²')} = (x + □)² + □`, tiles, accept: [[fx(p), fx(q)]], fig: Fig.table([['x² + bx + c', '(x + b/2)² + (c − (b/2)²)']], 'Half of b, squared'), meta: { kind: 'popAlg', args: [{}] }, hint: `Half of ${2 * p} is ${p}. Then (x + ${fx(p)})² = x² ${sgn(2 * p).replace('-', '−')}x + ${p * p}, so adjust the constant.`, why: `${fx(e)} = (x ${p < 0 ? '−' : '+'} ${Math.abs(p)})² ${q < 0 ? '−' : '+'} ${Math.abs(q)}` }, 'A.SSE.B.3', 242, 'eei');
   }
   function vertexStd() {
     const a = U.pick([1, -1, 2, -2]), h = nz(-5, 5), k = nz(-9, 9), e = Alg.pstr([a * h * h + k, -2 * a * h, a]), P = (x, y) => `(${fx(x)}, ${fx(y)})`;
@@ -232,8 +239,8 @@ const MAP_NEW = [];
     const a = U.int(10, 40), b = U.int(10, 40), c = U.int(10, 40), d = U.int(10, 40), [r1, r2, c1, c2] = U.pick([['Grade 8', 'Grade 9', 'Soccer', 'Basketball'], ['Walks', 'Bus', 'Has a pet', 'No pet']]);
     const ask = U.pick(['joint', 'cond']);
     let v, q, e;
-    if (ask === 'joint') { const tot = a + b + c + d; v = frac(a, tot); e = `${a}/${tot}`; q = `What fraction of ALL the students are in "${r1}" and "${c1}"? Write a fraction in lowest terms.`; }
-    else { v = frac(c, c + d); e = `${c}/${c + d}`; q = `Of the students in "${r2}", what fraction chose "${c1}"? Write a fraction in lowest terms.`; }
+    if (ask === 'joint') { const tot = a + b + c + d; v = frac(a, tot); e = `${a}/${tot}`; q = `What fraction of ALL the students are in the "${r1}" row and the "${c1}" column? Write a fraction in lowest terms.`; }
+    else { v = frac(c, c + d); e = `${c}/${c + d}`; q = `Of the students in the "${r2}" row, what fraction are in the "${c1}" column? Write a fraction in lowest terms.`; }
     return tag(U.num(q, v, { keys: kp(v), simplest: true, fig: Fig.table([['', c1, c2, 'Total'], [r1, String(a), String(b), String(a + b)], [r2, String(c), String(d), String(c + d)], ['Total', String(a + c), String(b + d), String(a + b + c + d)]], 'Two-way table'), meta: { kind: 'twoWay', args: [[a, b, c, d], ask] }, miss: ask === 'cond' ? { [frac(c, a + c)]: `"Of the students in ${r2}" means divide by the ${r2} total.` } : { [frac(a, a + b)]: 'ALL the students means divide by the grand total.' }, hint: ask === 'cond' ? `Divide by the total of the "${r2}" row.` : 'Divide by the grand total in the bottom corner.', why: `${e} = ${v}` }), 'S.ID.B.5', 228, 'func');
   }
   function corrR() {

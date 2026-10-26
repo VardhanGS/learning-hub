@@ -55,7 +55,7 @@
     if (l === 0) return done(mc4(`What is the solution ${T('(x, y)')} to the system of equations?\n${shown}`, `(${x}, ${y})`, [`(${y}, ${x})`, `(${-x}, ${y})`, `(${x}, ${-y})`], { fig: Fig.graph({ fns: [{ kind: 'lin', m: -a1 / b1, b: c1 / b1 }, { kind: 'lin', m: -a2 / b2, b: c2 / b2 }], range: [-12, 12], step: 4 }), meta: { kind: 'sysSol', args: [a1, b1, c1, a2, b2, c2] }, why: `x = ${x}, y = ${y} makes both equations true.`, hint: 'Substitute or eliminate. Check your pair in both equations.' }, () => `(${x + nz(-2, 2)}, ${y})`), 'A.REI.C.6', bAt(0, 0.6), 'alg');
     if (l === 1) return done(spr(`If ${T('(x, y)')} is the solution to the system below, what is the value of ${T('x + y')}?\n${shown}`, x + y, { fig: pic(['✖️'], 'Solve, then add'), meta: { kind: 'sysSum', args: [a1, b1, c1, a2, b2, c2] }, why: `x = ${x}, y = ${y}, so x + y = ${x + y}.`, hint: 'Solve the system first, or look for a way to add the equations.' }), 'A.REI.C.6', bAt(1, 0.5), 'alg');
     const p = nz(1, 5), qq = nz(1, 5), k = U.int(2, 4), c = U.int(1, 9), d = U.intWhere(1, 30, (v) => v !== k * c);
-    return done(spr(`In the system below, a is a constant. If the system has no solution, what is the value of a?\n${T(`ax + ${qq}y = ${c}`)}\n${T(`${k * p}x + ${k * qq}y = ${d}`)}`, p, { fig: Fig.graph({ fns: [{ kind: 'lin', m: -p / qq, b: c / qq }, { kind: 'lin', m: -p / qq, b: d / (k * qq) }], range: [-8, 8], step: 4 }), meta: { kind: 'sysNoSolA', args: [qq, c, k * p, k * qq, d] }, why: `No solution means parallel lines: a/${qq} = ${k * p}/${k * qq}, so a = ${p}.`, hint: 'No solution: the lines are parallel. Their x and y coefficients must be in the same ratio.' }), 'A.REI.C.6', bAt(2, 0.5), 'alg');
+    return done(spr(`In the system below, a is a constant. If the system has no solution, what is the value of a?\n${T(`ax + ${qq === 1 ? '' : qq}y = ${c}`)}\n${T(`${k * p}x + ${k * qq}y = ${d}`)}`, p, { fig: Fig.graph({ fns: [{ kind: 'lin', m: -p / qq, b: c / qq }, { kind: 'lin', m: -p / qq, b: d / (k * qq) }], range: [-8, 8], step: 4 }), meta: { kind: 'sysNoSolA', args: [qq, c, k * p, k * qq, d] }, why: `No solution means parallel lines: a/${qq} = ${k * p}/${k * qq}, so a = ${p}.`, hint: 'No solution: the lines are parallel. Their x and y coefficients must be in the same ratio.' }), 'A.REI.C.6', bAt(2, 0.5), 'alg');
   }
   function ineq(l) {
     if (l === 0) {
@@ -105,7 +105,7 @@
     }
     if (U.pick([true, false])) { const b = 2 * nz(-7, 7), c = b * b / 4;
       return done(spr(`In the equation ${T(`x^{2} ${sgn(b)}x + c = 0`)}, c is a constant. If the equation has exactly one real solution, what is the value of c?`, c, { fig: Fig.table([['b² − 4ac', '= 0'], ['', 'one real solution']]), meta: { kind: 'oneSolC', args: [1, b] }, why: `b² − 4ac = 0: ${b * b} − 4c = 0, so c = ${c}.`, hint: 'Exactly one real solution means the discriminant b² − 4ac equals 0.' }), 'A.REI.B.4', bAt(2, 0.5), 'adv'); }
-    const a = U.int(-9, 9), bb = U.int(2, 9), x = bb * bb - a;
+    const a = nz(-9, 9), bb = U.int(2, 9), x = bb * bb - a;
     return done(spr(`What is the solution to ${T(`\\sqrt{x ${sgn(a)}} = ${bb}`)}?`, x, { fig: pic(['√'], 'Square both sides'), meta: { kind: 'radEq', args: [a, bb] }, why: `x ${sgn(a).replace('-', '−')} = ${bb * bb}, so x = ${x}.`, hint: 'Square both sides, then solve. Check the answer in the original equation.' }), 'A.REI.A.2', bAt(2, 0.3), 'adv');
   }
   function expo(l) {
@@ -222,7 +222,7 @@
     }
     if (l === 1) {
       const r = U.int(2, 12), deg = pick([30, 45, 60, 90, 120, 135, 150, 180, 240, 270]), arc = frac(deg * 2 * r, 360);
-      const show = (n) => (n === '1' ? 'π' : `${n}π`).replace(/^(\d+)\/(\d+)π$/, '$1π/$2');
+      const show = (n) => (n === '1' ? 'π' : `${n}π`).replace(/^(\d+)\/(\d+)π$/, '$1π/$2').replace(/^1π\//, 'π/');
       return done(mc4(`A circle has a radius of ${r} centimeters. What is the length, in centimeters, of an arc with a central angle of ${deg}°?`, show(arc), [show(frac(deg * r * r, 360)), show(frac(deg * r, 360)), show(String(2 * r))], { fig: Fig.angle(deg > 180 ? 180 : deg, { label: `${deg}°` }), meta: { kind: 'arcLen', args: [deg, r] }, why: `${deg}/360 × 2π × ${r} = ${show(arc)}`, hint: 'Arc length = (central angle ÷ 360°) × 2πr.' }, () => show(String(U.int(1, 30)))), 'G.C.B.5', bAt(1, 0.5), 'geo');
     }
     const h = nz(-6, 6), k = nz(-6, 6), r = U.int(2, 9), D = -2 * h, E = -2 * k, F = h * h + k * k - r * r;

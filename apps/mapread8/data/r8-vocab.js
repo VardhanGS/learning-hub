@@ -42,9 +42,13 @@
     ['In the poem, the volta signals a shift from describing the storm to reflecting on loss.', 'volta', 'a turn or shift in a poem', ['the poem\'s title', 'a rhyming word', 'the last stanza\'s length'], '🔄'],
     ['The molecule\'s mass was measured in atomic mass units.', 'mass', 'the amount of matter in something', ['a large crowd', 'a religious service', 'the size of something\'s shadow'], '⚛️'],
   ];
+  // Give the meaning of ONE word part only (like real items); the child works out the rest. The full breakdown is
+  // shown in the explanation afterward.
+  const oneClue = (w, parts, k) => { const p = parts.split(' + ')[k], m = p.match(/^(\S+) \((.+)\)$/); return m ? `In "${w}", the word part "${m[1]}" means "${m[2]}". What does "${w}" MOST LIKELY mean?` : `What does "${w}" MOST LIKELY mean?`; };
+  const CLUE8 = { benevolent: 0, chronological: 0, philanthropist: 1, incredulous: 1, circumnavigate: 0, malfunction: 0, contradict: 0, transcontinental: 0 };
   function rootQ() {
     const [w, parts, a, ws, icon] = U.pick(ROOT8);
-    return solo(`"${w}" = ${parts}. What does "${w}" mean?`, a, ws.map((x) => [x, 'Combine the meanings of the parts.']), `${parts}, so "${w}" means ${a}.`, { base: 214, goal: G, std: 'L.VL.8.3', fig: pic(icon, w), hint: 'Put the meanings of the word parts together.' });
+    return solo(oneClue(w, parts, CLUE8[w] || 0), a, ws.map((x) => [x, 'Combine the meanings of the parts.']), `${parts}, so "${w}" means ${a}.`, { base: 214, goal: G, std: 'L.VL.8.3', fig: pic(icon, w), hint: 'Put the meanings of the word parts together.' });
   }
 
   // ===================== TONE, CONNOTATION & FIGURES OF SPEECH =====================

@@ -58,12 +58,14 @@
 
   // ---------- Line plots ----------
   function plotData(den) {
-    const min = U.int(1, 3), max = min + U.int(4, 5);
+    // Each used value gets 1–4 X marks (not uniform random picks), so "how many are N long" is not usually 1, and the
+    // spread from shortest to longest varies.
+    const min = U.int(1, 3), max = min + U.int(4, 6);
     const pts = [];
     for (let v = min; v <= max; v += 1 / den) pts.push(Math.round(v * den) / den);
-    const vals = [];
-    const nObj = U.int(7, 12);
-    for (let k = 0; k < nObj; k++) vals.push(U.pick(pts.slice(0, -1)));
+    const inner = pts.slice(0, -1), k = den === 1 ? U.int(2, inner.length) : U.int(4, 6);
+    const used = den === 1 && Math.random() < 0.5 ? inner.slice(U.int(0, inner.length - k)).slice(0, k) : U.sample(inner, Math.min(k, inner.length)).sort((a, b) => a - b);
+    const vals = U.shuffle(used.flatMap((v) => Array(U.int(1, 4)).fill(v)));
     return { min, max, vals, pts };
   }
   const OBJ = [['pencils', 'Pencil lengths'], ['leaves', 'Leaf lengths'], ['crayons', 'Crayon lengths'], ['shells', 'Shell lengths']];
@@ -71,7 +73,7 @@
   const fracText = (v) => { const w = Math.floor(v), f = v - w; const p = f === 0.5 ? '1/2' : f === 0.25 ? '1/4' : f === 0.75 ? '3/4' : ''; return w && p ? `${w} ${p}` : p || String(w); };
   function plotCount(den) {
     const D = plotData(den), [obj, title] = U.pick(OBJ);
-    const target = U.pick(D.vals);
+    const target = U.pick([...new Set(D.vals)]); // pick a value, not an X mark, so every count is equally likely
     const n = D.vals.filter((v) => v === target).length;
     const q = U.num(`The line plot shows the lengths of some ${obj}. How many ${obj} are ${den > 1 ? fracText(target) : target} inches long?`, n, { fig: Fig.linePlot(title, D.min, D.max, D.vals, den, 'inches'), meta: { kind: 'countVal', args: [D.vals, target] }, hint: `Find ${den > 1 ? fracLabel(target) : target} on the line. Count the X marks above it.`, why: `There ${n === 1 ? 'is 1 X' : `are ${n} X marks`} above ${den > 1 ? fracLabel(target) : target}.` });
     q.miss = missMap([[D.vals.length, `That is all the ${obj}. Count only the X marks above ${den > 1 ? fracLabel(target) : target}.`]], n);
@@ -82,7 +84,7 @@
     const lo = Math.min(...D.vals), hi = Math.max(...D.vals);
     if (hi === lo) return plotCompare();
     if (U.pick([true, false])) {
-      const q = U.num(`How much longer is the longest ${obj.slice(0, -1)} than the shortest one?`, hi - lo, { unit: 'inches', fig: Fig.linePlot(title, D.min, D.max, D.vals, 1, 'inches'), meta: { kind: 'diff', args: [hi, lo] }, hint: 'Find the X farthest right and the X farthest left. Subtract.', why: `${hi} − ${lo} = ${hi - lo} inches` });
+      const q = U.num(`How much longer is the longest ${{ leaves: 'leaf' }[obj] || obj.slice(0, -1)} than the shortest one?`, hi - lo, { unit: 'inches', fig: Fig.linePlot(title, D.min, D.max, D.vals, 1, 'inches'), meta: { kind: 'diff', args: [hi, lo] }, hint: 'Find the X farthest right and the X farthest left. Subtract.', why: `${hi} − ${lo} = ${hi - lo} inches` });
       q.miss = missMap([[hi, 'That is the longest one. Subtract the shortest.'], [D.max - D.min, 'Use the lengths that have X marks, not the ends of the line.']], hi - lo);
       return tag(q, '2.DL.B.3', 184, 'geometry');
     }

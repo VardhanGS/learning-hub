@@ -38,23 +38,27 @@ const SatCore = (() => {
       const key = qkey(q);
       if (seen.has(key)) continue;
       seen.add(key);
-      pool.push({ q, b: q.b, c: guess(q), goal: q.goal, section: L.section, key, where: L.where });
+      // One question per passage in a test (like the real SAT): items on the same text share a passage key.
+      const pkey = q.passage ? 'P:' + String(q.passage.text).replace(/\s+/g, ' ').trim().slice(-80) : null;
+      pool.push({ q, b: q.b, c: guess(q), goal: q.goal, section: L.section, key, pkey, where: L.where });
     }
     return pool;
   }
   // Difficulty targets for each module: module 1 is a broad mix; module 2 is easier or harder.
   const BANDS = { m1: [300, 700], easy: [220, 560], hard: [480, 790] };
   // Pick `count` unused items of a goal area, spread across the band (so a module goes from easier to harder).
+  const free = (used) => (it) => !used.has(it.key) && !(it.pkey && used.has(it.pkey));
+  const take = (used, it) => { used.add(it.key); if (it.pkey) used.add(it.pkey); };
   function pickGoal(pool, used, goal, count, band) {
-    const [lo, hi] = BANDS[band];
-    let cand = pool.filter((it) => it.goal === goal && !used.has(it.key) && it.b >= lo && it.b <= hi);
-    if (cand.length < count) cand = pool.filter((it) => it.goal === goal && !used.has(it.key)); // small bank: widen
+    const [lo, hi] = BANDS[band], ok = free(used);
+    let cand = pool.filter((it) => it.goal === goal && ok(it) && it.b >= lo && it.b <= hi);
+    if (cand.length < count) cand = pool.filter((it) => it.goal === goal && ok(it)); // small bank: widen
     const out = [];
     for (let k = 0; k < count && cand.length; k++) {
       const target = lo + ((k + 0.5) / count) * (hi - lo);
       cand.sort((a, b) => Math.abs(a.b - target) - Math.abs(b.b - target));
       const near = cand.slice(0, Math.min(6, cand.length)), it = near[Math.floor(Math.random() * near.length)];
-      out.push(it); used.add(it.key); cand = cand.filter((x) => x !== it);
+      out.push(it); take(used, it); cand = cand.filter((x) => x !== it && !(x.pkey && x.pkey === it.pkey));
     }
     return out;
   }
@@ -65,9 +69,10 @@ const SatCore = (() => {
     let items = [];
     for (const [goal, count] of spec) { const g = pickGoal(pool, used, goal, count, band); items.push(...(grouped ? g.sort((a, b) => a.b - b.b) : g)); }
     if (!grouped) items.sort((a, b) => a.b - b.b);
-    const extra = pool.filter((it) => !used.has(it.key) && spec.some(([g]) => g === it.goal));
+    let extra = pool.filter((it) => free(used)(it) && spec.some(([g]) => g === it.goal));
     for (let k = 0; k < pretest && extra.length; k++) {
-      const it = extra.splice(Math.floor(Math.random() * extra.length), 1)[0]; used.add(it.key);
+      const it = extra.splice(Math.floor(Math.random() * extra.length), 1)[0]; take(used, it);
+      extra = extra.filter(free(used));
       const at = 1 + Math.floor(Math.random() * Math.max(1, items.length - 1));
       items.splice(at, 0, { ...it, pretest: true });
     }

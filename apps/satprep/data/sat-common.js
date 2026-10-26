@@ -18,10 +18,19 @@ const SAT = (() => {
   const fx = (s) => String(s).replace(/-(?=\d)/g, '−');
   // Four-option multiple choice: the answer and three different wrong choices (taken in order from `wrongs`,
   // topped up by `fill()` when two wrong choices turn out the same).
+  // Wrong choices a student would never pick are left out: float tails like 8.333333333333334, and negative
+  // numbers when the question asks for something that cannot be negative (a length, a count, a price, a mean …).
+  const NONNEG = /\b(length|radius|hypotenuse|leg|side|mean|median|range|degrees|measure|tickets?|speed|feet|inches|miles|meters|centimeters|grams|kilograms|cost|price|dollars|area|volume|how many|probability|percent|cups|liters|gallons|hours|minutes|seconds|mass|population|riders|students)\b|%|°/i;
+  const asNum = (w) => { const p = N.parse(String(w).replace(/−/g, '-')); return p ? p.n / p.d : NaN; };
+  function okWrong(q, A, w) {
+    if (/\d\.\d{5,}/.test(w)) return false;
+    if (NONNEG.test(String(q).replace(/⟪[^⟫]*⟫/g, ' ')) && asNum(A) >= 0 && asNum(w) < 0) return false;
+    return true;
+  }
   function mc4(q, a, wrongs, extra = {}, fill = null) {
     const A = fx(a), ws = [];
-    for (const w of wrongs.map(fx)) if (w !== A && !ws.includes(w) && ws.length < 3) ws.push(w);
-    let g = 0; while (ws.length < 3 && fill && g++ < 60) { const w = fx(fill()); if (w !== A && !ws.includes(w)) ws.push(w); }
+    for (const w of wrongs.map(fx)) if (w !== A && !ws.includes(w) && ws.length < 3 && okWrong(q, A, w)) ws.push(w);
+    let g = 0; while (ws.length < 3 && fill && g++ < 60) { const w = fx(fill()); if (w !== A && !ws.includes(w) && okWrong(q, A, w)) ws.push(w); }
     if (ws.length < 3) return null;
     const miss = extra.miss ? Object.fromEntries(Object.entries(extra.miss).map(([k, v]) => [fx(k), v])) : undefined;
     return { t: 'mc', q, a: A, opts: U.shuffle([A, ...ws]), ...extra, ...(miss ? { miss } : {}) };
@@ -35,7 +44,8 @@ const SAT = (() => {
       const v = N.parse(A), num = v ? v.n / v.d : NaN;
       const fill = () => {
         if (!v) return null;
-        if (v.d !== 1) return frac(v.n + nz(-3, 3), v.d + U.int(-1, 3) || 1);
+        // a decimal answer (7.5) gets decimal wrong choices, so the format does not give the answer away
+        if (v.d !== 1) return A.includes('.') ? String(num + 0.5 * nz(-4, 4)) : frac(v.n + nz(-3, 3), v.d + U.int(-1, 3) || 1);
         const r = U.int(1, 6);
         return String(r === 1 ? num + nz(-3, 3) : r === 2 ? -num : r === 3 ? num * 2 : r === 4 ? num + 10 * nz(-2, 2) : r === 5 ? Math.round(num / 2) : num + nz(-9, 9));
       };

@@ -39,7 +39,7 @@
   }
   // Table of contents and glossary.
   const BOOKS = [
-    { title: 'All About Sharks', ch: [['Sharks Are Fish', 4], ['Sharp Teeth', 8], ['What Sharks Eat', 12], ['Baby Sharks', 16]], q: [['what sharks eat', 'What Sharks Eat'], ['shark pups', 'Baby Sharks'], ['shark teeth', 'Sharp Teeth']] },
+    { title: 'All About Sharks', ch: [['Sharks Are Fish', 4], ['Sharp Teeth', 8], ['What Sharks Eat', 12], ['Baby Sharks', 16]], q: [['the food sharks hunt', 'What Sharks Eat'], ['shark pups', 'Baby Sharks'], ['shark teeth', 'Sharp Teeth']] },
     { title: 'Life on a Farm', ch: [['Morning Chores', 3], ['Cows and Milk', 7], ['Planting Corn', 11], ['Harvest Time', 15]], q: [['how farmers get milk', 'Cows and Milk'], ['picking crops in the fall', 'Harvest Time'], ['jobs farmers do early in the day', 'Morning Chores']] },
     { title: 'Our Solar System', ch: [['The Sun', 2], ['The Planets', 6], ['The Moon', 10], ['Stars Far Away', 14]], q: [['what makes the moon glow', 'The Moon'], ['Mars and Jupiter', 'The Planets'], ['the star at the center', 'The Sun']] },
     { title: 'Amazing Insects', ch: [['Six Legs', 5], ['Wings and Flight', 9], ['Insect Homes', 13], ['Helpful Bugs', 17]], q: [['how a beetle flies', 'Wings and Flight'], ['where ants live', 'Insect Homes'], ['bugs that help gardens', 'Helpful Bugs']] },

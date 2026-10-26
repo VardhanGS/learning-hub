@@ -188,6 +188,41 @@ their patterns, and our questions should match those patterns:
 Suggested order: 1–2 (review + coverage report to the user) → 5 (realism comparison) → 4 (decision) → 3 (videos) →
 6 → 7. Ask before publishing anything new.
 
+## PROGRESS on the next plan (session of 2026-10-26)
+
+- **Items 1–2 DONE** (reports/2026-10-26-content-review.md, reports/2026-10-26-coverage.md; NJ code lists parsed from
+  nj.gov into the scratchpad — re-parse with the method in the coverage report header if needed). All app codes exist on
+  the 2023 pages. Main gaps: MAP Algebra 1 functions area; SAT statistical claims/experiments, nonlinear systems,
+  absolute value, ~18% math in context; Algebra 1 Quest 21 HS standards; 2.DL.A, 4.DL.A, 2.M.A.2–3; reading point of
+  view / compare versions / text vs film.
+- **Fix set 1 DONE, NOT published** (user: "do fix set 1 now"): SAT one question per passage per test (sat-core pkey;
+  repeats 660/900 → 0/900), SAT choice guard (no float tails, no negatives where impossible) + validator rules,
+  SAT quantitative-evidence rewritten (claim in a short text; choices true-insufficient / true-irrelevant / false),
+  √(x+0), 1π/2, 1y, decimal-vs-fraction giveaway; Reading 4 cross-passage question (+ validator rule: a question may not
+  name another passage's title); Algebra 1 power tables, complex standard form, (x−0)², mean/median now varies,
+  line-of-fit context; display layer shows plain-text powers raised (speech.js html → <sup>; fig tables too); Math
+  Quest 2 ±10 hint/lesson when crossing a hundred, line-plot counts 1–4 per value, "leaf" not "leave", facts answers
+  spread; MAP Math 2 Equations L3 = Grade 3 unknown factors (3.OA.A.4), Shapes L1/L2 differ, 4.NBT.B.4 tag; MAP Math 4
+  no "0" filler, 2.0 not 2, friendly fair shares; MAP Algebra 1 "x" not "1x", concrete sci-notation contexts,
+  signed review always has a negative, two-way wording; reading: root items give ONE part's meaning, apples/Ava/TOC
+  items, multiple-meaning distractors, context-clue quotes removed (ELA items via map-bank), plausible replacements for
+  throwaway ELA Grade 8 distractors (map-bank LONGER table — ELA Quest untouched). playthrough.js ignores <sup> in its
+  line-wrap check. Tests: validate all 10 apps ✓; 3 planted bugs caught by the new rules; maptest 6 MAP apps ✓; sattest ✓;
+  browser play-through at 375px for all 9 apps ✓ (0 failures); full SAT test through the module screens ✓; voices
+  re-recorded for the 8 changed apps (check voicecheck before publishing).
+- **Item 5 studied** (reports/2026-10-26-realism.md): SAT Practice Test 11 read in full (PDFs say "Unauthorized copying
+  or reuse … is illegal" → patterns only); NWEA public warm-up pages + videos; NWEA blog. NWEA practice tests need the
+  shared login (practice.mapnwea.org) — Claude may not type passwords; the user must sign in in the browser pane.
+  Proposed fix set 3 (realism) is in the report; waiting for the user, then item 4 decision, then items 3, 6, 7.
+- New verified facts: MAP Growth pool 50,000+ items, >30% technology-enhanced (text entry, drag-and-drop, Click-and-Pop,
+  Gap Match, Common Stimulus) — NWEA blog 2025-03-04 (J. Fine). MAP 2+ student tools: TTS, zoom, highlighter, eraser,
+  line reader, notepad, answer eliminator, calculator, ruler, protractor (studentresources.nwea.org). "Slow-Down Sloth"
+  pause for rapid answers (NWEA student video). Footer of NWEA's student site: "HMH and MAP are registered trademarks,
+  and MAP Growth is a trademark, of HMH" — our disclaimers say "not affiliated with NWEA"; consider adding HMH.
+  College Board linear SAT practice tests 4–11 (PDF) at satsuite.collegeboard.org/practice/practice-tests/paper; R&W
+  linear modules have 33 items, Math 27 (nonadaptive version). Educator Question Bank: 1,845 SAT R&W items with
+  Easy/Medium/Hard tags.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude

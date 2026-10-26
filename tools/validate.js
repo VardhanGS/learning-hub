@@ -115,7 +115,7 @@ const TEXT = {
   // ---- Algebra 1 ----
   numClass: ([n]) => { const s = String(n).replace('−', '-'); if (s === 'π') return 'irrational'; const r = s.match(/^√(\d+)$/); if (r) return Number.isInteger(Math.sqrt(+r[1])) ? 'integer' : 'irrational'; if (/…$/.test(s)) return 'rational, not an integer'; const v = N.parse(s); return v && v.d === 1 ? 'integer' : 'rational, not an integer'; },
   iPow: ([n]) => ['1', 'i', '−1', '−i'][n % 4],
-  complexOp: ([a, b, op, c, d]) => { const re = op === '+' ? a + c : a - c, im = op === '+' ? b + d : b - d; return `${re < 0 ? '−' + -re : re} ${im < 0 ? '−' : '+'} ${Math.abs(im)}i`; },
+  complexOp: ([a, b, op, c, d]) => { const re = op === '+' ? a + c : a - c, im = op === '+' ? b + d : b - d, I = Math.abs(im) === 1 ? 'i' : `${Math.abs(im)}i`, R = re < 0 ? '−' + -re : String(re); return im === 0 ? R : re === 0 ? `${im < 0 ? '−' : ''}${I}` : `${R} ${im < 0 ? '−' : '+'} ${I}`; },
   ineqSol: ([a, b, op, c]) => { const x = (c - b) / a, FL = { '<': '>', '>': '<', '≤': '≥', '≥': '≤' }; return `x ${a < 0 ? FL[op] : op} ${neg(x)}`; },
   absIneq: ([c, r]) => `${neg(c - r)} < x < ${neg(c + r)}`,
   sysSol: ([a1, b1, c1, a2, b2, c2]) => { const D = a1 * b2 - a2 * b1; return `(${neg((c1 * b2 - c2 * b1) / D)}, ${neg((a1 * c2 - a2 * c1) / D)})`; },
@@ -166,9 +166,10 @@ const TEXT = {
   trigRatio: ([a, b, c, fn]) => { const v = fn === 'sin' ? N.make(a, c) : fn === 'cos' ? N.make(b, c) : N.make(a, b); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
   specialTri: ([kind, s]) => (kind === '30' ? `${s}√3` : `${s}√2`),
   circleHK: ([h, k, r]) => `center (${neg(h)}, ${neg(k)}), radius ${r}`,
-  arcLen: ([deg, r]) => { const v = N.make(deg * 2 * r, 360), t = v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; return (t === '1' ? 'π' : `${t}π`).replace(/^(\d+)\/(\d+)π$/, '$1π/$2'); },
+  arcLen: ([deg, r]) => { const v = N.make(deg * 2 * r, 360), t = v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; return (t === '1' ? 'π' : `${t}π`).replace(/^(\d+)\/(\d+)π$/, '$1π/$2').replace(/^1π\//, 'π/'); },
   circleR: ([D, E, F]) => String(Math.sqrt((D / 2) ** 2 + (E / 2) ** 2 - F)),
-  quantEv: ([groups, vals, what, topic]) => `The ${what} for ${groups[vals.indexOf(Math.max(...vals))]} was greater than for any other ${topic}.`,
+  // the only choice that is accurate AND fully supports the claim (recomputed from the data)
+  quantEv: ([kind, g, v, name, u]) => { const o = [0, 1, 2, 3].sort((a, b) => v[b] - v[a]), s = (i) => `${v[i]} ${u}`, C = (t) => t[0].toUpperCase() + t.slice(1); return C(kind === 'max' ? `${g[o[0]]} had ${s(o[0])}, more than ${g[o[1]]}, which had the next-highest value (${s(o[1])}).` : kind === 'diff' ? `${g[o[0]]} had ${s(o[0])}, and ${g[o[3]]} had ${s(o[3])}.` : (v.every((x, i) => !i || (x - v[i - 1]) * (v[3] - v[0]) > 0) ? `It was ${s(0)} in ${g[0]}, ${s(1)} in ${g[1]}, ${s(2)} in ${g[2]}, and ${s(3)} in ${g[3]}.` : '?')); },
   transition: ([rel, a]) => a,
   radSimp: ([n]) => { let s = 1; for (let k = 2; k * k <= n; k++) if (n % (k * k) === 0) s = k; return `${s}√${n / (s * s)}`; },
   // ---- Grade 4–5 ----
@@ -225,11 +226,14 @@ const fail = (where, q, msg) => {
 };
 
 let noFig = 0;
+const titles = new Map(), quoted = []; // passage titles seen, and prompts that quote a name
 const lenStats = { n: 0, longest: 0 };
 function checkItem(where, q, levelStd) {
   types[q.t] = (types[q.t] || 0) + 1;
   if (!q.fig && !(q.passage && q.passage.fig) && !['line', 'shade', 'clock', 'coins', 'hot', 'plot'].includes(q.t) && !(q.t === 'hot')) noFig++;
   // SAT passages have no title (like the real test); every other passage needs one
+  if (q.passage && q.passage.title) titles.set(q.passage.title, true);
+  { const m = String(q.q).match(/"([^"]{3,60})"/g); if (m && q.passage) m.forEach((t) => quoted.push({ where, q, t: t.slice(1, -1), own: q.passage.title, text: q.passage.text })); }
   if (q.passage && ((!q.passage.title && !(ctx.APP.features && ctx.APP.features.sat)) || !q.passage.text || q.passage.text.length < 20)) fail(where, q, 'passage without a title or text');
   // answer-length bias: is the right answer the single longest choice?
   // counted only when the right answer is VISIBLY longest: at least 20% and 8 characters longer than every wrong choice
@@ -255,6 +259,14 @@ function checkItem(where, q, levelStd) {
     // Elementary apps (voice g2/g4): negative numbers are not taught yet, so no option may be one (e.g. a filler '−5' for 22 − 17).
     if (["g2", "g4"].includes(ctx.APP.voice)) ps.forEach((o) => { if (/^\s*[-−]\s*\d/.test(o)) fail(where, q, `negative option ${o} in an elementary app`); });
     if (new Set(ps).size !== ps.length) fail(where, q, 'options look the same as plain text');
+    // (2026-10-26 review) no floating-point junk like 8.333333333333334 in any choice
+    ps.forEach((o) => { if (/\d\.\d{6,}/.test(o)) fail(where, q, `choice ${o} has a floating-point tail`); });
+    // SAT: no negative choice when the question asks for something that cannot be negative (a length, a count, …)
+    if (ctx.APP.features && ctx.APP.features.sat && q.t === 'mc') {
+      const NONNEG = /\b(length|radius|hypotenuse|leg|side|mean|median|range|degrees|measure|tickets?|speed|feet|inches|miles|meters|centimeters|grams|kilograms|cost|price|dollars|area|volume|how many|probability|percent|cups|liters|gallons|hours|minutes|seconds|mass|population|riders|students)\b|%|°/i;
+      const num = (o) => { const v = N.parse(o.replace(/−/g, '-')); return v ? v.n / v.d : NaN; };
+      if (NONNEG.test(plain(q.q)) && num(plain(q.a)) >= 0) ps.forEach((o) => { if (num(o) < 0) fail(where, q, `negative choice ${o} where the answer cannot be negative`); });
+    }
     const ans = q.t === 'mc' ? [q.a] : q.a;
     ans.forEach((a) => { if (!q.opts.includes(a)) fail(where, q, `answer ${a} is not among the options`); });
     if (q.t === 'multi' && (ans.length === 0 || ans.length === q.opts.length)) fail(where, q, 'multi-select needs at least one right and one wrong option');
@@ -326,7 +338,7 @@ function checkItem(where, q, levelStd) {
       q.cells.forEach((c, i) => { const [l, r] = c.split(' = '); const ok = ev(l) === ev(r); if (ok !== q.a.includes(i)) fail(where, q, `${c} is ${ok ? 'true' : 'false'} but marked the other way`); });
     } else if (kind === 'hotShape') {
       const [prop, names] = args;
-      const has = (s) => ({ quad: SIDES[s] === 4, 'square corners': ['square', 'rectangle'].includes(s), '3 sides': SIDES[s] === 3, '4 sides': SIDES[s] === 4, '5 vertices': SIDES[s] === 5, '6 sides': SIDES[s] === 6, 'no straight sides': s === 'circle' }[prop]);
+      const has = (s) => ({ quad: SIDES[s] === 4, 'square corners': ['square', 'rectangle'].includes(s), '3 sides': SIDES[s] === 3, '4 sides': SIDES[s] === 4, '5 vertices': SIDES[s] === 5, '4 vertices': SIDES[s] === 4, 'more than 4 sides': SIDES[s] > 4, '6 sides': SIDES[s] === 6, 'no straight sides': s === 'circle' }[prop]);
       names.forEach((s, i) => { if (has(s) !== q.a.includes(i)) fail(where, q, `${s} marked wrong for "${prop}"`); });
       if (q.cells.length !== names.length) fail(where, q, 'pictures and names differ');
     } else if (kind === 'popPlace' || kind === 'popOrder' || kind === 'popEq' || kind === 'popExpanded') {
@@ -546,6 +558,8 @@ for (const { s, k, L, l } of levels) {
   total += n;
 }
 
+// a question that names another passage's title cannot be answered from the passage on screen
+for (const x of quoted) if (titles.has(x.t) && x.t !== x.own && !String(x.text).includes(x.t)) fail(x.where, x.q, `question refers to another passage, "${x.t}"`);
 for (const [k, g] of groups) errors.push(`${k} (${g.n}×)\n      e.g. ${g.ex}`);
 console.log(`${appId}: ${total.toLocaleString()} items from ${levels.length} levels · ${Object.entries(types).map(([t, c]) => `${t} ${c}`).join(', ')}`);
 if (errors.length) {

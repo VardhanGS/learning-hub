@@ -75,7 +75,10 @@
   const MULTI = [['bat', ['The bat flew out of the cave at night.', 'a flying animal'], ['Leo hit the ball with a bat.', 'a stick for hitting a ball'], '🦇'], ['park', ['We had a picnic at the park.', 'a place with grass and trees'], ['Dad will park the car in the garage.', 'to stop a car and leave it'], '🌳'], ['watch', ['Grandma wears a gold watch.', 'a small clock you wear'], ['Let\'s watch the parade.', 'to look at'], '⌚'], ['bark', ['The bark on the tree felt rough.', 'the outside of a tree'], ['My dog will bark at the mail carrier.', 'the sound a dog makes'], '🐕'], ['ring', ['Mom wears a ring on her finger.', 'a circle worn as jewelry'], ['Did you hear the bell ring?', 'to make a bell sound'], '💍'], ['fly', ['A fly landed on my sandwich.', 'a small insect'], ['Birds fly south in the fall.', 'to move through the air'], '🪰'], ['rock', ['I found a smooth rock by the lake.', 'a stone'], ['Mom will rock the baby to sleep.', 'to move gently back and forth'], '🪨'], ['light', ['Turn on the light, please.', 'something that helps you see'], ['The box is so light I can lift it.', 'not heavy'], '💡']];
   function multiMeaning() {
     const [w, m1, m2, icon] = U.pick(MULTI), [s, means] = U.pick([m1, m2]), other = means === m1[1] ? m2[1] : m1[1];
-    const extra = U.sample(MULTI.filter((m) => m[0] !== w), 2).map((m) => [m[1][1], `That is a meaning of "${m[0]}."`]);
+    // wrong choices: the word's other meaning, plus one meaning of the same kind from another word (an action for an
+    // action, a thing for a thing), so no choice is silly at a glance
+    const verb = (m) => /^to /.test(m), pool = MULTI.filter((m) => m[0] !== w).flatMap((m) => [m[1], m[2]].map((x) => [x[1], m[0]])).filter(([m]) => verb(m) === verb(means) && m !== other);
+    const extra = U.sample(pool, 1).map(([m, ww]) => [m, `That is a meaning of "${ww}."`]);
     return solo(`What does "${w}" mean in this sentence?`, means, [[other, `"${w}" can mean ${other}, but not in this sentence.`], ...extra], `In this sentence, "${w}" means ${means}.`, { ...vb(176, 'L.VL.2.2'), sentence: s, fig: pic(icon), hint: 'Read the whole sentence. Which meaning makes sense?' });
   }
   const FIG = [
