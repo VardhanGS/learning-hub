@@ -92,9 +92,13 @@
     ['disruption', 'dis (apart) + rupt (break) + tion (act of)', 'an act of breaking something apart', ['an act of building something up', 'an act of speaking out loud', 'an act of carrying something far'], '🚧'],
     ['invisible', 'in (not) + vis (see) + ible (able to be)', 'not able to be seen', ['able to be seen clearly', 'seen again later', 'too bright to look at'], '👻'],
   ];
+  // Give the meaning of ONE word part only (like real items); the child works out the rest. The full breakdown is
+  // shown in the explanation afterward.
+  const oneClue = (w, parts, k) => { const p = parts.split(' + ')[k], m = p.match(/^(\S+) \((.+)\)$/); return m ? `In "${w}", the word part "${m[1]}" means "${m[2]}". What does "${w}" MOST LIKELY mean?` : `What does "${w}" MOST LIKELY mean?`; };
+  const CLUE4 = { telephone: 0, biography: 1, autobiography: 0, geology: 0, inaudible: 1, portable: 0, disruption: 1, invisible: 1 };
   function familyQ() {
     const [w, parts, a, ws, icon] = U.pick(FAMILIES);
-    return solo(`"${w}" = ${parts}. What does "${w}" mean?`, a, ws.map((x) => [x, 'Put the meanings of the word parts together.']), `${parts}, so "${w}" means ${a}.`, { base: 208, goal: G, std: 'L.VL.5.2', fig: pic(icon, w), hint: 'Add up the meanings of the parts.' });
+    return solo(oneClue(w, parts, CLUE4[w] || 0), a, ws.map((x) => [x, 'Put the meanings of the word parts together.']), `${parts}, so "${w}" means ${a}.`, { base: 208, goal: G, std: 'L.VL.5.2', fig: pic(icon, w), hint: 'Add up the meanings of the parts.' });
   }
 
   // ===================== FIGURATIVE LANGUAGE =====================
@@ -114,7 +118,7 @@
     ['Mom told Sam to hit the books before his test.', 'hit the books', 'to study hard', ['to stack books on a shelf', 'to throw books on the floor', 'to read a funny story'], '📚'],
     ['The early bird catches the worm, so Rosa got to the sale first.', 'the early bird catches the worm', 'people who start early often succeed', ['birds eat worms in the morning', 'sales always start very early', 'it is good to sleep late'], '🐦'],
     ['Learning to ride a bike was a piece of cake for Kai.', 'a piece of cake', 'very easy', ['very tasty', 'very messy', 'very slow'], '🚲'],
-    ['Look before you leap, Grandma said, when I wanted to buy the first bike I saw.', 'look before you leap', 'think carefully before you act', ['always jump over puddles', 'look at the sky before you run', 'buy things as fast as you can'], '🤔'],
+    ['"Look before you leap," Grandma said, when I wanted to buy the first bike I saw.', 'look before you leap', 'think carefully before you act', ['always jump over puddles', 'look at the sky before you run', 'buy things as fast as you can'], '🤔'],
     ['I have butterflies in my stomach before every piano recital.', 'butterflies in my stomach', 'a nervous feeling', ['a hungry feeling', 'a sleepy feeling', 'a sick feeling'], '🎹'],
     ['Two heads are better than one, so let\'s solve this puzzle together.', 'two heads are better than one', 'people working together can solve more', ['people with big heads are smart', 'puzzles need two players', 'one person should always lead'], '🧩'],
   ];

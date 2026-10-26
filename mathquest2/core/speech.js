@@ -30,7 +30,9 @@ const MathText = (() => {
         if (typeof katex !== 'undefined') { try { return katex.renderToString(tex, { throwOnError: true, output: 'html' }); } catch { /* fall through */ } }
         return `<span class="mplain">${esc(plain(tex))}</span>`;
       }
-      return esc(seg).replace(/\n/g, '<br>');
+      // plain-text powers outside ⟪…⟫ (x^{2}, 6^0, x^(2/3)) are shown raised, never as a caret. A spaced caret
+      // ("r ^ (n − 1)", how to type it) is left alone.
+      return esc(seg).replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]+)\)/g, '<sup>$1</sup>').replace(/\^([−-]?\d+|[a-zA-Z])/g, '<sup>$1</sup>').replace(/\n/g, '<br>');
     }).join('');
   }
 

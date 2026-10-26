@@ -179,6 +179,8 @@
   function plotShare() {
     const den = U.pick([2, 4]), [title, unit] = U.pick(PLOTS.filter((p) => p[1] === 'cups')), { base, vals, top } = makePlot(den);
     const total = fracOf(vals.reduce((t, v) => t + v, 0), den), n = vals.length, ans = simp([total[0], total[1] * n]);
+    if (ans[1] > 8 && (plotShare.tries = (plotShare.tries || 0) + 1) % 200) return plotShare(); // friendly shares (eighths or simpler), like real items
+    plotShare.tries = 0;
     return tag(U.num(`The water in all ${n} beakers is poured together and shared equally among the ${n} beakers. How much water will each beaker have?\nType a fraction or a mixed number.`, ftyped(ans, true), { keys: 'mixed', unit: 'cups', fig: Fig.linePlot(title, base, top, vals, den, unit), meta: { kind: 'fexpr', args: [total, '÷', [n, 1]] }, miss: missMap([[ftyped(simp(total), true), 'That is the total. Share it among the beakers: divide.']], ftyped(ans, true)), hint: 'Add all the amounts, then divide by the number of beakers.', why: `Total ${fx(simp(total), true)} cups ÷ ${n} = ${fx(ans, true)} cups each` }), '5.DL.B.5', 214, 'geometry');
   }
 

@@ -51,7 +51,9 @@ const MAPBANK = (() => {
   function wrap(id, k) {
     const R = REUSED[id];
     return { ...k, fresh: false, goal: R.goal, levels: k.levels.map((L, l) => {
-      const tagIt = (q0) => { const q = longer(q0); return { ...q, goal: R.goal, std: R.std[l], rit: BASE[l] + (TAG_OFFSET[q.tag] ?? 0), passage: q.passage ? { ...q.passage, fig: figFor(q) } : q.passage, fig: q.passage ? q.fig : (q.fig || figFor(q)) }; };
+      // context clues: ELA Quest puts the word in quotes inside the sentence (“famished”, so …); MAP shows a plain
+      // sentence and names the word in the question
+      const tagIt = (q0) => { const q = id === 'context' ? { ...longer(q0), q: q0.q.replace(/“([^”]+)”/g, '$1') } : longer(q0); return { ...q, goal: R.goal, std: R.std[l], rit: BASE[l] + (TAG_OFFSET[q.tag] ?? 0), passage: q.passage ? { ...q.passage, fig: figFor(q) } : q.passage, fig: q.passage ? q.fig : (q.fig || figFor(q)) }; };
       // ELA Quest rounds have 4–5 questions; two rounds make one practice round of 8–10.
       const gen = () => {
         const seen = new Set(), out = [];

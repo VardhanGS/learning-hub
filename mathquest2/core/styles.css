@@ -845,3 +845,6 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 .testmode .quiz-head { gap: 6px; }
 .testmode .quiz-head .icon-btn { width: 36px; min-width: 36px; }
 .testmode .quiz-title { flex: 1; min-width: 0; }
+
+/* raised powers in plain text (x<sup>2/3</sup>) must not make a line taller */
+sup { line-height: 0; font-size: 0.75em; vertical-align: super; }

@@ -113,11 +113,11 @@
   }
   function expSolve() { // logarithm preview (F.LE.A.4)
     const b = U.int(2, 5), x = U.int(2, b === 2 ? 7 : b === 3 ? 5 : 4), v = b ** x, asLog = U.pick([true, false]);
-    return tag(U.num(asLog ? `Evaluate ${T(`\\log_{${b}} ${v}`)}.` : `Solve ${T(`${b}^{x} = ${v}`)}.`, String(x), { pre: asLog ? '' : 'x =', fig: Fig.table([['Power', ...[1, 2, 3, 4].map((k) => `${b}^${k}`)], ['Value', ...[1, 2, 3, 4].map((k) => String(b ** k))]], `Powers of ${b}`), meta: { kind: 'expSolve', args: [b, v] }, miss: { [String(v / b)]: `That is ${v} ÷ ${b}. The question asks how many times you multiply by ${b}.` }, hint: asLog ? `log base ${b} of ${v} asks: ${b} to what power is ${v}?` : `${b} to what power gives ${v}?`, why: `${b}^${x} = ${v}` }), 'F.LE.A.4', 240, G);
+    return tag(U.num(asLog ? `Evaluate ${T(`\\log_{${b}} ${v}`)}.` : `Solve ${T(`${b}^{x} = ${v}`)}.`, String(x), { pre: asLog ? '' : 'x =', fig: Fig.table([['Power', ...[1, 2, 3, 4].map((k) => MathText.plain(`${b}^{${k}}`))], ['Value', ...[1, 2, 3, 4].map((k) => String(b ** k))]], `Powers of ${b}`), meta: { kind: 'expSolve', args: [b, v] }, miss: { [String(v / b)]: `That is ${v} ÷ ${b}. The question asks how many times you multiply by ${b}.` }, hint: asLog ? `log base ${b} of ${v} asks: ${b} to what power is ${v}?` : `${b} to what power gives ${v}?`, why: `${b}^${x} = ${v}` }), 'F.LE.A.4', 240, G);
   }
 
   // ===================== QUADRATIC FUNCTIONS =====================
-  const vtx = (a, h, k) => `${a === 1 ? '' : a === -1 ? '-' : a}(x ${h < 0 ? '+ ' + -h : '- ' + h})^{2} ${k < 0 ? '- ' + -k : '+ ' + k}`;
+  const vtx = (a, h, k) => `${a === 1 ? '' : a === -1 ? '-' : a}${h === 0 ? 'x' : `(x ${h < 0 ? '+ ' + -h : '- ' + h})`}^{2}${k === 0 ? '' : k < 0 ? ' - ' + -k : ' + ' + k}`; // h = 0: x², not (x − 0)²
   function vertex() {
     const a = U.pick([1, -1, 2, -2, 3]), h = nz(-6, 6), k = nz(-9, 9), P = (x, y) => `(${fx(x)}, ${fx(y)})`, ans = P(h, k);
     return tag(U.mc(`What is the vertex of ${T(`y = ${vtx(a, h, k)}`)}?`, ans, [P(-h, k), P(h, -k), P(-h, -k)], { fig: Fig.table([['Vertex form', 'Vertex'], ['y = a(x − h)² + k', '(h, k)']], 'Read the vertex from the equation'), meta: { kind: 'vertex', args: [h, k] }, miss: { [P(-h, k)]: `(x − h): the sign inside is the opposite of h. Here h = ${h}.` }, hint: 'In y = a(x − h)² + k, the vertex is (h, k). Careful with the sign of h.', why: `The vertex is ${ans}.` }), 'F.IF.C.8a', 226, G);
@@ -168,7 +168,7 @@
   }
   function geoFormula() {
     const a = U.pick([2, 3, 5, -1, 4]), r = U.pick([2, 3, 4, -2]), terms = [0, 1, 2, 3].map((i) => a * r ** i), ans = `${a}*${r < 0 ? `(${r})` : r}^(n - 1)`;
-    return tag({ t: 'expr', q: `Write an explicit formula for the geometric sequence.\n${terms.map(fx).join(', ')}, …`, a: ans, vars: 'n', pre: 'aₙ =', fig: Fig.table([['n', '1', '2', '3', '4'], ['aₙ', ...terms.map(fx)]], `Common ratio: ${fx(r)}`), meta: { kind: 'seqFormula', args: [terms] }, miss: { [`${a}*${r < 0 ? `(${r})` : r}^n`]: `Check n = 1: the first term must be ${a}.` }, hint: 'aₙ = a₁ · rⁿ⁻¹. Type the power with ^ and parentheses: r^(n − 1).', why: `aₙ = ${a} · ${r}^(n − 1)` }, 'F.LE.A.2', 238, G);
+    return tag({ t: 'expr', q: `Write an explicit formula for the geometric sequence.\n${terms.map(fx).join(', ')}, …`, a: ans, vars: 'n', pre: 'aₙ =', fig: Fig.table([['n', '1', '2', '3', '4'], ['aₙ', ...terms.map(fx)]], `Common ratio: ${fx(r)}`), meta: { kind: 'seqFormula', args: [terms] }, miss: { [`${a}*${r < 0 ? `(${r})` : r}^n`]: `Check n = 1: the first term must be ${a}.` }, hint: 'aₙ = a₁ · rⁿ⁻¹. Type the power with the ^ key and parentheses: r ^ (n − 1).', why: `aₙ = ${a} · ${r < 0 ? `(${String(r).replace('-', '−')})` : r}^(n − 1)` }, 'F.LE.A.2', 238, G);
   }
 
   // ===================== STATISTICS =====================
@@ -186,10 +186,14 @@
     return tag(U.num(`Find the interquartile range (IQR).\n${xs.join(', ')}`, String(v), { keys: kp(v), fig: Fig.table([['In order', ...s.map(String)]], 'Q1 = middle of the lower half, Q3 = middle of the upper half'), meta: { kind: 'iqr', args: [xs] }, miss: { [String(s[n - 1] - s[0])]: 'That is the range. IQR = Q3 − Q1.' }, hint: 'Order the data. Find the median of each half (leave out the middle number if there is one). IQR = Q3 − Q1.', why: `Q1 = ${med(lo)}, Q3 = ${med(hi)}, IQR = ${v}.` }), 'S.ID.A.2', 228, G);
   }
   function outlier() {
-    const xs = dataSet(6), big = Math.max(...xs) + U.int(40, 80), md = (a) => { const t = a.slice().sort((p, q) => p - q), n = t.length; return n % 2 ? t[(n - 1) / 2] : (t[n / 2 - 1] + t[n / 2]) / 2; };
-    // keep sets where the mean clearly moves more (a wide gap in the middle could move the median a lot too)
-    if (Math.abs(mean([...xs, big]) - mean(xs)) < 2 * Math.abs(md([...xs, big]) - md(xs))) return outlier();
-    return tag(U.mcFixed(`The data are ${xs.join(', ')}. A new value, ${big}, is added. Which changes more?`, 'the mean', ['the mean', 'the median', 'they change by the same amount'], { fig: Fig.table([['Data', ...xs.map(String), String(big)]], `${big} is an outlier`), meta: { kind: 'outlierMore', args: [xs, big] }, hint: 'The mean uses every value. The median only depends on the middle.', why: `One very large value pulls the mean up a lot, but the median moves only a little.` }), 'S.ID.A.3', 226, G);
+    const xs = dataSet(6), md = (a) => { const t = a.slice().sort((p, q) => p - q), n = t.length; return n % 2 ? t[(n - 1) / 2] : (t[n / 2 - 1] + t[n / 2]) / 2; };
+    // Two cases, so the answer is not always "the mean": a far-away value (the mean moves more) or a value equal to
+    // the mean (the mean does not move at all, but the median does).
+    const atMean = Math.random() < 0.4, m0 = mean(xs), v = atMean ? m0 : Math.max(...xs) + U.int(40, 80);
+    const dm = Math.abs(mean([...xs, v]) - m0), dd = Math.abs(md([...xs, v]) - md(xs));
+    if (atMean ? !Number.isInteger(m0) || dd < 1 : dm < 2 * dd) return outlier();
+    const ans = atMean ? 'the median' : 'the mean';
+    return tag(U.mcFixed(`The data are ${xs.join(', ')}. A new value, ${v}, is added. Which changes more?`, ans, ['the mean', 'the median', 'they change by the same amount'], { fig: Fig.table([['Data', ...xs.map(String), String(v)]], atMean ? `Mean before: ${m0}` : `${v} is an outlier`), meta: { kind: 'outlierMore', args: [xs, v] }, hint: 'Find how far each measure moves. The mean uses every value; the median only depends on the middle.', why: atMean ? `Adding a value equal to the mean (${m0}) leaves the mean at ${m0}, but the median moves from ${md(xs)} to ${md([...xs, v])}.` : 'One very large value pulls the mean up a lot, but the median moves only a little.' }), 'S.ID.A.3', 226, G);
   }
   function corrPts(kind) {
     for (;;) {
@@ -205,7 +209,7 @@
     return tag(U.mcFixed('What kind of correlation does the scatter plot show?', A[kind], Object.values(A), { fig: Fig.graph({ pts, range: [0, 10], step: 2 }), meta: { kind: 'corrSign', args: [pts] }, hint: 'Do the points go up to the right (positive), down to the right (negative), or neither?', why: `The points show ${A[kind]}.` }), 'S.ID.B.6', 222, G);
   }
   function bestFit() {
-    const m = U.pick([0.5, 1.5, 2, 2.5, 3]), b = U.int(2, 10), x = U.int(6, 12), v = m * x + b, [unit, xw, yw] = U.pick([['hours studied', 'x', 'test points above 50'], ['weeks', 'x', 'plant height in cm'], ['months', 'x', 'savings in $10s']]);
+    const m = U.pick([0.5, 1.5, 2, 2.5, 3]), b = U.int(2, 10), x = U.int(6, 12), v = m * x + b, [unit, xw, yw] = U.pick([['weeks of training', 'x', 'push-ups in a row'], ['weeks', 'x', 'plant height in cm'], ['months', 'x', 'savings in $10s']]);
     const pts = [1, 2, 3, 4, 5].map((t) => [t, Math.round(m * t + b + U.int(-1, 1))]);
     return tag(U.num(`A line of best fit for ${yw} (y) versus ${unit} (x) is ${T(`y = ${m}x + ${b}`)}. Predict y when x = ${x}.`, String(v), { keys: kp(v), fig: Fig.graph({ fns: [{ kind: 'lin', m, b }], pts, range: { x: [0, 8], y: [0, 32] }, step: 2 }), meta: { kind: 'evalAt', args: [`${m}*x + ${b}`, { x }] }, hint: `Substitute x = ${x} into the equation.`, why: `${m} × ${x} + ${b} = ${v}` }), 'S.ID.B.6', 226, G);
   }

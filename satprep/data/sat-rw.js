@@ -68,19 +68,41 @@
   const DATA = [
     { icon: '🌱', what: 'average plant height (cm) after six weeks', unit: 'cm', groups: ['no fertilizer', 'fertilizer A', 'fertilizer B', 'fertilizer C'], who: 'a student', topic: 'fertilizer' },
     { icon: '🚌', what: 'average weekday riders (thousands)', unit: 'thousand riders', groups: ['Route 1', 'Route 2', 'Route 3', 'Route 4'], who: 'a transit planner', topic: 'bus route' },
-    { icon: '🐦', what: 'birds counted per hour', unit: 'birds', groups: ['meadow', 'forest edge', 'wetland', 'farm field'], who: 'an ecologist', topic: 'habitat' },
+    { icon: '🐦', what: 'birds counted per hour', unit: 'birds per hour', groups: ['meadow', 'forest edge', 'wetland', 'farm field'], who: 'an ecologist', topic: 'habitat' },
     { icon: '📚', what: 'books borrowed per month (hundreds)', unit: 'hundred books', groups: ['2019', '2020', '2021', '2022'], who: 'a librarian', topic: 'year' },
   ];
+  // Real SAT pattern: a short text states a claim; every choice quotes the data, but only one fully supports the claim.
+  // The others are true but not enough (one comparison), true but beside the point, or false — so matching the
+  // claim's wording is not enough; the student has to read the table or graph.
   function evQuantItem(l) {
-    const D = U.pick(DATA), vals = D.groups.map(() => U.int(2, 18)), maxI = vals.indexOf(Math.max(...vals)), minI = vals.indexOf(Math.min(...vals));
-    if (vals.filter((v) => v === vals[maxI]).length > 1 || vals.filter((v) => v === vals[minI]).length > 1) return evQuantItem(l);
-    const fig = l === 0 ? Fig.table([[D.topic[0].toUpperCase() + D.topic.slice(1), ...D.groups], [D.what.split(' (')[0], ...vals.map(String)]], D.what) : Fig.barGraph(D.what, D.groups.map((g, i) => [g, vals[i]]), 2);
-    const other = U.pick([0, 1, 2, 3].filter((i) => i !== maxI)), cmp = vals[maxI] - vals[other];
-    const right = `The ${D.what.split(' (')[0]} for ${D.groups[maxI]} was greater than for any other ${D.topic}.`;
-    const ws = [`The ${D.what.split(' (')[0]} for ${D.groups[minI]} was greater than for any other ${D.topic}.`, `The ${D.what.split(' (')[0]} was about the same for every ${D.topic}.`, `The ${D.what.split(' (')[0]} for ${D.groups[other]} was greater than for ${D.groups[maxI]}.`];
-    const q = `${D.who[0].toUpperCase() + D.who.slice(1)} claims that ${D.groups[maxI]} had the highest ${D.what.split(' (')[0]} of the ${D.groups.length} groups shown. Which choice best describes data from the ${l === 0 ? 'table' : 'graph'} that support this claim?`;
-    const o = mc4(q, right, ws, { fig, meta: { kind: 'quantEv', args: [D.groups, vals, D.what.split(' (')[0], D.topic] }, why: `${D.groups[maxI]}: ${vals[maxI]}, the largest value (${cmp} more than ${D.groups[other]}).`, hint: 'Find the largest value in the data, then pick the choice that states it accurately.' });
-    return o && tag(o, 'RI.MF.11–12.6', bAt(l, 0.3), 'ii');
+    const D = U.pick(DATA), name = D.what.split(' (')[0], u = D.unit, g = D.groups, years = D.topic === 'year';
+    const kind = years ? U.pick(['trend', 'max']) : U.pick(['max', 'max', 'diff']);
+    let vals = U.sample([...Array(17).keys()].map((k) => k + 2), 4);
+    if (kind === 'trend') { vals.sort((a, b) => a - b); if (U.pick([true, false])) vals.reverse(); }
+    const say = (i) => `${vals[i]} ${u}`, ord = [0, 1, 2, 3].sort((a, b) => vals[b] - vals[a]), [X, Y, , Z] = ord;
+    const the = D.who.replace(/^an? /, 'the '), tbl = l === 0 ? 'table' : 'graph';
+    let claim, right, ws;
+    if (kind === 'max') {
+      claim = `${g[X]} had the highest ${name} of the four ${D.topic}s`;
+      right = `${g[X]} had ${say(X)}, more than ${g[Y]}, which had the next-highest value (${say(Y)}).`;
+      ws = [`${g[X]} had ${say(X)}, more than ${g[Z]}, which had the lowest value (${say(Z)}).`, `${g[Z]} had the lowest ${name} of the four ${D.topic}s, ${say(Z)}.`, `${g[Y]} had ${say(Y)}, more than ${g[X]}, which had the next-highest value (${say(X)}).`];
+    } else if (kind === 'diff') {
+      const [i, j] = [X, Z], d0 = vals[i] - vals[j] - U.int(0, 2);
+      claim = `${g[i]} had at least ${d0} ${u} more than ${g[j]}`;
+      right = `${g[i]} had ${say(i)}, and ${g[j]} had ${say(j)}.`;
+      ws = [`${g[i]} had ${say(i)}, and ${g[Y]} had ${say(Y)}.`, `${g[i]} had more ${name.replace(/^average /, '')} than ${g[j]} did.`, `${g[i]} had ${say(j)}, and ${g[j]} had ${say(i)}.`];
+    } else {
+      const up = vals[3] > vals[0];
+      claim = `the ${name} ${up ? 'increased' : 'decreased'} every year from ${g[0]} to ${g[3]}`;
+      right = `It was ${say(0)} in ${g[0]}, ${say(1)} in ${g[1]}, ${say(2)} in ${g[2]}, and ${say(3)} in ${g[3]}.`;
+      ws = [`It was ${say(0)} in ${g[0]} and ${say(3)} in ${g[3]}, a change of ${Math.abs(vals[3] - vals[0])} ${u} in all.`, `It was ${say(3)} in ${g[0]}, ${say(2)} in ${g[1]}, ${say(1)} in ${g[2]}, and ${say(0)} in ${g[3]}.`, `The highest value, ${say(X)}, was in ${g[X]}, and the lowest, ${say(Z)}, was in ${g[Z]}.`];
+    }
+    const up1 = (t) => t[0].toUpperCase() + t.slice(1); right = up1(right); ws = ws.map(up1); // choices start with a capital
+    const fig = l === 0 ? Fig.table([[D.topic[0].toUpperCase() + D.topic.slice(1), ...g], [name, ...vals.map(String)]], D.what) : Fig.barGraph(D.what, g.map((gg, k) => [gg, vals[k]]), 2);
+    const text = `${D.who[0].toUpperCase() + D.who.slice(1)} collected data on the ${name} for four different ${D.topic}s and recorded the results in the ${tbl}. Based on these results, ${the} claims that ${claim}.`;
+    const q = `Which choice best describes data from the ${tbl} that support ${the}'s claim?`;
+    const o = mc4(q, right, ws, { passage: passage(text, fig), fig: pic([D.icon]), meta: { kind: 'quantEv', args: [kind, g, vals, name, u] }, why: kind === 'trend' ? 'Only the full list of values shows a change in the same direction every year.' : kind === 'diff' ? `${vals[X]} − ${vals[Z]} = ${vals[X] - vals[Z]}, which is at least the claimed amount; you need both values to show it.` : `To show ${g[X]} is highest, compare it with the next-highest group, ${g[Y]} (${say(Y)}). Beating one lower group is not enough.`, hint: 'Check each choice against the data. The right choice must be accurate AND fully support the claim.' });
+    return o && tag(o, 'RI.MF.11–12.6', bAt(l, kind === 'max' ? 0.4 : 0.7), 'ii');
   }
 
   // ===================== STANDARD ENGLISH CONVENTIONS =====================

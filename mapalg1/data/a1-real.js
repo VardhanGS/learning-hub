@@ -44,10 +44,11 @@
   function complexAdd() {
     const a = nz(-9, 9), b = nz(-9, 9), c = nz(-9, 9), d = nz(-9, 9), op = U.pick(['+', '−']);
     const re = op === '+' ? a + c : a - c, im = op === '+' ? b + d : b - d;
-    const cx = (x, y) => `${x}${y < 0 ? ' − ' : ' + '}${Math.abs(y)}i`.replace(/^-/, '−');
+    // standard form a + bi: 0i and 1i are not written (−10, not −10 + 0i; 8 − i, not 8 − 1i)
+    const cx = (x, y) => { const I = Math.abs(y) === 1 ? 'i' : `${Math.abs(y)}i`, X = String(x).replace(/^-/, '−'); return y === 0 ? X : x === 0 ? `${y < 0 ? '−' : ''}${I}` : `${X} ${y < 0 ? '−' : '+'} ${I}`; };
     const ans = cx(re, im);
-    const w = [cx(op === '+' ? a - c : a + c, im), cx(re, op === '+' ? b - d : b + d), cx(re + im, 0).replace(/ \+ 0i/, ''), cx(im, re)].filter((x) => x !== ans);
-    return tag(U.mc(`${T(`(${cx(a, b).replace(/−/g, '-')}) ${op === '+' ? '+' : '-'} (${cx(c, d).replace(/−/g, '-')})`)} = ?`, ans, w, { fig: Fig.table([['', 'Real part', 'Imaginary part'], ['First', a, `${b}i`], ['Second', c, `${d}i`]], 'Combine like parts'), meta: { kind: 'complexOp', args: [a, b, op, c, d] }, hint: 'Add or subtract the real parts, then the imaginary parts.', why: `Real: ${re}; imaginary: ${im}i.` }), 'N.CN.A.2', 242, G);
+    const w = [cx(op === '+' ? a - c : a + c, im), cx(re, op === '+' ? b - d : b + d), cx(re + im, 0), cx(im, re)].filter((x) => x !== ans);
+    return tag(U.mc(`${T(`(${cx(a, b).replace(/−/g, '-')}) ${op === '+' ? '+' : '-'} (${cx(c, d).replace(/−/g, '-')})`)} = ?`, ans, w, { fig: Fig.table([['', 'Real part', 'Imaginary part'], ['First', a, cx(0, b)], ['Second', c, cx(0, d)]], 'Combine like parts'), meta: { kind: 'complexOp', args: [a, b, op, c, d] }, hint: 'Add or subtract the real parts, then the imaginary parts.', why: `Real: ${re}; imaginary: ${im}i.` }), 'N.CN.A.2', 242, G);
   }
 
   // ===================== EXPONENTS & RADICALS =====================
@@ -63,7 +64,7 @@
   }
   function zeroNeg() {
     const b = U.int(2, 6), e = U.pick([0, -1, -2, -3]), v = e === 0 ? '1' : frac(1, b ** -e);
-    return tag(U.num(`Evaluate ${T(`${b}^{${e}}`)}. Type a fraction if needed.`, v, { keys: e < 0 ? 'frac' : '', fig: Fig.table([['Power', ...[2, 1, 0, -1, -2].map((x) => `${b}^${x}`)], ['Value', b * b, b, 1, frac(1, b), frac(1, b * b)]], 'Each step down divides by ' + b), meta: { kind: 'evalAt', args: [`${b}^(${e})`, {}] }, miss: e < 0 ? { [String(-b * -e)]: 'A negative exponent is not a negative number. It means one over the power.', [String(b ** -e)]: 'A negative exponent means one over that power.' } : { '0': 'Any nonzero number to the zero power is 1.' }, hint: 'b⁰ = 1. b⁻ⁿ = 1 / bⁿ.', why: `${b}^${e} = ${v}` }), '8.EE.A.1', e === 0 ? 216 : 222, G);
+    return tag(U.num(`Evaluate ${T(`${b}^{${e}}`)}. Type a fraction if needed.`, v, { keys: e < 0 ? 'frac' : '', fig: Fig.table([['Power', ...[2, 1, 0, -1, -2].map((x) => MathText.plain(`${b}^{${x}}`))], ['Value', b * b, b, 1, frac(1, b), frac(1, b * b)]], 'Each step down divides by ' + b), meta: { kind: 'evalAt', args: [`${b}^(${e})`, {}] }, miss: e < 0 ? { [String(-b * -e)]: 'A negative exponent is not a negative number. It means one over the power.', [String(b ** -e)]: 'A negative exponent means one over that power.' } : { '0': 'Any nonzero number to the zero power is 1.' }, hint: 'b⁰ = 1. b⁻ⁿ = 1 / bⁿ.', why: `${b}^${e} = ${v}` }), '8.EE.A.1', e === 0 ? 216 : 222, G);
   }
   function ratExp() {
     const [base, num, den] = U.pick([[8, 2, 3], [27, 2, 3], [16, 3, 4], [4, 3, 2], [9, 3, 2], [32, 2, 5], [64, 1, 3], [25, 1, 2], [81, 3, 4], [125, 2, 3]]);

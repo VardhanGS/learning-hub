@@ -327,6 +327,9 @@ const Fig = (() => {
 
   // A table: rows of cells, the first row is the header. '?' cells are dashed.
   function table(rows, title = '') {
+    // powers typed as x^2 or x^{2} are shown as x² (b^(m/n), notation being explained, stays as written)
+    rows = rows.map((r) => r.map((c) => (c != null && /\^[\d{]/.test(String(c)) ? MathText.plain(String(c)) : c)));
+    const supT = (t) => String(t).replace(/\^\(([^()]+)\)/g, '<tspan baseline-shift="super" font-size="70%">$1</tspan>'); // x^(1/2) → raised 1/2
     // Columns keep the old fixed width when their text fits; a column with longer text grows (up to 250), and a cell
     // that is still too long wraps onto two lines (its row gets taller), so no text is ever cut off.
     const cols = Math.max(...rows.map((r) => r.length)), cw0 = Math.max(72, Math.min(110, 420 / cols));
@@ -338,8 +341,8 @@ const Fig = (() => {
     let body = title ? `<text x="${W / 2}" y="18" class="fg-text" font-size="15" text-anchor="middle">${title}</text>` : '';
     rows.forEach((row, r) => row.forEach((c, i) => {
       const x = x0(i), y = y0(r), L = lines[r][i], fs = fsz(r);
-      const txt = L.length === 1 ? `<text x="${x + cw[i] / 2}" y="${y + rh[r] / 2 + 6}" class="fg-text" font-size="${fs}" text-anchor="middle">${L[0]}</text>`
-        : `<text x="${x + cw[i] / 2}" y="${y + rh[r] / 2 - 4}" class="fg-text" font-size="${fs}" text-anchor="middle">${L[0]}<tspan x="${x + cw[i] / 2}" dy="${fs + 3}">${L[1]}</tspan></text>`;
+      const txt = L.length === 1 ? `<text x="${x + cw[i] / 2}" y="${y + rh[r] / 2 + 6}" class="fg-text" font-size="${fs}" text-anchor="middle">${supT(L[0])}</text>`
+        : `<text x="${x + cw[i] / 2}" y="${y + rh[r] / 2 - 4}" class="fg-text" font-size="${fs}" text-anchor="middle">${supT(L[0])}<tspan x="${x + cw[i] / 2}" dy="${fs + 3}">${supT(L[1])}</tspan></text>`;
       body += `<rect x="${x}" y="${y}" width="${cw[i]}" height="${rh[r]}" class="${r === 0 ? 'pc-head' : c === '?' ? 'bm-unknown' : 'pc-cell'}"/>${txt}`;
     }));
     return svg(W, y0(rows.length) + 4, body, `Table${title ? ` ${title}` : ''}: ${rows.map((r) => r.join(' ')).join('; ')}`);

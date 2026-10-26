@@ -11,13 +11,13 @@
       q.miss = missMap([[a + b - 1, 'Off by one. Count on carefully: say the next number for each one you add.'], [a + b + 1, 'Off by one. Start counting on from the number after the first one.'], [Math.abs(a - b), 'That is the difference. Add to find the total.']], a + b);
       return tag(q, '2.OA.B.2', 165, 'algebra');
     }
-    const c = U.int(11, 18), b = U.intWhere(3, 9, (x) => c - x <= 9 && c - x > 0);
+    const x0 = U.int(2, 9), b = U.intWhere(3, 9, (v) => x0 + v >= 11 && x0 + v <= 18), c = x0 + b; // pick the answer first, so every answer is about equally likely
     const q = U.num(`${c} − ${b} = ?`, c - b, { fig: Fig.tenFrames(c, 0, b), meta: { kind: 'sub', args: [c, b] }, hint: `Think addition: ${b} + ? = ${c}.`, why: `${b} + ${c - b} = ${c}, so ${c} − ${b} = ${c - b}.` });
     q.miss = missMap([[c - b + 1, 'Off by one. Check by adding back.'], [c - b - 1, 'Off by one. Check by adding back.'], [c + b, 'That is the sum. The question asks you to take away.']], c - b);
     return tag(q, '2.OA.B.2', 168, 'algebra');
   }
   function missingAddend() {
-    const c = U.int(11, 19), a = U.intWhere(2, 9, (x) => c - x <= 10 && c - x > 1);
+    const x0 = U.int(2, 10), a = U.intWhere(2, 9, (v) => x0 + v >= 11 && x0 + v <= 19), c = x0 + a; // answer first: even spread
     const form = U.int(0, 2);
     const prompts = [`□ + ${a} = ${c}`, `${a} + □ = ${c}`, `${c} − □ = ${a}`];
     const q = U.num(`What number goes in the box?\n${prompts[form]}`, c - a, { fig: Fig.bond(c, form === 1 ? a : '?', form === 1 ? '?' : a), meta: { kind: 'sub', args: [c, a] }, hint: form === 2 ? `Think: ${a} + ? = ${c}.` : `Think: ${c} − ${a} = ?`, why: `${c - a} makes it true: ${form === 2 ? `${c} − ${c - a} = ${a}` : `${c - a} + ${a} = ${c}`}.` });
@@ -83,8 +83,10 @@
     const n = U.int(101, 899), d = U.pick([10, 100]), up = U.pick([true, false]);
     if (!up && n - d < 100) return tenOrHundred();
     const ans = up ? n + d : n - d;
+    // crossing a hundred (395 + 10 = 405, 305 − 10 = 295): the hundreds digit changes too
+    const cross = Math.floor(n / 100) !== Math.floor(ans / 100) && d === 10;
     const wrongPlace = up ? n + (d === 10 ? 100 : 10) : n - (d === 10 ? 100 : 10);
-    const q = U.num(`${n} ${up ? '+' : '−'} ${d} = ?`, ans, { fig: Fig.placeChart([n], '', d === 10 ? 1 : 0), meta: { kind: up ? 'add' : 'sub', args: [n, d] }, hint: `Only the ${d === 10 ? 'tens' : 'hundreds'} digit changes.`, why: `${n} ${up ? '+' : '−'} ${d} = ${ans}. The ${d === 10 ? 'tens' : 'hundreds'} digit goes ${up ? 'up' : 'down'} by 1.` });
+    const q = U.num(`${n} ${up ? '+' : '−'} ${d} = ?`, ans, { fig: Fig.placeChart([n], '', d === 10 ? 1 : 0), meta: { kind: up ? 'add' : 'sub', args: [n, d] }, hint: cross ? (up ? `${n} has 9 tens. One more ten makes 10 tens, and 10 tens make 1 more hundred.` : `${n} has 0 tens. Break 1 hundred into 10 tens, then take away 1 ten.`) : `Only the ${d === 10 ? 'tens' : 'hundreds'} digit changes.`, why: cross ? `${n} ${up ? '+' : '−'} ${d} = ${ans}. The tens go ${up ? 'from 9 to 0' : 'from 0 to 9'}, so the hundreds digit changes too.` : `${n} ${up ? '+' : '−'} ${d} = ${ans}. The ${d === 10 ? 'tens' : 'hundreds'} digit goes ${up ? 'up' : 'down'} by 1.` });
     q.miss = missMap([[wrongPlace, `That changed the ${d === 10 ? 'hundreds' : 'tens'} place. ${d} changes the ${d === 10 ? 'tens' : 'hundreds'}.`], [up ? n + 1 : n - 1, 'That changed the ones place.']], ans);
     return tag(q, '2.NBT.B.8', 178, 'number');
   }
