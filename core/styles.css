@@ -826,3 +826,22 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 /* algebra keypad: letters in math italics, so the variable x never looks like the times key × */
 .kp-key .kv { font-family: KaTeX_Math, 'Times New Roman', serif; font-style: italic; font-weight: 600; font-size: 1.3em; }
 .kp-key sup.kv { font-size: 0.8em; }
+
+/* ---------- timed modules (SAT-style practice) ---------- */
+.mtimer { font: 600 1rem var(--f-display); font-variant-numeric: tabular-nums; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 12px; min-width: 74px; cursor: pointer; }
+.mtimer.low { border-color: var(--bad); color: var(--bad); }
+.mnav { justify-content: space-between; flex-wrap: wrap; gap: 8px; width: 100%; }
+.mnav .btn.marked { background: color-mix(in srgb, #f2b01e 22%, var(--surface)); border-color: #c98a00; }
+.mtoast { background: color-mix(in srgb, var(--bad) 12%, var(--surface)); border: 1px solid var(--bad); border-radius: 10px; padding: 6px 10px; font-weight: 600; }
+.qmenu { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; margin: 10px 0; }
+.qmenu .qm { position: relative; min-height: 44px; border-radius: 10px; border: 2px dashed var(--line); background: var(--surface); font: 600 1rem var(--f-display); color: var(--ink); }
+.qmenu .qm.ans { border-style: solid; border-color: var(--c, #2b5fd0); background: color-mix(in srgb, var(--c, #2b5fd0) 14%, var(--surface)); }
+.qmenu .qm.cur { outline: 3px solid var(--ink); outline-offset: 1px; }
+.qmenu .qm i { position: absolute; top: -6px; right: -4px; font-style: normal; font-size: 0.8rem; }
+.refsheet { display: grid; gap: 8px; } .refsheet .fig svg { max-width: 100%; height: auto; }
+.passage.sat-passage h2:empty { display: none; }
+.mnav .btn.primary { margin-left: auto; }
+/* timed modules: a tighter header so the module name fits beside the timer and tools on a phone */
+.testmode .quiz-head { gap: 6px; }
+.testmode .quiz-head .icon-btn { width: 36px; min-width: 36px; }
+.testmode .quiz-title { flex: 1; min-width: 0; }

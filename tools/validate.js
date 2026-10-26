@@ -147,10 +147,29 @@ const TEXT = {
   cmpFn: ([m1, b1, xs, ys, feat]) => { const m2 = (ys[1] - ys[0]) / (xs[1] - xs[0]), b2 = ys[xs.indexOf(0)], f = feat === 'rate of change' ? m1 : b1, g = feat === 'rate of change' ? m2 : b2; return f > g ? `f has the greater ${feat}` : f < g ? `g has the greater ${feat}` : 'they are equal'; },
   crossover: ([k, c]) => { for (let x = 1; x < 50; x++) if (2 ** x > k * x + c) return String(x); return '?'; },
   // [[row 1: col 1, col 2], [row 2: col 1, col 2]] counts; joint = row 1 & col 1 of everyone; cond = col 1 within row 2
-  twoWay: ([[a, b, c, d], ask]) => { const v = ask === 'joint' ? N.make(a, a + b + c + d) : N.make(c, c + d); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
+  twoWay: ([[a, b, c, d], ask]) => { const v = ask === 'joint' ? N.make(a, a + b + c + d) : ask === 'condCol' ? N.make(a, a + c) : N.make(c, c + d); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
   boxRead: ([F, ask]) => String(ask === 'median' ? F[2] : ask === 'IQR' ? F[3] - F[1] : F[4] - F[0]),
   corrR: ([pts]) => { const n = pts.length, mx = pts.reduce((t, p) => t + p[0], 0) / n, my = pts.reduce((t, p) => t + p[1], 0) / n; let sxy = 0, sx = 0, sy = 0; pts.forEach(([x, y]) => { sxy += (x - mx) * (y - my); sx += (x - mx) ** 2; sy += (y - my) ** 2; }); const r = sx && sy ? sxy / Math.sqrt(sx * sy) : 0; const opts = [0.95, 0.6, 0, -0.6, -0.95]; const best = opts.reduce((a, b) => (Math.abs(b - r) < Math.abs(a - r) ? b : a)); return neg(best); },
   avgRate: ([e, a, b]) => { const t = Alg.parse(e), v = N.make(Alg.evalAt(t, { x: b }) - Alg.evalAt(t, { x: a }), b - a); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
+  // ---- SAT Prep ----
+  lineFrom2: ([x1, y1, x2, y2, x3]) => String(y1 + ((y2 - y1) / (x2 - x1)) * (x3 - x1)),
+  sysSum: ([a1, b1, c1, a2, b2, c2]) => { const D = a1 * b2 - a2 * b1; return String((c1 * b2 - c2 * b1) / D + (a1 * c2 - a2 * c1) / D); },
+  ratExpForm: ([m, n]) => { const SUP = ['⁰', '', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹'], RT = { 2: '√', 3: '∛', 4: '∜' }; return m === 1 ? `${RT[n]}x` : `${RT[n]}(x${SUP[m]})`; },
+  sumRoots: ([a, b]) => { const v = N.make(-b, a); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
+  oneSolC: ([a, b]) => String((b * b) / (4 * a)),
+  radEq: ([a, b]) => String(b * b - a),
+  expModel: ([a, p, up]) => `f(t) = ${a}(${+(up ? 1 + p / 100 : 1 - p / 100).toFixed(2)})ᵗ`,
+  compose: ([f, g, x]) => String(Alg.evalAt(Alg.parse(f), { x: Alg.evalAt(Alg.parse(g), { x }) })),
+  pctChain: ([up, down]) => { const v = Math.round(((100 + up) * (100 - down) / 100 - 100) * 10) / 10; return v > 0 ? `${v}% greater than` : v < 0 ? `${-v}% less than` : 'equal to'; },
+  cylVol: ([r, h]) => `${r * r * h}π`,
+  sphereVol: ([r]) => `${(4 * r ** 3) / 3}π`,
+  trigRatio: ([a, b, c, fn]) => { const v = fn === 'sin' ? N.make(a, c) : fn === 'cos' ? N.make(b, c) : N.make(a, b); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
+  specialTri: ([kind, s]) => (kind === '30' ? `${s}√3` : `${s}√2`),
+  circleHK: ([h, k, r]) => `center (${neg(h)}, ${neg(k)}), radius ${r}`,
+  arcLen: ([deg, r]) => { const v = N.make(deg * 2 * r, 360), t = v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; return (t === '1' ? 'π' : `${t}π`).replace(/^(\d+)\/(\d+)π$/, '$1π/$2'); },
+  circleR: ([D, E, F]) => String(Math.sqrt((D / 2) ** 2 + (E / 2) ** 2 - F)),
+  quantEv: ([groups, vals, what, topic]) => `The ${what} for ${groups[vals.indexOf(Math.max(...vals))]} was greater than for any other ${topic}.`,
+  transition: ([rel, a]) => a,
   radSimp: ([n]) => { let s = 1; for (let k = 2; k * k <= n; k++) if (n % (k * k) === 0) s = k; return `${s}√${n / (s * s)}`; },
   // ---- Grade 4–5 ----
   expanded: ([n]) => String(n).split('').map((d, i, s) => +d * 10 ** (s.length - 1 - i)).filter((v) => v > 0).map(commas).join(' + '),
@@ -210,7 +229,8 @@ const lenStats = { n: 0, longest: 0 };
 function checkItem(where, q, levelStd) {
   types[q.t] = (types[q.t] || 0) + 1;
   if (!q.fig && !(q.passage && q.passage.fig) && !['line', 'shade', 'clock', 'coins', 'hot', 'plot'].includes(q.t) && !(q.t === 'hot')) noFig++;
-  if (q.passage && (!q.passage.title || !q.passage.text || q.passage.text.length < 20)) fail(where, q, 'passage without a title or text');
+  // SAT passages have no title (like the real test); every other passage needs one
+  if (q.passage && ((!q.passage.title && !(ctx.APP.features && ctx.APP.features.sat)) || !q.passage.text || q.passage.text.length < 20)) fail(where, q, 'passage without a title or text');
   // answer-length bias: is the right answer the single longest choice?
   // counted only when the right answer is VISIBLY longest: at least 20% and 8 characters longer than every wrong choice
   if (q.t === 'mc' && q.opts.length >= 3 && !q.meta) { lenStats.n++; const al = plain(q.a).length, nxt = Math.max(...q.opts.filter((o) => o !== q.a).map((o) => plain(o).length)); if (al >= nxt * 1.2 && al - nxt >= 8) lenStats.longest++; }
@@ -220,6 +240,14 @@ function checkItem(where, q, levelStd) {
   const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins', 'hot', 'pop', 'expr', 'plot'].includes(q.t) || (q.t === 'mc' && q.meta);
   if (math && !q.meta) fail(where, q, 'math item without meta (answer cannot be recomputed)');
 
+  if (ctx.APP.features && ctx.APP.features.sat) {
+    if (q.t === 'mc' && q.opts.length !== 4) fail(where, q, `SAT multiple choice needs exactly 4 options (has ${q.opts.length})`);
+    if (q.t === 'num' && String(q.a).length > 6) fail(where, q, `typed answer ${q.a} is longer than 6 characters`);
+    if (!(q.b >= 200 && q.b <= 800)) fail(where, q, `difficulty ${q.b} is not on the 200–800 scale`);
+    if (!q.goal) fail(where, q, 'no content domain');
+    if (q.passage) { const wc = q.passage.text.replace(/Text [12]\n/g, '').split(/\s+/).filter(Boolean).length; if (wc < 25 || wc > 150) fail(where, q, `passage has ${wc} words (25–150)`); }
+    if (!['mc', 'num'].includes(q.t)) fail(where, q, `format ${q.t} is not used on the SAT`);
+  }
   if (q.t === 'mc' || q.t === 'multi') {
     if (!Array.isArray(q.opts) || q.opts.length < 2) fail(where, q, 'fewer than 2 options');
     const ps = q.opts.map(plain);
@@ -418,6 +446,37 @@ function checkItem(where, q, levelStd) {
     } else if (kind === 'multiCons') {
       const [cap, pa, pb, budget] = args;
       q.opts.forEach((o) => { const [L, S] = o.match(/\d+/g).map(Number), ok = L + S <= cap && pa * L + pb * S <= budget; if (ok !== q.a.includes(o)) fail(where, q, `${o} ${ok ? 'meets' : 'breaks'} the limits but is marked the other way`); });
+    } else if (kind === 'noSolParam') {
+      // put the answer in for k: the equation must have no solution
+      const L = args[0].replace(/k/g, `(${q.a})`), f = (x) => Alg.evalAt(Alg.parse(L), { x }) - Alg.evalAt(Alg.parse(args[1]), { x });
+      if (Math.abs(f(1) - f(0)) > 1e-9 || Math.abs(f(0)) < 1e-9) fail(where, q, `k = ${q.a} does not make the equation have no solution`);
+    } else if (kind === 'sysNoSolA') {
+      const [b1, c1, a2, b2, c2] = args, a = +plain(q.a).replace('−', '-');
+      if (Math.abs(a * b2 - a2 * b1) > 1e-9) fail(where, q, `a = ${q.a} does not make the lines parallel`);
+      if (Math.abs(c1 * b2 - c2 * b1) < 1e-9) fail(where, q, 'the lines are the same line (infinitely many solutions)');
+    } else if (kind === 'ineqSys') {
+      const [m1, b1, m2, b2] = args, ok = (o) => { const [x, y] = plain(o).replace(/[()]/g, '').split(',').map((t) => +t.replace('−', '-')); return y > m1 * x + b1 && y < m2 * x + b2; };
+      q.opts.forEach((o) => { if (ok(o) !== (o === q.a)) fail(where, q, `${o} ${ok(o) ? 'is' : 'is not'} a solution but marked the other way`); });
+    } else if (kind === 'moe') {
+      const [est, moe] = args, inside = (o) => { const v = +plain(o).replace('%', ''); return v >= est - moe && v <= est + moe; };
+      q.opts.forEach((o) => { if (inside(o) !== (o === q.a)) fail(where, q, `${o} is ${inside(o) ? 'inside' : 'outside'} the margin but marked the other way`); });
+    } else if (kind === 'boundary') {
+      // the passage with the answer filled in: two full sentences must not be joined by a bare comma, etc.
+      const [k, a] = args;
+      const RIGHT = { semi: ';', period: '.', conj: ', and', intro: ',', appos: ',', colon: ':', however: ';' };
+      if (RIGHT[k] !== a || q.a !== a) fail(where, q, `${k}: expected "${RIGHT[k]}", answer "${q.a}"`);
+      if (q.opts.filter((o) => o === RIGHT[k]).length !== 1) fail(where, q, 'the right punctuation is not exactly one option');
+    } else if (kind === 'agree') {
+      const [subj, right, sing] = args, head = subj.replace(/ (of|on|in|across|at|from|with) .*/, '').split(' ').pop();
+      const singular = /^(Each|Neither|collection|flock|sound|list)$/.test(head) || (!/s$/.test(head));
+      if (singular !== sing) fail(where, q, `subject "${head}" looks ${singular ? 'singular' : 'plural'} but is tagged the other way`);
+      const sVerb = ['was', 'has', 'is'].includes(right) || (/s$/.test(right) && !['was'].includes(right));
+      if (sVerb !== sing) fail(where, q, `verb "${right}" does not agree with a ${sing ? 'singular' : 'plural'} subject`);
+    } else if (kind === 'transition') {
+      const [rel, a, others] = args, GROUP = { contrast: ['However', 'Nevertheless', 'In contrast', 'Still'], result: ['Therefore', 'As a result', 'Consequently', 'Thus'], addition: ['Moreover', 'In addition', 'Furthermore', 'Additionally'], example: ['For example', 'For instance'], sequence: ['Later', 'Then', 'Afterward'], similar: ['Similarly', 'Likewise'] };
+      if (!GROUP[rel].includes(q.a)) fail(where, q, `${q.a} is not a ${rel} transition`);
+      q.opts.filter((o) => o !== q.a).forEach((o) => { if (GROUP[rel].includes(o)) fail(where, q, `wrong choice ${o} is also a ${rel} transition`); });
+      void others;
     } else if (kind === 'literalSolve') {
       // put the answer back in for the target letter: both sides must then agree for every value of the other letters
       const [qq] = args, target = qq.match(/for (\w)\.$/)[1], [L, Rt] = qq.replace(/^Solve /, '').replace(/ for \w\.$/, '').split('=');
@@ -451,10 +510,11 @@ function checkItem(where, q, levelStd) {
     } else if (kind === 'sidesIs') {
       q.opts.forEach((o) => { if ((SIDES[o] === args[0]) !== q.a.includes(o)) fail(where, q, `${o} has ${SIDES[o]} sides but is marked the other way`); });
     } else if (TEXT[kind]) {
+      const m = (x) => String(x).replace(/−/g, '-'); // a typed minus and a printed minus are the same answer
       const want = TEXT[kind](args);
       const got = q.t === 'clock' ? hm(q.h, q.m) : String(q.a);
-      if (q.t === 'mc' && !q.opts.includes(want)) fail(where, q, `recomputed answer ${want} is not among the options`);
-      if (want !== got) fail(where, q, `answer ${got} but ${kind}(${args}) = ${want}`);
+      if (q.t === 'mc' && !q.opts.some((o) => m(o) === m(want))) fail(where, q, `recomputed answer ${want} is not among the options`);
+      if (m(want) !== m(got)) fail(where, q, `answer ${got} but ${kind}(${args}) = ${want}`);
       if (q.t === 'clock' && (q.h < 1 || q.h > 12 || q.m < 0 || q.m > 59 || q.m % (q.step || 5))) fail(where, q, 'clock time cannot be set with this clock');
     } else if (COMPUTE[kind]) {
       const want = COMPUTE[kind](args);

@@ -205,7 +205,32 @@ before publishing anything new.
      band, as expected ~7% of the time); report/home light+dark.
    - Not verified: NWEA's item formats and calculator policy for the Algebra 1 course test; whether the course
      test has read-aloud; RIT tags are hand-set; the bank has few items above ~245, so very high scores lean low.
-6. Phase 8: SAT Prep (verify College Board facts first).
+6. Phase 8: SAT Prep — DONE 2026-10-25 (apps/satprep).
+   - VERIFIED (College Board 2026–27 SAT Weekend Student Guide, satsuite.collegeboard.org/media/pdf/sat-student-guide.pdf;
+     Assessment Framework for the Digital SAT Suite): R&W 54 q / 64 min, Math 44 q / 70 min; each section = two equal,
+     separately timed modules (R&W 25 operational + 2 pretest, 32 min; Math 20 + 2 pretest, 35 min); module 2 easier or
+     harder by module-1 performance, no return to module 1; within a module: mark for review, question menu, go to any
+     question, hideable timer (not in the last 5 min), option eliminator, line reader; built-in Desmos graphing/scientific
+     calculator for all of Math (own calculator allowed); a reference list of common formulas in Math; section scores
+     200–800 (steps of 10), total 400–1600; R&W all four-option MC, one question per passage, 25–150 words; Math ≈75% MC
+     (four options), ≈25% student-produced response (up to 6 characters, first may be a minus sign); ≈30% of Math in
+     context; R&W domains per test: Craft and Structure 13–15, Information and Ideas 12–14, Standard English Conventions
+     11–15, Expression of Ideas 8–12; Math: Algebra 13–15, Advanced Math 13–15, PSDA 5–7, Geometry & Trig 5–7; R&W questions
+     grouped by skill, easier to harder; Math easier to harder. Break length NOT verified (the app says "a short break").
+   - App: 10 R&W skills (24 original passages ×5 question types, 12 paired texts, words-in-context, punctuation,
+     agreement/tense, transitions, notes → goal, quantitative evidence from generated tables/graphs) + 14 Math skills
+     = 72 levels, 72 lessons. Practice test (core/modes/sat.js + sat-core.js): full or one section, two timed modules each
+     (new core "module" runner in app.js: Back/Next, mark, menu, submit, timer with 5-min warning, calculator + reference
+     sheet in our own words for Math), 2 unscored pretest items per module, routing by module-1 estimate, section estimate
+     (EAP on 200–800, b hand-set) shown as a range ±(SEM+20), review of every question (last 3 tests keep reviews), timed
+     10-question drills per domain, history, dashboard. Simple four-function calculator, not Desmos (stated in the app).
+   - NJ codes: ELA 2023 grades 11–12 (RL/RI.CR/CI/TS/MF..., L.SS/L.KL/L.VL.11–12.x, W.WR.11–12.5) and HS math incl.
+     S.IC.B.4, S.CP.A.4/B.6, G.SRT.B.5/C.6–8, G.C.B.5, G.GPE.A.1, G.GMD.A.3, G.CO.C.9–10 (read from nj.gov pages).
+   - Tests: validate 10k/50k/100k ✓ (SAT rules: exactly 4 options, typed ≤6 chars, passages 25–150 words, b on 200–800,
+     MC/typed only); answer-length bias 0% overall and ≤15% per skill (many distractors rewritten); mutation 29/29 SAT
+     kinds; sattest 300–750 (bias ≤8.3, range coverage 90–99%, routing correct, domain counts exact); typed share in Math
+     modules ≈22–27%; browser: play-through 1,144 q / 72 levels, full test through the real module screens (Back, mark,
+     menu, submit, timer expiry), drill, review, reference sheet, light/dark at 375px.
 
 ## How the code is organized (key facts)
 
