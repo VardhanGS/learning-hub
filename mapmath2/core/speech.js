@@ -15,6 +15,7 @@ const MathText = (() => {
       .replace(/\\sqrt\{([^{}]+)\}/g, '√($1)').replace(/√\((\w)\)/g, '√$1')
       .replace(/\^\{([^{}]+)\}/g, (_, e) => [...e].map((c) => SUP[c] || c).join(''))
       .replace(/\^(\w)/g, (_, c) => SUP[c] || '^' + c)
+      .replace(/\^\{?\\circ\}?/g, '°').replace(/\\(sin|cos|tan)\b/g, '$1')
       .replace(/\\le\b/g, '≤').replace(/\\ge\b/g, '≥').replace(/\\ne\b/g, '≠')
       .replace(/\\times\b/g, '×').replace(/\\div\b/g, '÷').replace(/\\cdot\b/g, '·').replace(/\\pi\b/g, 'π')
       .replace(/\\left|\\right/g, '').replace(/\\,/g, ' ').replace(/[{}]/g, '');
@@ -59,6 +60,7 @@ const MathText = (() => {
     t = t.replace(/⟪([^⟫]+)⟫/g, (_, tex) => ' ' + tex
       .replace(/(\d)\s*\\frac/g, '$1 \\frac')
       .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, (_m, a, b) => (/^-?\d+$/.test(a) && /^\d+$/.test(b) ? `${a}/${b}` : `${a} over ${b}`))
+      .replace(/\^\{?\\circ\}?/g, ' degrees').replace(/\\(sin|cos|tan)\b/g, ' $1 ')
       .replace(/\\sqrt\[3\]\{([^{}]+)\}/g, 'the cube root of $1')
       .replace(/\\sqrt\{([^{}]+)\}/g, 'the square root of $1')
       // algebra: logs, subscripts, absolute value, and a minus sign that starts a quantity ("= -25", "-(x + 2)")

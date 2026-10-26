@@ -407,6 +407,47 @@
   }
   const testAudio = () => !!settings.testAudio;
 
+  // ---- timed modules (SAT-style practice): every question of the module is open at once — Back/Next, mark for
+  // review, a question menu — and answers can change until the module ends (Submit, or the timer runs out).
+  // No feedback and no sounds. m = {title, qs, secs, calc, reference (HTML), onDone(result) -> screen name}
+  let modTimer = null;
+  function startModule(m) {
+    const qs = m.qs.map(prep);
+    Q = { mode: 'test', module: m, test: { title: m.title, total: qs.length }, qs, sts: qs.map(() => freshSt()), marks: new Set(), i: 0, points: 0, xp: 0, log: [], started: Date.now(), ends: Date.now() + m.secs * 1000, hideTimer: false };
+    Q.st = Q.sts[0]; calcOpen = false;
+    clearInterval(modTimer); modTimer = setInterval(tickModule, 1000);
+    go('quiz');
+  }
+  const leftSecs = () => Math.max(0, Math.round((Q.ends - Date.now()) / 1000));
+  const fmtClock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  // the clock can be hidden, except in the last 5 minutes (as in the real app)
+  const clockText = () => (Q.hideTimer && leftSecs() > 300 ? 'Show time' : fmtClock(leftSecs()));
+  function tickModule() {
+    if (!Q || !Q.module) { clearInterval(modTimer); return; }
+    const s = leftSecs(), el = document.getElementById('mtimer');
+    if (el) { el.textContent = clockText(); el.classList.toggle('low', s <= 300); }
+    if (s <= 300 && !Q.warned) { Q.warned = true; const t = document.getElementById('mtoast'); if (t) { t.hidden = false; t.textContent = '5 minutes left in this module.'; } }
+    if (s <= 0) finishModule(true);
+  }
+  function goQ(i) { Q.i = Math.max(0, Math.min(Q.qs.length - 1, i)); Q.st = Q.sts[Q.i]; modal = null; render(); window.scrollTo(0, 0); }
+  function moduleMenu() {
+    const n = Q.qs.length, done = Q.qs.filter((q, i) => actionReady(q, Q.sts[i])).length;
+    modal = `<h2>${esc(Q.module.title)}</h2><p class="muted">${done} of ${n} answered · ${Q.marks.size} marked for review · ${fmtClock(leftSecs())} left</p>
+      <div class="qmenu">${Q.qs.map((q, i) => `<button class="qm ${actionReady(q, Q.sts[i]) ? 'ans' : ''} ${Q.marks.has(i) ? 'mark' : ''} ${i === Q.i ? 'cur' : ''}" data-act="mGo" data-i="${i}" aria-label="Question ${i + 1}${actionReady(q, Q.sts[i]) ? ', answered' : ', not answered'}${Q.marks.has(i) ? ', marked' : ''}">${i + 1}${Q.marks.has(i) ? '<i>🚩</i>' : ''}</button>`).join('')}</div>
+      <p class="fine">Blue: answered. 🚩: marked for review. You can change any answer until you submit this module.</p>
+      <div class="row end"><button class="btn ghost" data-act="closeModal">Keep working</button><button class="btn primary" data-act="mSubmit">Submit module${done < n ? ` (${n - done} blank)` : ''}</button></div>`;
+    render();
+  }
+  function finishModule(timeUp = false) {
+    if (!Q || !Q.module) return;
+    clearInterval(modTimer);
+    const m = Q.module, answered = Q.qs.map((q, i) => actionReady(q, Q.sts[i]));
+    const res = { qs: Q.qs, sts: Q.sts, answered, oks: Q.qs.map((q, i) => answered[i] && isCorrect(q, Q.sts[i])), secs: Math.round((Date.now() - Q.started) / 1000), timeUp };
+    modal = null;
+    const next = m.onDone(res);
+    if (typeof next === 'string') go(next);
+  }
+
   // ---- a simple on-screen calculator, shown on questions marked calc: true (as on MAP, only some questions) ----
   let calcOpen = false, calcExpr = '';
   function calcHTML() {
@@ -502,6 +543,7 @@
   const lineLabel = (q, i) => (i < 0 ? '' : q.dec != null ? (lineVal(q, i).n / lineVal(q, i).d).toFixed(q.dec) : N.str(lineVal(q, i), !!q.mixed));
 
   function check() {
+    if (Q.mode === 'test' && Q.module) { if (Q.i < Q.qs.length - 1) goQ(Q.i + 1); else moduleMenu(); return; }
     if (Q.mode === 'test') { submitTest(); return; }
     const q = cur(), st = Q.st;
     if (st.done) return;
@@ -615,7 +657,7 @@
     const title = test ? Q.test.title : Q.mode === 'mix' ? 'Daily Mix' : Q.mode === 'review' ? 'Practice Mistakes' : `${skillOf(Q.s, Q.k).name} · ${LEVEL_NAMES[Q.l].long}`;
     const color = Q.mode === 'skill' ? subj(Q.s).color : 'mix';
     const total = test ? Q.test.total : Q.qs.length;
-    const pct = ((Q.i + (st.done ? 1 : 0)) / total) * 100;
+    const pct = Q.module ? (Q.qs.filter((qq, i) => actionReady(qq, Q.sts[i])).length / total) * 100 : ((Q.i + (st.done ? 1 : 0)) / total) * 100;
     const passage = q.passage ? `
       <aside class="passage card">
         <div class="passage-head"><span class="kind">${esc(q.passage.kind)}</span>${!test || testAudio() ? '<button class="btn small" data-act="readPassage">🔊 Read to me</button>' : ''}</div>
@@ -627,8 +669,9 @@
       <div class="quiz s-${color} ${test ? 'testmode' : ''}">
         <header class="quiz-head">
           <button class="icon-btn" data-act="askQuit" aria-label="Leave quest">✕</button>
-          <div class="quiz-title"><b>${esc(title)}</b><span>Question ${Q.i + 1} of ${total}</span></div>
-          ${Q.mode === 'skill' ? '<button class="icon-btn" data-act="showLesson" aria-label="Show the lesson">💡</button>' : ''}${test ? (q.calc ? `<button class="icon-btn" data-act="calcToggle" aria-label="Calculator">🧮</button>` : '') : `<span class="pill">⭐ ${Q.xp} XP</span>`}
+          <div class="quiz-title"><b>${esc(Q.module && Q.module.short ? Q.module.short : title)}</b><span>${Q.module ? `${Q.i + 1} of ${total}` : `Question ${Q.i + 1} of ${total}`}</span></div>
+          ${Q.module ? `<button class="mtimer ${leftSecs() <= 300 ? 'low' : ''}" id="mtimer" data-act="mTimer" aria-label="Time left in this module">${clockText()}</button>${Q.module.reference ? '<button class="icon-btn" data-act="mRef" aria-label="Reference sheet">📐</button>' : ''}${Q.module.calc ? '<button class="icon-btn" data-act="calcToggle" aria-label="Calculator">🧮</button>' : ''}<button class="icon-btn" data-act="mMenu" aria-label="Question menu">☰</button>` : ''}
+          ${Q.mode === 'skill' ? '<button class="icon-btn" data-act="showLesson" aria-label="Show the lesson">💡</button>' : ''}${test ? (q.calc && !Q.module ? `<button class="icon-btn" data-act="calcToggle" aria-label="Calculator">🧮</button>` : '') : `<span class="pill">⭐ ${Q.xp} XP</span>`}
         </header>
         <div class="progress"><i style="width:${pct}%"></i></div>
         <div class="quiz-body ${q.passage ? 'with-passage' : ''}">
@@ -639,7 +682,8 @@
               <p class="prompt">${fmt(q.q)}</p>
               ${!test || testAudio() ? '<button class="icon-btn speak" data-act="readQ" aria-label="Read the question aloud">🔊</button>' : ''}
             </div>
-            ${test && q.calc && calcOpen ? calcHTML() : ''}
+            ${test && (q.calc || (Q.module && Q.module.calc)) && calcOpen ? calcHTML() : ''}
+            ${Q.module ? '<p id="mtoast" class="mtoast" hidden></p>' : ''}
             ${q.fig ? `<div class="fig">${q.fig}</div>` : ''}
             ${q.say && q.t !== 'spell' ? `<div class="say-row"><button class="btn say" data-act="sayWord">🔊 Hear the word</button><button class="btn small ghost" data-act="sayWordSlow">🐢 Slow</button></div>` : ''}
             ${renderBody(q, st)}
@@ -661,6 +705,10 @@
   }
 
   function actionBtn(q, st) {
+    if (Q.mode === 'test' && Q.module) {
+      const last = Q.i === Q.qs.length - 1, marked = Q.marks.has(Q.i);
+      return `<div class="row mnav"><button class="btn" data-act="mPrev" ${Q.i === 0 ? 'disabled' : ''}>← Back</button><button class="btn ${marked ? 'marked' : 'ghost'}" data-act="mMark" aria-pressed="${marked}">🚩 ${marked ? 'Marked' : 'Mark for review'}</button><button class="btn primary big" data-act="check">${last ? 'Review & submit' : 'Next →'}</button></div>`;
+    }
     if (Q.mode === 'test') {
       const ready = q.t === 'clock' ? true : actionReady(q, st);
       return `<button class="btn primary big" data-act="check" ${ready ? '' : 'disabled'}>${Q.log.length + 1 >= Q.test.total ? 'Finish' : 'Next →'}</button>`;
@@ -1843,6 +1891,13 @@
 
     choose: (ds) => { if (Q.st.done) return; SFX.play('tap'); Q.st.chosen = ds.v; if (Q.mode === 'test') render(); else check(); },
     calcToggle: () => { calcOpen = !calcOpen; render(); },
+    mPrev: () => goQ(Q.i - 1),
+    mGo: (ds) => goQ(+ds.i),
+    mMark: () => { if (Q.marks.has(Q.i)) Q.marks.delete(Q.i); else Q.marks.add(Q.i); render(); },
+    mMenu: () => moduleMenu(),
+    mSubmit: () => finishModule(false),
+    mTimer: () => { Q.hideTimer = !Q.hideTimer; render(); },
+    mRef: () => { modal = `${Q.module.reference}<div class="row end"><button class="btn primary" data-act="closeModal">Close</button></div>`; render(); },
     calcKey: (ds) => calcPress(ds.k),
     check: () => check(),
     next: () => { SFX.play('whoosh'); nextQ(); },
@@ -2172,7 +2227,7 @@
   // and returns {home(), dashboard(rows), studentView(), screens:{}, after:{}, acts:{}}.
   const API = {
     APP, FEAT, P: () => P, setP: (fn) => fn(P), save, go, render, view: () => view, setModal: (html) => { modal = html; render(); },
-    startRound, startTest, store, PFX, esc, fmt, nl, SUBJ, subj, skillOf, LEVEL_NAMES, TR, dayKey, touchDay, checkBadges, confetti, confirmModal, me,
+    startRound, startTest, startModule, finishModule, isCorrect, answerText, actionReady, store, PFX, esc, fmt, nl, SUBJ, subj, skillOf, LEVEL_NAMES, TR, dayKey, touchDay, checkBadges, confetti, confirmModal, me,
     Q: () => Q, sync: () => { if (me() && me().cloud) queuePush(); }, withData, settings: () => settings, saveSettings, fmtSecs: (n) => fmtSecs(n),
   };
   (window.HubModes || []).forEach((make) => {
@@ -2192,7 +2247,7 @@
   });
 
   // ---------- boot ----------
-  if (location.hash === '#debug') window.__hub = { Q: () => Q, P: () => P, S: SUBJECTS, demoSteps, isCorrect, freshSt, prep, renderBody, answerFor, ACT, go, view: () => view, startRound, plotOk };
+  if (location.hash === '#debug') window.__hub = { Q: () => Q, P: () => P, S: SUBJECTS, demoSteps, isCorrect, freshSt, prep, renderBody, answerFor, ACT, go, view: () => view, startRound, plotOk, startModule, finishModule, goQ, actionReady, answerText, Q_: () => Q };
   if (activeId && profiles.some((p) => p.id === activeId)) loadProfile(activeId);
   else if (profiles.length) loadProfile(profiles[0].id);
   render();

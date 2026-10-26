@@ -1,0 +1,29 @@
+{
+  "name": "SAT Prep",
+  "short_name": "SAT Prep",
+  "description": "Digital SAT practice (unofficial) \u00b7 Reading and Writing \u00b7 Math",
+  "id": "./?app=satprep",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdf6f3",
+  "theme_color": "#b5462f",
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
