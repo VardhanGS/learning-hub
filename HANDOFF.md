@@ -127,8 +127,9 @@ leave it empty; delete only the specific temporary student ids you create.
 
 ## Status at the end of the old session (2026-10-25)
 
-Phase 7 DONE and PUBLISHED: MAP Algebra 1. Next: Phase 8 (SAT Prep — verify College Board facts first; ask before
-publishing). Earlier: Phase 6 DONE and PUBLISHED: Algebra 1 Quest at vardhangs.github.io/learning-hub/algebra1/ (live check passed: sw cache names of all 8 apps match dist; hub shows it live; videos served). Next: Phase 7 (MAP Algebra 1) — ask
+ALL 8 PHASES DONE and PUBLISHED (Phase 8 SAT Prep on 2026-10-25). Open items: Firebase web-app registration for the
+newer apps (user does it in the console), and family feedback on voices, videos, and real-device use (keypad, plotting,
+SAT modules). Earlier: Phase 6 DONE and PUBLISHED: Algebra 1 Quest at vardhangs.github.io/learning-hub/algebra1/ (live check passed: sw cache names of all 8 apps match dist; hub shows it live; videos served). Next: Phase 7 (MAP Algebra 1) — ask
 before publishing anything new.
 
 ## PENDING — next steps, in order
@@ -205,7 +206,8 @@ before publishing anything new.
      band, as expected ~7% of the time); report/home light+dark.
    - Not verified: NWEA's item formats and calculator policy for the Algebra 1 course test; whether the course
      test has read-aloud; RIT tags are hand-set; the bank has few items above ~245, so very high scores lean low.
-6. Phase 8: SAT Prep — DONE 2026-10-25 (apps/satprep).
+6. Phase 8: SAT Prep — DONE and PUBLISHED 2026-10-25 (vardhangs.github.io/learning-hub/satprep/; live check: all 10
+   apps' sw cache names match dist, hub shows it live, videos served; g8 voice 3,549 clips, voicecheck full; 7 videos).
    - VERIFIED (College Board 2026–27 SAT Weekend Student Guide, satsuite.collegeboard.org/media/pdf/sat-student-guide.pdf;
      Assessment Framework for the Digital SAT Suite): R&W 54 q / 64 min, Math 44 q / 70 min; each section = two equal,
      separately timed modules (R&W 25 operational + 2 pretest, 32 min; Math 20 + 2 pretest, 35 min); module 2 easier or
