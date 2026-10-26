@@ -23,7 +23,7 @@ an 8th grader in New Jersey), built on one shared engine. Read `learning-hub/HAN
   Fall/Winter/Spring, untimed Goal Area Practice with 3 levels. SAT: two timed adaptive modules per section, original
   passages, simple calculator, reference sheet in our own words, estimated score range, review, drills. Labels:
   "MAP Growth–style practice (unofficial)…" and "SAT® is a trademark of the College Board, which is not affiliated
-  with this app." No NWEA/College Board items or logos; all content original.
+  with this app." No NWEA/College Board items or logos; all content original (see "Content rule: patterns yes, copies no").
 - Per app: content validator (10,000+ items, answer among options, no duplicate options, math recomputed), automated
   play-through of every level, real-browser checks at phone + desktop in light + dark, record voice + videos, then
   publish. Report honestly what was and wasn't tested.
@@ -140,6 +140,20 @@ Settings have an "All family apps → Open the Learning Hub" card. The user lift
 that back-link (ELAQuest commit 5460e80, cache elaquest-v9, pushed as VardhanGS). Otherwise ELA Quest is still
 read-only — ask before any other change.
 
+## Content rule: patterns yes, copies no (user, 2026-10-26)
+
+Official samples (NWEA, College Board, Math Kangaroo, MATHCOUNTS, AMC, Beast Academy / AoPS, ...) may be STUDIED for
+their patterns, and our questions should match those patterns:
+- OK to copy: the format and question stem style, the skill tested and how, structure (passage length, number of
+  steps, where a picture/graph is used), kinds of wrong answers (common mistakes), difficulty, and test design
+  (timing, counts, domains, ordering).
+- NOT OK: reusing any passage, poem, figure, table, or graph; close paraphrase (same scenario and numbers with words
+  swapped); keeping a distinctive puzzle/story setup with surface changes; using their names, logos, or characters
+  in a way that looks official.
+- Test: if someone who saw the original would recognize ours as that question, it is too close.
+- Method: study samples → write down the pattern (skill, format, structure, typical wrong answers, difficulty) →
+  write new questions from that description, not from the original. Check each source's terms of use.
+
 ## NEXT PLAN (from the user, 2026-10-26) — with Claude's notes
 
 1. **Review all the content now.** Go app by app (10 apps + ELA Quest read-only). Read samples from every level
@@ -161,7 +175,7 @@ read-only — ask before any other change.
    difficulty tags are hand-set. NOT yet compared against official samples. Next: look at the official free practice
    material — College Board's Bluebook practice tests and Student Question Bank; NWEA's public practice/warm-up
    tests if available (check the current URL and login on nwea.org) — and compare style, wording length, picture use,
-   and difficulty, then adjust generators. Do not copy any item.
+   and difficulty, then adjust generators. Match the pattern; never copy or closely paraphrase an item (see the content rule).
 6. **Competitive math for all levels** (Math Kangaroo / olympiad style, pictures wherever they help). Verify facts
    first (Math Kangaroo levels by grade, number of questions, time, 3/4/5-point scoring; MATHCOUNTS / AMC 8 formats for
    the 8th grader). New app(s) or a section per kid; original problems only; "unofficial" label and trademark notes
