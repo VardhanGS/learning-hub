@@ -187,6 +187,8 @@ their patterns, and our questions should match those patterns:
 
 Suggested order: 1–2 (review + coverage report to the user) → 5 (realism comparison) → 4 (decision) → 3 (videos) →
 6 → 7. Ask before publishing anything new.
+**Status 2026-10-27:** 1, 2, 5 done and published; 3, 6, 7 built in the cloud (scripts / apps, NOT rendered, voiced
+or published — see "Cloud session of 2026-10-27" below); 4 waits for the user's decision.
 
 ## PROGRESS on the next plan (session of 2026-10-26)
 
@@ -340,6 +342,87 @@ way and `tools/validate.js` recomputes it a different way (brute force / enumera
 wrong options from real mistakes (e.g. counting only the 1 × 1 squares, forgetting the remainder, off-by-one).
 Each level is tagged with the closest 2023 NJSLS code (contest problems often go past grade standards; the tag says
 which standard the reasoning practices).
+
+### What was built (cloud session 2026-10-27) — NOTHING here is published
+
+**Plan item 3 (more videos), scripts only — 46 new video scripts, not rendered.** Every skill in every app now has a
+`video:` key in its lessons (they show once `make_videos.py` writes the catalog):
+- Math Quest 2 +3 (`shapes2`, `graphs2`, `lineplots2`; MAP Math 2 borrows them) · MAP Math 2 +2 (`equations2`,
+  `patterns2`) and its own skills now also point at fitting borrowed videos (`place-value`, `regroup`, `fractions`, …)
+- MAP Math 4 +12 (`place-value4`, `rounding4`, `addsub4`, `fraction-ops4`, `times-as-many4`, `multi-step4`,
+  `factors4`, `patterns4`, `lines4`, `measurement4`, `area4`, `lineplots4`)
+- Algebra 1 Quest +6 (`real-numbers`, `exponent-rules`, `units`, `expressions`, `sequences`, `statistics`; MAP
+  Algebra 1 borrows them) · MAP Algebra 1 +7 (`signed-numbers`, `ratios-percents`, `sci-notation`, `quad-forms`,
+  `constraints`, `rate-of-change`, `key-features`; `eqprep`/`equivx`/`data2` point at borrowed videos)
+- SAT Prep +12 (`rw-structure`, `rw-cross-text`, `rw-evidence`, `rw-inference`, `rw-synthesis`,
+  `math-inequalities`, `math-exponential`, `math-ratios`, `math-data`, `math-probability`, `math-angles`,
+  `math-circles`; all passages original)
+- MAP Reading 2 +3 (`characters2`, `purpose2`, `wordplay2`) · Reading 4 +3 (`evidence4`, `visuals4`, `roots4`) ·
+  Reading 8 +1 (`paragraphs8`)
+- New `tools/check_videos.js [app…]`: checks scripts without rendering (every fig expression runs in fig.js alone,
+  as fig_png.py runs it; quiz answers among options; practice skill exists; lesson video keys resolve; notes vs
+  beats). It found a **real bug in published videos**: in `image` scenes the last note(s) never appeared when a scene
+  had as many notes as beats (93 scenes in 8 apps; e.g. the SAT "Never leave a blank" scene showed none of its 3
+  notes). `tools/make_videos.py` now shows such notes one by one after the last beat starts. **Re-rendering the old
+  videos is optional** — they play fine, they just miss those notes. It also caught that `Fig.table` cells with `^`
+  call MathText, which the video renderer does not load (would have crashed a render); new scripts avoid it.
+- All pictures of the new scripts were rendered with Chromium in the cloud and looked at (contact sheets); 6 fixes
+  made (quiz pictures that gave the answer away, a "40$" label, a squeezed table).
+
+**Plan items 6 + 7: three new apps "Puzzle Peak 2 / 4 / 8"** (`apps/contest2`, `contest4`, `contest8`; see the design
+note above). Each: contest-style skills (5-choice, 3 levels = 3/4/5-point style) + Summit Trail (typed answers,
+hints that open one step at a time, worked solution) + practice contests; 24 levels, 24 lessons with pictures,
+3 video scripts each (`pp-contest*` how the contest works + 2 strategy videos).
+- `apps/contest2/data/pzkit.js` (borrowed by 4 and 8): 23 original puzzle families (squares, rectangles, cubes,
+  beads, calendars, balances, number pyramids, digits, digit sums, page digits, heads-and-legs, ages, handshakes,
+  coin ways, grid paths, work backward, painted cube, last digits, factor counts, dice probability, averages,
+  consecutive numbers, polygon angles), difficulty 0–8; per-family "Watch first" lessons; `PZAPP`/`CONTEST` glue.
+- Core (shared engine) changes: `q.steps` step-by-step hints in practice (never in test mode; class `.hint-steps`),
+  `core/modes/contest.js` (practice contests on the SAT module runner: timer, mark, menu; scoring, review with
+  solutions, history, dashboard), `features.contest` in build.py, `practiceTitle` for the home heading, new figures
+  `Fig.balance / pyramid / beads / cubeStack / gridPath / calendar / dice / regular`. enumerate_speech.js and
+  voicecheck.js now include hint steps.
+- Validator: `pz` kind — every family re-solved by brute force (not the generator's method); contest apps need 5
+  choices, a worked solution, and ≥ 2 hint steps on typed puzzles; no hint step may state the answer.
+  New `tools/contesttest.js <app> [n]`: builds n contests per format through the real mode code.
+- Fruit in balance puzzles are named in words (emoji only in pictures) so the narrator can read every line.
+- Standards: only codes already used (and verified) elsewhere in this repo; nj.gov could not be opened from the cloud.
+  "Closest code" levels to re-check on nj.gov: Puzzle Peak 8 counting levels (7.EE.B.4), probability levels
+  (7.RP.A.2 · S.CP.A.4 — the 2023 grade 7 probability code was not verifiable), Puzzle Peak 2 pattern levels (2.OA.C.4,
+  2.NBT.A.2).
+
+### Tested in the cloud (2026-10-27)
+- `validate.js` passes for all 12 apps' content that changed (9 existing + contest2/4/8, 10,140 items each new app,
+  U.intWhere fallback check included); planted-bug test 8/8 caught in the puzzle kit (wrong answer per family,
+  hint giving the answer away, 4 options, wrong weekday …).
+- `contesttest.js` 3 apps × all 7 formats × 100–200 contests: lengths, 3 → 4 → 5 order, no repeats, typed-only Sprint,
+  even topics, scores (all right = 96 / 120 / 25 / 30; wrong answers cost nothing).
+- `check_videos.js` all apps OK; `sattest` OK; `maptest` 6 MAP apps (see below).
+- **Chromium (Playwright) in the cloud**, built with a stub icon step (the real icons need Apple Color Emoji): full
+  play-through of every level of contest2/4/8 (24 levels each, 0 failures, 0 page errors), hints reveal 1-2-3 then the
+  button goes, a full practice contest submitted and scored (48/96, 60/120 with half right), review with solutions;
+  phone width 390 px, light and dark. Regression play-through after the core changes: Math Quest 2 (48 levels), MAP
+  Math 4 (51), SAT Prep (72): 0 failures, 0 page errors.
+- Voice lines that need recording (enumerate_speech, 120 runs): Puzzle Peak 2 ≈ 2,390 lines (~90 min), Puzzle Peak 4
+  ≈ 2,690 (~127 min), Puzzle Peak 8 ≈ 2,660 (~128 min). Existing apps: no new lines (only video keys changed);
+  voicecheck still reports two rare PRE-EXISTING gaps (MAP Math 2 `lineplot.1` demo "There are 20/21 X marks.",
+  Algebra 1 `seq.1` demo "a30 = -208") — record them on the next voice run.
+
+### Still to do on the Mac (not tested in cloud)
+1. Voices: `tools/voice_all.sh contest2 4` (and contest4, contest8); re-run voicecheck for those and the two gaps above.
+2. Videos: `make_videos.py` for mathquest2 (3 new), mapmath2 (2), mapmath4 (12), algebra1 (6), mapalg1 (7),
+   satprep (12), mapread2 (3), mapread4 (3), mapread8 (1), contest2/4/8 (3 each) — e.g.
+   `tools/.venv/bin/python tools/make_videos.py mapmath4 place-value4 rounding4 …` (naming ids renders only those but
+   rewrites the catalog from all scripts, so render each app's full new list before building). Optionally re-render
+   the old videos to show their missing notes. Watch them end to end.
+3. Build with real icons (`tools/build.py`), browser play-through of every changed app (playthrough.js), real
+   phone/tablet check of hints and the contest timer.
+4. Ask before publishing: the 9 existing apps get the new videos + lesson links (updates); Puzzle Peak 2/4/8 are NEW
+   apps — they need the family's OK, Firebase web-app registration (one at a time, steps in "Firebase"), `contest2`,
+   `contest4`, `contest8` added to the `firestore.rules` allowlist and the rules re-published (`rules_test.mjs`), then a
+   hub row entry (not added yet).
+5. Still open from before: plan item 4 decision (MAP goal-area groups for Grades 2 and 4) — unchanged, waiting for the
+   user; confirm "five choices A–E" for Math Kangaroo / AMC 8 on the official pages.
 
 ## PENDING — next steps, in order
 
