@@ -768,7 +768,7 @@
           return `<button class="chip ${cls}" data-act="sortPick" data-i="${i}" ${st.done ? 'disabled' : ''}>${esc(it.w)}</button>`;
         };
         return `
-          <p class="howto">${st.chosen != null ? 'Now tap the box where it belongs.' : 'Tap a word, then tap its box.'}</p>
+          <p class="howto">${st.chosen != null ? 'Now tap the box where it belongs.' : q.items.every((it) => !/\s/.test(it.w)) ? 'Tap a word, then tap its box.' : 'Tap an item, then tap its box.'}</p>
           <div class="tray">${tray.length ? tray.map(chip).join('') : '<span class="muted">All sorted! Press Check.</span>'}</div>
           <div class="bins" style="--n:${q.bins.length}">${q.bins.map((b, bi) => `
             <div class="bin ${st.chosen != null ? 'target' : ''}" data-act="sortDrop" data-b="${bi}" role="button" tabindex="0">

@@ -79,6 +79,14 @@
     q.miss = missMap([[D.vals.length, `That is all the ${obj}. Count only the X marks above ${den > 1 ? fracLabel(target) : target}.`]], n);
     return tag(q, den > 1 ? '3.DL.B.4' : '2.DL.B.3', den > 1 ? 194 : 172, 'geometry');
   }
+  // Make a line plot from a list of measurements (2.DL.B.3 says "show the measurements by making a line plot"):
+  // tap each measurement, then tap the number it goes above.
+  function plotBuild() {
+    const [obj, title] = U.pick(OBJ), min = U.int(1, 3), vals = Array.from({ length: U.int(4, 6) }, () => U.int(min, min + 4)).sort((a, b) => a - b);
+    if (new Set(vals).size < 3) return plotBuild();
+    const marks = [min, min + 1, min + 2, min + 3, min + 4];
+    return tag({ t: 'sort', q: `Jai measured some ${obj}: ${vals.map((v) => `${v} inches`).join(', ')}. Make a line plot: put each measurement above its number.`, bins: marks.map(String), items: vals.map((v) => ({ w: `${v} in`, b: marks.indexOf(v) })), fig: Fig.linePlot(title, min, min + 4, [], 1, 'inches'), meta: { kind: 'sortPlot', args: [] }, hint: 'Each measurement gets one X above its number on the line.', why: `One X above its number for each of the ${vals.length} ${obj}: ${vals.join(', ')}.` }, '2.DL.B.3', 176, 'geometry');
+  }
   function plotCompare() {
     const D = plotData(1), [obj, title] = U.pick(OBJ);
     const lo = Math.min(...D.vals), hi = Math.max(...D.vals);
@@ -101,7 +109,7 @@
         { title: 'Scaled graphs', std: '3.DL.B.3', desc: 'Each picture can stand for 2 or 5.', gen: () => U.mix(8, [() => compareGraph(U.pick([2, 5])), () => compareGraph(U.pick([2, 5, 10]))]) },
       ] },
       { id: 'lineplot', name: 'Line plots', icon: '✖️', levels: [
-        { title: 'Read a line plot', std: '2.DL.B.3', desc: 'Each X is one object.', gen: () => U.mix(8, [() => plotCount(1)]) },
+        { title: 'Read and make a line plot', std: '2.DL.B.3', desc: 'Each X is one object.', gen: () => U.mix(8, [() => plotCount(1), () => plotCount(1), plotBuild]) },
         { title: 'Compare lengths', std: '2.DL.B.3', desc: 'Longest, shortest, how many.', gen: () => U.mix(8, [plotCompare]) },
         { title: 'Halves and quarters of an inch', std: '3.DL.B.4', desc: 'Lengths like 2 ½ inches.', gen: () => U.mix(8, [() => plotCount(U.pick([2, 4]))]) },
       ] },

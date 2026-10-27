@@ -369,8 +369,13 @@ function checkItem(where, q, levelStd) {
       q.items.forEach((it) => { if ((+it.w % 2) !== it.b) fail(where, q, `${it.w} sorted into the wrong bin`); });
     } else if (kind === 'sortQuad') {
       q.items.forEach((it) => { const [x, y] = it.w.replace(/[()−]/g, (c) => (c === '−' ? '-' : '')).split(',').map(Number), qd = x > 0 ? (y > 0 ? 0 : 3) : (y > 0 ? 1 : 2); if (qd !== it.b) fail(where, q, `${it.w} is in quadrant ${qd + 1}`); });
+    } else if (kind === 'sortPlot') {
+      q.items.forEach((it) => { if (String(parseInt(it.w, 10)) !== q.bins[it.b]) fail(where, q, `${it.w} placed above ${q.bins[it.b]}`); });
     } else if (kind === 'sortTruth') {
-      const [cases] = args; q.items.forEach((it, i) => { if (cases[i] !== it.b) fail(where, q, `statement ${i + 1} sorted wrong`); });
+      // recompute each statement from the facts: n members, median, oldest, k
+      const [n, med, top, , codes] = args, T = { exact: n % 2 ? 0 : 1, younger: 1, max: 0, half: 0, older: 2, allbelow: 2 };
+      codes.forEach((c, i) => { if (T[c] !== q.items[i].b) fail(where, q, `statement "${q.items[i].w}" should be ${['must', 'could', 'cannot'][T[c]]}`); });
+      void med; void top;
     } else if (kind === 'hotPred') {
       const [pred, param, values] = args;
       if (values.length !== q.cells.length) fail(where, q, 'values and cells differ');
