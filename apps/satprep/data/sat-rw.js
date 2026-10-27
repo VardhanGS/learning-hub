@@ -9,6 +9,8 @@
   const ORD = ['first', 'second', 'third', 'fourth', 'fifth'];
   const mk = (q, a, w, extra, std, b, goal) => { const o = mc4(q, a, w, extra); return o && tag(o, std, b, goal); };
 
+  // Extra question forms for some levels come from sat-rw2.js (SAT_RW_EXTRA).
+  const EXTRA = (id, l) => (((typeof SAT_RW_EXTRA !== 'undefined' && SAT_RW_EXTRA[id]) || [])[l] || []).map((g) => () => g(l));
   // ===================== CRAFT AND STRUCTURE =====================
   // ---- Words in Context: [level, sentence with ______, best word, three wrong words, why] ----
   const WIC_LEAD = ['In the valley where the Ortega family grows corn, the spring of 2023 was one of the wettest on record.',
@@ -252,11 +254,11 @@
   }
 
   SAT_SKILLS.push(
-    { goal: 'cs', section: 'rw', id: 'wic', name: 'Words in Context', icon: '🔤', levels: [0, 1, 2].map((l) => lv(['Everyday words', 'Precise words', 'Advanced words'][l], 'L.VL.11–12.3', 'Pick the most logical, precise word.', [() => wicItem(l)])) },
-    { goal: 'cs', section: 'rw', id: 'tsp', name: 'Text Structure and Purpose', icon: '🏗️', levels: [0, 1, 2].map((l) => lv(['What a sentence does', 'Structure of a text', 'Purpose in complex texts'][l], 'RI.TS.11–12.4', 'How a sentence or text is built, and why.', [() => tspItem(l)])) },
+    { goal: 'cs', section: 'rw', id: 'wic', name: 'Words in Context', icon: '🔤', levels: [0, 1, 2].map((l) => lv(['Everyday words', 'Precise words', 'Advanced words'][l], 'L.VL.11–12.3', 'Pick the most logical, precise word.', [() => wicItem(l), ...EXTRA('wic', l)])) },
+    { goal: 'cs', section: 'rw', id: 'tsp', name: 'Text Structure and Purpose', icon: '🏗️', levels: [0, 1, 2].map((l) => lv(['What a sentence does', 'Structure of a text', 'Purpose in complex texts'][l], 'RI.TS.11–12.4', 'How a sentence or text is built, and why.', [() => tspItem(l), ...EXTRA('tsp', l)])) },
     { goal: 'cs', section: 'rw', id: 'ctc', name: 'Cross-Text Connections', icon: '↔️', levels: [0, 1, 2].map((l) => lv(['Two short texts', 'Agree, disagree, or add', 'Weighing two arguments'][l], 'RI.MF.11–12.6', 'How two texts relate.', [() => ctcItem(l)])) },
     { goal: 'ii', section: 'rw', id: 'cid', name: 'Central Ideas and Details', icon: '🎯', levels: [0, 1, 2].map((l) => lv(['Main idea and details', 'Main idea in longer texts', 'Main idea in complex texts'][l], l ? 'RI.CI.11–12.2' : 'RI.CI.11–12.2 · RL.CI.11–12.2', 'What the text is mostly about.', [() => mainItem(l)])) },
-    { goal: 'ii', section: 'rw', id: 'coe', name: 'Command of Evidence', icon: '🔍', levels: [0, 1, 2].map((l) => lv(['Evidence and tables', 'Evidence and graphs', 'Strongest evidence'][l], 'RI.CR.11–12.1 · RI.MF.11–12.6', 'Which evidence supports a claim.', [() => evTextItem(l), () => evQuantItem(l)])) },
+    { goal: 'ii', section: 'rw', id: 'coe', name: 'Command of Evidence', icon: '🔍', levels: [0, 1, 2].map((l) => lv(['Evidence and tables', 'Evidence and graphs', 'Strongest evidence'][l], 'RI.CR.11–12.1 · RI.MF.11–12.6', 'Which evidence supports a claim.', [...EXTRA('coe', l), () => evTextItem(l), () => evQuantItem(l)])) },
     { goal: 'ii', section: 'rw', id: 'inf', name: 'Inferences', icon: '💭', levels: [0, 1, 2].map((l) => lv(['Logical endings', 'Drawing conclusions', 'Subtle inferences'][l], 'RI.CR.11–12.1', 'What most logically completes the text.', [() => infItem(l)])) },
     { goal: 'sec', section: 'rw', id: 'bound', name: 'Boundaries', icon: '✍️', levels: [0, 1, 2].map((l) => lv(['Sentences and commas', 'Semicolons, colons, and extra information', 'Tricky boundaries'][l], 'L.SS.11–12.1', 'Punctuation between and inside sentences.', [() => boundItem(l)])) },
     { goal: 'sec', section: 'rw', id: 'fss', name: 'Form, Structure, and Sense', icon: '🔧', levels: [0, 1, 2].map((l) => lv(['Subject–verb agreement', 'Verb tense and agreement', 'Agreement with tricky subjects'][l], 'L.SS.11–12.1', 'Verbs that match their subjects and time.', [() => fssItem(l)])) },
