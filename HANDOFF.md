@@ -421,8 +421,16 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
    apps — they need the family's OK, Firebase web-app registration (one at a time, steps in "Firebase"), `contest2`,
    `contest4`, `contest8` added to the `firestore.rules` allowlist and the rules re-published (`rules_test.mjs`), then a
    hub row entry (not added yet).
-5. Still open from before: plan item 4 decision (MAP goal-area groups for Grades 2 and 4) — unchanged, waiting for the
-   user; confirm "five choices A–E" for Math Kangaroo / AMC 8 on the official pages.
+5. Plan item 4 decided (keep as is, see "User decisions"); confirm "five choices A–E" for Math Kangaroo / AMC 8 on the official pages.
+
+### User decisions (2026-10-27, after the cloud session)
+- **Plan item 4: keep the MAP goal-area groups for Grades 2 and 4 exactly as they are** (NWEA names; no renaming). Closed.
+- **Existing 9 apps:** publish the new videos + lesson links once the Mac session has voiced/rendered them and the
+  play-through passes (no further ask needed for these updates).
+- **Puzzle Peak 2/4/8:** publish (and add to the hub) after the Mac tests pass. Firebase: the user will provide the
+  three web-app configs (or register them while signed in on the Mac — Claude cannot type passwords); the rules
+  allowlist update for contest2/contest4/contest8 is approved (publish rules, verify with rules_test.mjs).
+- **Voices:** the grade-matched voices (g2/g4/g8) are fine — keep them.
 
 ## PENDING — next steps, in order
 
