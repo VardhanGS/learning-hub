@@ -37,4 +37,6 @@
     'ttable4.0': { rule: 'Pretend everything is the same kind, see how far off you are, then fix it: each swap changes the total by the same amount.', ex: '10 bikes and cars, 28 wheels: all bikes → 20; 8 short; each car adds 2 → 4 cars', fig: () => Fig.picture(['🚲', '🚗'], '10 in all · 28 wheels') },
     'torganize4.0': { rule: 'Organized counting: split the job into groups (by size, by first digit, by the first person), count each group, then add.', ex: '6 friends: 5 + 4 + 3 + 2 + 1 = 15 handshakes', fig: () => Fig.picture(['🤝'], '5 + 4 + 3 + 2 + 1') },
   });
+  // video lessons (video_scripts.py; they appear once rendered on the Mac)
+  Object.entries({ 'ttable4.0': 'pp-pretend4', 'ttable4.1': 'pp-pretend4', 'ttable4.2': 'pp-pretend4', 'story4.0': 'pp-pretend4', 'count4.1': 'pp-paths4', 'count4.2': 'pp-paths4', 'torganize4.1': 'pp-paths4' }).forEach(([k, v]) => { LESSONS[k].video = v; });
 })();

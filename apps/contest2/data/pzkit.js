@@ -109,43 +109,45 @@ const PZ = (() => {
       steps: [`The 1st, 8th, 15th, 22nd and 29th are all the same weekday. Why?`, `Find the one of those just before the ${ord(n)}, then count on.`] });
   }
   // ---------- balances ----------
+  // Fruit are drawn as emoji in the pictures but NAMED in the words, so the narrator can read every sentence.
   const FRUIT = ['🍎', '🍐', '🍊', '🍋', '🍓', '🥝'];
+  const FN = { '🍎': ['apple', 'apples'], '🍐': ['pear', 'pears'], '🍊': ['orange', 'oranges'], '🍋': ['lemon', 'lemons'], '🍓': ['strawberry', 'strawberries'], '🥝': ['kiwi', 'kiwis'] };
+  const fw = (e, n = 1) => FN[e][n === 1 ? 0 : 1];
   function balanceQ(d) {
-    const [X, Y, Z] = U.sample(FRUIT, 3);
+    const [X, Y, Z] = U.sample(FRUIT, 3), x1 = fw(X), y1 = fw(Y), z1 = fw(Z);
     if (d === 0) {
       const x = R(2, 6), k = R(2, 3), W = k * x;
-      return core('bal1', [k, W], { q: `The scale is balanced. Each block weighs 1. How much does one ${X} weigh?`, a: x, fig: Fig.balance(Array(k).fill(X), [String(W)]),
-        why: `${k} ${X} weigh ${W}, so one weighs ${W} ÷ ${k} = ${x}.`, wrongs: [[W, `That is what all ${k} weigh together.`], [W - k, 'Share the weight equally: divide.'], [x + 1, 'Check: does it balance?']],
-        steps: [`${k} of the same fruit weigh ${W} in all.`, 'Share the weight equally among them.'] });
+      return core('bal1', [k, W], { q: `The scale is balanced. Each block weighs 1. How much does one ${x1} weigh?`, a: x, fig: Fig.balance(Array(k).fill(X), [String(W)]),
+        why: `${k} ${fw(X, k)} weigh ${W}, so one weighs ${W} ÷ ${k} = ${x}.`, wrongs: [[W, `That is what all ${k} weigh together.`], [W - k, 'Share the weight equally: divide.'], [x + 1, 'Check: does it balance?']],
+        steps: [`${k} ${fw(X, k)} weigh ${W} in all.`, 'Share the weight equally among them.'] });
     }
     if (d <= 2) {
       const x = R(2, 5), k1 = R(2, 3), m = d === 1 ? 1 : R(1, 2), n = R(2, 3) * m, y = (n * x) / m;
-      return core('bal2', [k1, k1 * x, m, n], { q: `Both scales are balanced. How much does one ${Y} weigh?`, a: y,
+      return core('bal2', [k1, k1 * x, m, n], { q: `Both scales are balanced. How much does one ${y1} weigh?`, a: y,
         fig: Fig.pair(Fig.balance(Array(k1).fill(X), [String(k1 * x)]), Fig.balance(Array(m).fill(Y), Array(n).fill(X))),
-        why: `First scale: ${k1} ${X} weigh ${k1 * x}, so one ${X} weighs ${x}. Second scale: ${m === 1 ? `one ${Y}` : `${m} ${Y}`} weigh${m === 1 ? 's' : ''} the same as ${n} ${X}, which is ${n * x}${m === 1 ? '' : `, so one ${Y} weighs ${n * x} ÷ ${m}`}. One ${Y} weighs ${y}.`,
-        wrongs: [[x, `That is one ${X}. Use the second scale too.`], [n * x, m === 1 ? `Add one more check: that is right for ${n} ${X}…` : `That is ${m} ${Y} together.`], [n, `That counts the ${X}, not their weight.`], [k1 * x, `That is the first scale's weight.`]].filter(([v]) => v !== y),
-        steps: [`Use the first scale to find what one ${X} weighs.`, `On the second scale, swap each ${X} for its weight.`, m === 1 ? `Now read off what one ${Y} weighs.` : `That is the weight of ${m} ${Y}. Share it.`] });
+        why: `First scale: ${k1} ${fw(X, k1)} weigh ${k1 * x}, so one ${x1} weighs ${x}. Second scale: ${m === 1 ? `one ${y1} weighs` : `${m} ${fw(Y, m)} weigh`} the same as ${n} ${fw(X, n)}, which is ${n * x}${m === 1 ? '' : `, so one ${y1} weighs ${n * x} ÷ ${m}`}. One ${y1} weighs ${y}.`,
+        wrongs: [[x, `That is one ${x1}. Use the second scale too.`], [n * x, `That is ${m} ${fw(Y, m)} together.`], [n, `That counts the ${fw(X, 2)}, not their weight.`], [k1 * x, `That is the first scale's weight.`]].filter(([v]) => v !== y),
+        steps: [`Use the first scale to find what one ${x1} weighs.`, `On the second scale, swap each ${x1} for its weight.`, m === 1 ? `Now read off what one ${y1} weighs.` : `That is the weight of ${m} ${fw(Y, m)}. Share it.`] });
     }
     if (d <= 5) {
       const x = R(2, 9), y = R(2, 9) + (d >= 4 ? R(0, 6) : 0), S = x + y, T = 2 * x + y, askY = d >= 4 && Math.random() < 0.5;
-      if (askY) return core('bal3', [S, T, 'y'], { q: `Both scales are balanced. How much does one ${Y} weigh?`, a: y,
-        fig: Fig.pair(Fig.balance([X, Y], [String(S)]), Fig.balance([X, X, Y], [String(T)])),
-        why: `The second scale has one more ${X} than the first and weighs ${T} − ${S} = ${x} more, so one ${X} weighs ${x}. Then on the first scale, ${Y} = ${S} − ${x} = ${y}.`,
-        wrongs: [[x, `That is the ${X}. One more step!`], [S, `That is ${X} and ${Y} together.`], [T - S, `That is the ${X}.`], [T - x, 'Use the first scale for the last step.'], [y + 1, 'Check: does the first scale balance?']].filter(([v]) => v !== y && v > 0),
-        steps: ['Compare the two scales. What is on the second one that is not on the first?', `That tells you what one ${X} weighs.`, `Now use the first scale to find the ${Y}.`] });
-      return core('bal3', [S, T], { q: `Both scales are balanced. How much does one ${X} weigh?`, a: x,
-        fig: Fig.pair(Fig.balance([X, Y], [String(S)]), Fig.balance([X, X, Y], [String(T)])),
-        why: `The second scale has one more ${X} than the first, and it weighs ${T} − ${S} = ${x} more. So one ${X} weighs ${x} (and one ${Y} weighs ${S} − ${x} = ${y}).`,
-        wrongs: [[y, `That is the ${Y}.`], [S, `That is ${X} and ${Y} together.`], [T - x, 'Compare the two scales: what is different?'], [Math.round(T / 3), 'The fruits do not all weigh the same.']].filter(([v]) => v !== x && v > 0),
+      const fig = Fig.pair(Fig.balance([X, Y], [String(S)]), Fig.balance([X, X, Y], [String(T)]));
+      if (askY) return core('bal3', [S, T, 'y'], { q: `Both scales are balanced. How much does one ${y1} weigh?`, a: y, fig,
+        why: `The second scale has one more ${x1} than the first and weighs ${T} − ${S} = ${x} more, so one ${x1} weighs ${x}. Then on the first scale, the ${y1} weighs ${S} − ${x} = ${y}.`,
+        wrongs: [[x, `That is the ${x1}. One more step!`], [S, `That is the ${x1} and the ${y1} together.`], [T - x, 'Use the first scale for the last step.'], [y + 1, 'Check: does the first scale balance?']].filter(([v]) => v !== y && v > 0),
+        steps: ['Compare the two scales. What is on the second one that is not on the first?', `That tells you what one ${x1} weighs.`, `Now use the first scale to find the ${y1}.`] });
+      return core('bal3', [S, T], { q: `Both scales are balanced. How much does one ${x1} weigh?`, a: x, fig,
+        why: `The second scale has one more ${x1} than the first, and it weighs ${T} − ${S} = ${x} more. So one ${x1} weighs ${x} (and the ${y1} weighs ${S} − ${x} = ${y}).`,
+        wrongs: [[y, `That is the ${y1}.`], [S, `That is the ${x1} and the ${y1} together.`], [T - x, 'Compare the two scales: what is different?'], [Math.round(T / 3), 'The fruits do not all weigh the same.']].filter(([v]) => v !== x && v > 0),
         steps: ['Compare the two scales. What is on the second one that is not on the first?', 'The extra weight on the second scale belongs to that extra fruit.'] });
     }
     const x = R(3, 15), y = R(3, 15), z = R(3, 15), S = x + y, T = y + z, Uu = x + z, all = x + y + z;
-    const askAll = Math.random() < 0.5;
-    return core('bal4', [S, T, Uu, askAll ? 'all' : 'x'], { q: askAll ? `${X} + ${Y} weigh ${S}, ${Y} + ${Z} weigh ${T}, and ${X} + ${Z} weigh ${Uu}. How much do ${X}, ${Y}, and ${Z} weigh together?` : `${X} + ${Y} weigh ${S}, ${Y} + ${Z} weigh ${T}, and ${X} + ${Z} weigh ${Uu}. How much does ${X} weigh?`,
+    const askAll = Math.random() < 0.5, facts = `An ${x1} and a ${y1} weigh ${S}, the ${y1} and a ${z1} weigh ${T}, and the ${x1} and the ${z1} weigh ${Uu}.`.replace(/\bAn ([^aeiou])/, 'A $1').replace(/\ba ([aeiou])/g, 'an $1');
+    return core('bal4', [S, T, Uu, askAll ? 'all' : 'x'], { q: `${facts} ${askAll ? 'How much do all three fruits weigh together?' : `How much does the ${x1} weigh?`}`,
       a: askAll ? all : x, fig: Fig.table([['On the scale', 'Weight'], [`${X} + ${Y}`, String(S)], [`${Y} + ${Z}`, String(T)], [`${X} + ${Z}`, String(Uu)]], 'Three balanced scales'),
-      why: `Put all three scales together: every fruit appears twice, so 2 × (${X} + ${Y} + ${Z}) = ${S} + ${T} + ${Uu} = ${2 * all}, and all three weigh ${all}.${askAll ? '' : ` Then ${X} = ${all} − (${Y} + ${Z}) = ${all} − ${T} = ${x}.`}`,
-      wrongs: askAll ? [[2 * all, 'Each fruit was counted twice: divide by 2.'], [S + T, 'Use all three scales.'], [all + 1, 'Check the addition.']] : [[all, 'That is all three fruits.'], [y, `That is the ${Y}.`], [z, `That is the ${Z}.`], [S - x + z, 'Subtract the right pair from the total.']].filter(([v]) => v !== x),
-      steps: ['Add all three scales together. How many times does each fruit appear?', 'So the three totals add up to twice the weight of all three fruits.', askAll ? 'Halve it.' : `Now take away the scale that has no ${X}.`] });
+      why: `Put all three scales together: every fruit appears twice, so twice the weight of all three is ${S} + ${T} + ${Uu} = ${2 * all}, and all three weigh ${all}.${askAll ? '' : ` Then the ${x1} weighs ${all} − ${T} = ${x} (all three, minus the ${y1} and ${z1}).`}`,
+      wrongs: askAll ? [[2 * all, 'Each fruit was counted twice: divide by 2.'], [S + T, 'Use all three scales.'], [all + 1, 'Check the addition.']] : [[all, 'That is all three fruits.'], [y, `That is the ${y1}.`], [z, `That is the ${z1}.`], [S - x + z, 'Subtract the right pair from the total.']].filter(([v]) => v !== x),
+      steps: ['Add all three scales together. How many times does each fruit appear?', 'So the three totals add up to twice the weight of all three fruits.', askAll ? 'Halve it.' : `Now take away the scale that has no ${x1}.`] });
   }
   // ---------- number pyramids ----------
   const top = (row) => { let r = row; while (r.length > 1) r = r.slice(1).map((v, i) => v + r[i]); return r[0]; };
@@ -412,7 +414,7 @@ const PZLESSON = {
   cubes: { rule: 'Count cubes in an organized way: column by column, or one layer at a time. Hidden cubes count too!', ex: 'Staircase 1 + 2 + 3 + 4 = 10 cubes · box 3 × 2 × 2: one layer 6, two layers 12', fig: () => Fig.cubeStack([1, 2, 3, 4]) },
   beads: { rule: 'Find the part that repeats. Divide by its length: the remainder tells you where you land in the pattern.', ex: 'red, blue, green, red, blue, green… bead 14: 14 ÷ 3 = 4 remainder 2 → like bead 2: blue', fig: () => Fig.beads(['r', 'b', 'g', 'r', 'b', 'g'], 1) },
   calendar: { rule: 'Weekdays repeat every 7 days. Jump by 7s, then count the few days left.', ex: 'The 1st is a Monday → the 8th, 15th, 22nd, 29th are Mondays → the 17th is a Wednesday', fig: () => Fig.calendar(1, 30, { 17: '?' }) },
-  balance: { rule: 'A balanced scale means both sides weigh the same. Swap things for what they weigh, and compare two scales to see what is different.', ex: '🍎 + 🍐 = 9 and 🍎 + 🍎 + 🍐 = 13 → the extra 🍎 weighs 13 − 9 = 4', fig: () => Fig.pair(Fig.balance(['🍎', '🍐'], ['9']), Fig.balance(['🍎', '🍎', '🍐'], ['13'])) },
+  balance: { rule: 'A balanced scale means both sides weigh the same. Swap things for what they weigh, and compare two scales to see what is different.', ex: 'apple + pear = 9 and apple + apple + pear = 13 → the extra apple weighs 13 − 9 = 4', fig: () => Fig.pair(Fig.balance(['🍎', '🍐'], ['9']), Fig.balance(['🍎', '🍎', '🍐'], ['13'])) },
   pyramid: { rule: 'Each brick is the sum of the two bricks under it. Work up to find the top, or work backward (try a number, then adjust) to find a missing brick.', ex: 'Bottom 2, 5, 3 → middle 7, 8 → top 15', fig: () => Fig.pyramid([['15'], ['7', '8'], ['2', '5', '3']]) },
   digits: { rule: 'The leftmost digit is worth the most. For the largest number put the biggest digit first; for the smallest, the smallest digit (but never 0) first.', ex: 'Digits 4, 0, 7: largest 740, smallest 407', fig: () => Fig.picture(['4️⃣', '0️⃣', '7️⃣']) },
   digitSum: { rule: 'Make an organized list: start with the smallest first digit and go up. Digits go from 0 to 9, and the first digit is never 0.', ex: 'Two-digit numbers with digit sum 5: 14, 23, 32, 41, 50 → 5 numbers', fig: () => Fig.table([['tens', 'ones'], ['1', '4'], ['2', '3'], ['…', '…']]) },
@@ -422,7 +424,7 @@ const PZLESSON = {
   handshake: { rule: 'Count in order: the first person greets everyone else, the next person greets everyone not yet greeted, and so on. Or: n × (n − 1) ÷ 2.', ex: '5 friends: 4 + 3 + 2 + 1 = 10 handshakes', fig: () => Fig.picture(['🤝'], '4 + 3 + 2 + 1') },
   coinWays: { rule: 'List ways in order, starting with the most of the biggest coin. Let the smallest coin fill in the rest.', ex: '20¢ with dimes and nickels: 2 dimes · 1 dime + 2 nickels · 4 nickels → 3 ways', fig: () => Fig.coins(['d', 'd']) },
   paths: { rule: 'Write at every corner how many ways reach it: edge corners get 1, every other corner adds the number below and the number to the left.', ex: 'A 2 by 2 grid: 1, 1, 1 / 1, 2, 3 / 1, 3, 6 → 6 paths', fig: () => Fig.gridPath(2, 2) },
-  back: { rule: 'Work backward: start at the end and undo each step in reverse order (add ↔ take away, multiply ↔ divide). Then check forward.', ex: 'Think of a number, double it, add 5, get 17 → 17 − 5 = 12, 12 ÷ 2 = 6', fig: () => Fig.picture(['🤔', '➡️', '❓'], 'double → add 5 → 17') },
+  back: { rule: 'Work backward: start at the end and undo each step in reverse order: adding is undone by taking away, multiplying by dividing. Then check forward.', ex: 'Think of a number, double it, add 5, get 17 → 17 − 5 = 12, 12 ÷ 2 = 6', fig: () => Fig.picture(['🤔', '➡️', '❓'], 'double → add 5 → 17') },
   painted: { rule: 'Small cubes with 3 painted faces sit at corners, 2 on edges, 1 in the middle of faces, 0 hidden inside.', ex: '3 × 3 × 3 cube: 8 corners, 12 edge cubes, 6 face centers, 1 hidden', fig: () => Fig.prism(3, 3, 3) },
   lastDigit: { rule: 'The last digits of powers repeat in a short cycle. Find the cycle, then use the remainder.', ex: '3, 9, 27, 81, 243 … last digits 3, 9, 7, 1 repeat → 3^10 ends in 9', fig: () => Fig.table([['Power', '3^1', '3^2', '3^3', '3^4'], ['Last digit', '3', '9', '7', '1']]) },
   divisors: { rule: 'List factors in pairs that multiply to the number. Stop when the pairs start to repeat.', ex: '36: 1 × 36, 2 × 18, 3 × 12, 4 × 9, 6 × 6 → 9 factors', fig: () => Fig.array(4, 9) },

@@ -37,4 +37,6 @@
     'ttable.0': { rule: 'Make a guess, check it, and fix it. Each new try should be closer than the last.', ex: '4 bikes and trikes, 10 wheels: all bikes → 8 wheels; 2 short; each trike adds 1 → 2 trikes', fig: () => Fig.picture(['🚲', '🛺'], '4 in all · 10 wheels') },
     'torganize.0': { rule: 'To count without missing any, go in order: the smallest ones first, then the next size up.', ex: '2 by 3 grid: 6 small squares + 2 bigger ones = 8', fig: () => Fig.rect(3, 2, { grid: true }) },
   });
+  // video lessons (video_scripts.py; they appear once rendered on the Mac)
+  Object.entries({ 'count.0': 'pp-count2', 'count.1': 'pp-count2', 'count.2': 'pp-count2', 'torganize.0': 'pp-count2', 'torganize.1': 'pp-count2', 'tbackward.0': 'pp-backward2', 'tbackward.1': 'pp-backward2', 'tbackward.2': 'pp-backward2', 'pyramid.1': 'pp-backward2' }).forEach(([k, v]) => { LESSONS[k].video = v; });
 })();

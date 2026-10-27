@@ -42,4 +42,6 @@
     'tpascal8.0': { rule: 'Paths to a corner = paths to the corner below + paths to the corner on the left. The same adding rule builds a number pyramid (Pascal’s triangle).', ex: '3 by 2 grid: 1, 1, 1, 1 / 1, 2, 3, 4 / 1, 3, 6, 10 → 10 paths', fig: () => Fig.gridPath(3, 2) },
     'tcycle8.0': { rule: 'When something repeats, find the length of the cycle. Then only the remainder matters.', ex: '7^n ends in 7, 9, 3, 1, 7, … (cycle 4) → 7^50: 50 = 4 × 12 + 2 → ends in 9', fig: () => Fig.table([['Power', '7^1', '7^2', '7^3', '7^4'], ['Last digit', '7', '9', '3', '1']]) },
   });
+  // video lessons (video_scripts.py; they appear once rendered on the Mac)
+  Object.entries({ 'tcube8.0': 'pp-painted8', 'tcube8.1': 'pp-painted8', 'tcube8.2': 'pp-painted8', 'geo8.1': 'pp-painted8', 'tcycle8.0': 'pp-cycles8', 'tcycle8.1': 'pp-cycles8', 'tcycle8.2': 'pp-cycles8', 'numth8.0': 'pp-cycles8' }).forEach(([k, v]) => { LESSONS[k].video = v; });
 })();
