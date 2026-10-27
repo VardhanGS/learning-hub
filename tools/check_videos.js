@@ -75,7 +75,7 @@ for (const a of apps) {
         const show = sc.show || [];
         if (sc.show && show.length !== sc.beats.length) warn(a, v.id, `${where}: show has ${show.length} entries for ${sc.beats.length} beats`);
         if (show.some((k) => k !== null && (k < 0 || k >= sc.figs.length))) err(a, v.id, `${where}: show points past the figs`);
-        const from = sc.note_from || 1;
+        const from = sc.note_from ?? 1;
         if ((sc.notes || []).length && (sc.notes.length - 1 + from) >= sc.beats.length) warn(a, v.id, `${where}: ${sc.notes.length} notes for ${sc.beats.length} beats (extra notes pop in after the last beat starts)`);
       }
       if (sc.type === 'quiz') {
