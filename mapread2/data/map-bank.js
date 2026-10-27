@@ -57,7 +57,7 @@ const MAPBANK = (() => {
       // ELA Quest rounds have 4–5 questions; two rounds make one practice round of 8–10.
       const gen = () => {
         const seen = new Set(), out = [];
-        for (let t = 0; t < 12 && out.length < 8; t++) L.gen({}).forEach((q) => { const key = q.q + q.a; if (!seen.has(key)) { seen.add(key); out.push(q); } });
+        for (let t = 0; t < 40 && out.length < 8; t++) L.gen({}).forEach((q) => { const key = q.q + q.a; if (!seen.has(key)) { seen.add(key); out.push(q); } });
         return out.map(tagIt);
       };
       const all = () => { const seen = new Set(), out = []; for (let r = 0; r < 30; r++) L.gen({}).forEach((q) => { const key = q.q + q.a + (q.passage ? q.passage.title : ''); if (!seen.has(key)) { seen.add(key); out.push(tagIt(q)); } }); return out; };

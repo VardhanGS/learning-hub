@@ -2,7 +2,7 @@
 // Every app on vardhangs.github.io shares one Cache Storage, so this worker only ever deletes caches whose
 // names start with its own app id.
 const APP_ID = "satprep";
-const CACHE = "satprep-390c06e644";
+const CACHE = "satprep-82e6de3d5f";
 const ASSETS = [
   "./",
   "./index.html",
@@ -21,7 +21,10 @@ const ASSETS = [
   "./core/modes/sat.js",
   "./data/sat-common.js",
   "./data/sat-passages.js",
+  "./data/sat-sec.js",
+  "./data/sat-rw2.js",
   "./data/sat-rw.js",
+  "./data/sat-math2.js",
   "./data/sat-math.js",
   "./data/sat-bank.js",
   "./data/sat-lessons.js",

@@ -32,7 +32,8 @@ const U = {
   uniq(arr) { return [...new Set(arr)]; },
   int(lo, hi) { return lo + Math.floor(Math.random() * (hi - lo + 1)); },
   // A random integer in [lo, hi] that passes ok(n); falls back to lo after many tries.
-  intWhere(lo, hi, ok) { for (let i = 0; i < 400; i++) { const n = U.int(lo, hi); if (ok(n)) return n; } return lo; },
+  // falls back to lo when no number fits (counted in U.whereMisses so tools/validate.js can report it)
+  intWhere(lo, hi, ok) { for (let i = 0; i < 400; i++) { const n = U.int(lo, hi); if (ok(n)) return n; } U.whereMisses = (U.whereMisses || 0) + 1; return lo; },
 
   // Multiple choice: one right answer plus up to `n` distractors.
   mc(q, a, pool, extra = {}, n = 3) {

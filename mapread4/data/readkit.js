@@ -9,7 +9,10 @@ const RK = (() => {
 
   // A passage: icons and a caption make its picture (Fig.picture) unless a ready-made SVG is given.
   function P(title, kind, text, icons = [], caption = '', svg = null) {
-    return { title, kind, text: text.trim().replace(/[ \t]+\n/g, '\n'), fig: svg || (icons.length ? Fig.picture(icons, caption) : null) };
+    const t = text.trim().replace(/[ \t]+\n/g, '\n');
+    // MAP numbers the paragraphs of prose passages ("as it is used in paragraph 4"); poems and plays are not numbered
+    const numbered = !/^(Poem|Play|Two texts|Poems)/.test(kind) && t.split('\n\n').length >= 2;
+    return { title, kind, text: t, numbered, fig: svg || (icons.length ? Fig.picture(icons, caption) : null) };
   }
   // The sentences of a passage, in order (poem and play lines count as sentences too).
   function sentences(text) {
@@ -22,16 +25,41 @@ const RK = (() => {
     return out;
   }
   const wrongOf = (w) => (Array.isArray(w) ? w : [w, '']);
+  // MAP underlines key words in a question ("Choose ⟦two⟧ answers", "⟦best⟧ supports"); capitals become underlines
+  const keyWords = (q) => String(q).replace(/\b(MOST LIKELY|TWO|THREE|BEST|MOST|FIRST|LAST|NOT|BOTH|EXCEPT|BEFORE|AFTER)\b/g, (w) => `⟦${w.toLowerCase()}⟧`);
+  // the paragraph (1, 2, …) of a passage that contains a sentence
+  const paraOf = (text, sent) => text.split('\n\n').findIndex((p) => p.replace(/\n/g, ' ').includes(sent)) + 1;
 
   // One question spec → one item. Specs:
   //   ['mc', q, answer, [wrong | [wrong, why] …], why, tag]
   //   ['ev', q, answer sentence (or [sentences]), why, tag]       hot text: tap the sentence(s) in the passage
   //   ['multi', q, [right …], [wrong …], why, tag]
   //   ['order', q, [event 1, event 2, …], why, tag]              click-and-pop: tap the events in order
-  function item(passage, spec, base, goal, std) {
+  //   ['ab', question A, answer A, [wrong A …], answer sentence B, [wrong sentences B …], why, tag]   Part A / Part B
+  //     (MAP style: Part B asks which detail best supports the answer to Part A; choices are quotations with
+  //     "(Paragraph N)"). Returns two items in order; Part B is left out of the adaptive test's pool, because on its own
+  //     it would point to an unseen Part A.
+  function item(passage, spec0, base, goal, std) {
+    const spec = [...spec0]; spec[1] = keyWords(spec[1]);
     const [type] = spec, tag = spec[spec.length - 1];
+    if (type === 'ab') {
+      const [, qA, aA, wA, aB, wB, why] = spec, quote = (x) => `“${x}” (Paragraph ${paraOf(passage.text, x)})`;
+      const A = item(passage, ['mc', `Part A\n${qA}`, aA, wA, why, tag], base, goal, std);
+      const B = item(passage, ['mc', `Part B\nWhich detail from the passage ⟦best⟧ supports the answer to Part A?`, quote(aB), wB.map(quote), `“${aB}” supports the answer to Part A: ${aA}`, 'evidence'], base, goal, std);
+      return [A, { ...B, partB: true }];
+    }
     const rit = base + (TAG_RIT[tag] ?? 0);
     const common = { passage, std, rit, goal, tag: TAG_NAME[tag] || tag };
+    //   ['gap', q, [steps …], index of the missing step, [wrong tiles …], why, tag]   gap match: fill the missing step
+    if (type === 'gap') {
+      const [, q, steps, m, wrongs, why] = spec;
+      return { t: 'pop', q, template: steps.map((x, i) => `${i + 1}. ${i === m ? '□' : x}`).join('\n'), tiles: U.shuffle([steps[m], ...wrongs]), accept: [[steps[m]]], meta: { kind: 'popGap', args: [steps[m], wrongs] }, why, ...common };
+    }
+    //   ['clue', word, [phrases from the passage …], right phrase, why, tag]   hot text: the phrase that is the context clue
+    if (type === 'clue') {
+      const [, word, phrases, right, why] = spec, cells = U.shuffle(phrases);
+      return { t: 'hot', q: `Select the phrase from the passage that ⟦best⟧ helps the reader understand the meaning of “${word}.”`, cells, layout: 'list', a: [cells.indexOf(right)], meta: { kind: 'hotClue', args: [phrases, right] }, why, ...common };
+    }
     if (type === 'mc') {
       const [, q, a, ws, why] = spec, miss = {};
       ws.map(wrongOf).forEach(([w, note]) => { if (note) miss[w] = note; });
@@ -57,8 +85,8 @@ const RK = (() => {
   // A practice level made of passages: each round is one passage with all its questions (shuffled a little,
   // keeping evidence questions after the question they prove). `all` lists every item, for the test's pool.
   function passLevel(title, std, desc, passages, goal, base) {
-    const build = (p) => p.qs.map((spec) => item(p.passage, spec, base + (p.dif || 0), goal, std));
-    return { title, std, desc, gen: () => build(U.pick(passages)), all: () => passages.flatMap(build) };
+    const build = (p) => p.qs.flatMap((spec) => item(p.passage, spec, base + (p.dif || 0), goal, std));
+    return { title, std, desc, gen: () => build(U.pick(passages)), all: () => passages.flatMap(build).filter((q) => !q.partB) };
   }
   // Short passages with one or two questions each (the MAP style): a round mixes 8 of them.
   function shortLevel(title, std, desc, entries, goal, base) {
@@ -71,7 +99,7 @@ const RK = (() => {
   function solo(q, a, ws, why, { fig = null, tag = 'vocab', base, goal, std, hint = '', sentence = null }) {
     const miss = {};
     ws.map(wrongOf).forEach(([w, note]) => { if (note) miss[w] = note; });
-    return { t: 'mc', q: sentence ? `${sentence}\n\n${q}` : q, a, opts: U.shuffle([a, ...ws.map((w) => wrongOf(w)[0])]), miss, why, hint, fig, std, goal, rit: base + (TAG_RIT[tag] ?? 0), tag: TAG_NAME[tag] || tag };
+    return { t: 'mc', q: sentence ? `${sentence}\n\n${keyWords(q)}` : keyWords(q), a, opts: U.shuffle([a, ...ws.map((w) => wrongOf(w)[0])]), miss, why, hint, fig, std, goal, rit: base + (TAG_RIT[tag] ?? 0), tag: TAG_NAME[tag] || tag };
   }
   const { pageFig, listFig, diagramFig } = Fig; // drawn in core/engine/fig.js (videos use them too)
   return { P, sentences, item, passLevel, shortLevel, genLevel, solo, TAG_RIT, TAG_NAME, pageFig, listFig, diagramFig };

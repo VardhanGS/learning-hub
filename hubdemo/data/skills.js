@@ -26,7 +26,7 @@
   };
 
   function addNoRegroup() {
-    const a = U.int(11, 87);
+    const a = U.intWhere(11, 87, (v) => v % 10 <= 8);
     const b = U.intWhere(2, 99 - a, (x) => ones(a) + ones(x) < 10 && x !== 10 && x % 10 !== 0);
     const q = U.num(`${a} + ${b} = ?`, a + b, { meta: { kind: 'add', args: [a, b] }, hint: 'Add the ones first. Then add the tens.', why: `${a} + ${b} = ${a + b}`, fig: Fig.addBlocks(a, b) });
     q.miss = Object.fromEntries(addMisses(a, b).filter(([v]) => String(v) !== String(a + b)).map(([v, w]) => [String(v), w]));
@@ -34,7 +34,7 @@
   }
   function addStory(regroup) {
     const [kid, he] = U.pick(KIDS), thing = U.pick(THINGS);
-    const a = U.int(12, 68);
+    const a = U.intWhere(12, 68, (v) => v % 10 >= 1 && v % 10 <= 8);
     const b = U.intWhere(11, 99 - a, (x) => (regroup ? ones(a) + ones(x) >= 10 : ones(a) + ones(x) < 10) && x % 10 !== 0);
     const q = U.num(`${kid} has ${a} ${thing}. Then ${he} gets ${b} more. How many ${thing} does ${kid} have now?`, a + b,
       { unit: thing, meta: { kind: 'add', args: [a, b] }, hint: '"More" means the group gets bigger, so add.', why: `${a} + ${b} = ${a + b} ${thing}.` });
@@ -42,12 +42,12 @@
     return tag(q, '2.OA.A.1', regroup ? 186 : 176, 'algebra');
   }
   function addRegroupMC() {
-    const a = U.int(15, 79);
+    const a = U.intWhere(15, 79, (v) => v % 10 >= 1);
     const b = U.intWhere(12, 99 - a, (x) => ones(a) + ones(x) >= 10 && x % 10 !== 0);
     return tag(U.mcMiss(`${a} + ${b} = ?`, a + b, addMisses(a, b), { meta: { kind: 'add', args: [a, b] }, hint: 'Add the ones. If there are 10 or more, regroup 10 ones as 1 ten.', why: `${ones(a)} + ${ones(b)} = ${ones(a) + ones(b)} ones → 1 ten and ${pl(ones(a) + ones(b) - 10, 'one')}. ${a} + ${b} = ${a + b}.` }, 3, () => a + b + U.pick([-2, -1, 1, 2, 9, 11])), '2.NBT.B.5', 184, 'number');
   }
   function addRegroupNum() {
-    const a = U.int(15, 79);
+    const a = U.intWhere(15, 79, (v) => v % 10 >= 1);
     const b = U.intWhere(12, 99 - a, (x) => ones(a) + ones(x) >= 10 && x % 10 !== 0);
     const q = U.num(`${a} + ${b} = ?`, a + b, { meta: { kind: 'add', args: [a, b] }, hint: 'Add the ones. If there are 10 or more, regroup 10 ones as 1 ten.', why: `${a} + ${b} = ${a + b}` });
     q.miss = Object.fromEntries(addMisses(a, b).filter(([v]) => String(v) !== String(a + b)).map(([v, w]) => [String(v), w]));
@@ -55,7 +55,7 @@
   }
   // Grade 3: subtract within 1000 with regrouping.
   function subGrade3(asMC) {
-    const a = U.int(302, 951);
+    const a = U.intWhere(302, 951, (v) => v % 10 <= 8);
     const b = U.intWhere(118, a - 25, (x) => ones(x) > ones(a));
     const d = a - b;
     // "Smaller from bigger" in every place instead of regrouping.
@@ -73,7 +73,7 @@
     return tag(q, '3.NBT.A.2', 199, 'number');
   }
   function addGrade3() {
-    const a = U.int(208, 689);
+    const a = U.intWhere(208, 689, (v) => v % 10 >= 1);
     const b = U.intWhere(115, 999 - a, (x) => ones(a) + ones(x) >= 10 && x % 10 !== 0);
     const q = U.num(`${a} + ${b} = ?`, a + b, { meta: { kind: 'add', args: [a, b] }, hint: 'Line up hundreds, tens, and ones. Regroup when a place has 10 or more.', why: `${a} + ${b} = ${a + b}` });
     q.miss = Object.fromEntries([[a + b - 10, 'It looks like the ones were not regrouped into a ten.'], [a + b - 100, 'It looks like the tens were not regrouped into a hundred.'], [a - b, 'That is the difference. The question asks you to add.']]

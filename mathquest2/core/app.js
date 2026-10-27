@@ -151,6 +151,8 @@
   // ---------- routing ----------
   let view = { name: 'home' };
   let modal = null;
+  // line reader (test screens): a clear band that follows the finger or mouse; the rest of the screen is dimmed
+  let lineReader = false, lineReaderY = 220;
   function go(name, params = {}) {
     Voice.stop();
     view = { name, ...params };
@@ -349,7 +351,7 @@
     }
     return q;
   }
-  const freshSt = () => ({ tries: 0, done: false, correct: null, picked: [], sel: [], place: {}, chosen: null, wrongOpts: [], wrongItems: [], msg: null, typed: '' });
+  const freshSt = () => ({ tries: 0, done: false, correct: null, picked: [], sel: [], place: {}, chosen: null, wrongOpts: [], wrongItems: [], msg: null, typed: '', elim: [] });
 
   function buildMix() {
     const bestPer = {};
@@ -397,8 +399,13 @@
     if (st.done) return;
     st.done = true;
     const ok = isCorrect(q, st);
-    Q.log.push({ q, ok, secs: Math.round((Date.now() - Q.qStarted) / 1000) });
+    const secs = (Date.now() - Q.qStarted) / 1000;
+    Q.log.push({ q, ok, secs: Math.round(secs) });
     Q.test.onAnswer(q, ok, Q);
+    // Like MAP Growth's "slow down" screen: two answers in a row given in under 3 seconds (too fast to have read the
+    // question) pause the test with a reminder; the count is kept for the grown-up report.
+    Q.fast = secs < 3 ? (Q.fast || 0) + 1 : 0;
+    if (Q.fast >= 2) { Q.fast = 0; Q.slowdowns = (Q.slowdowns || 0) + 1; modal = `<h2>🦥 Slow down</h2><p>You are answering very quickly. There is no time limit, so read each question carefully and show what you know.</p><div class="row end"><button class="btn primary" data-act="closeModal">I'll take my time</button></div>`; }
     if (Q.log.length >= Q.test.total) { go(Q.test.finish(Q)); return; }
     const nq = Q.test.next(Q);
     if (!nq) { go(Q.test.finish(Q)); return; }
@@ -663,7 +670,7 @@
         <div class="passage-head"><span class="kind">${esc(q.passage.kind)}</span>${!test || testAudio() ? '<button class="btn small" data-act="readPassage">🔊 Read to me</button>' : ''}</div>
         <h2>${esc(q.passage.title)}</h2>
         ${q.passage.fig ? `<div class="fig passage-fig">${q.passage.fig}</div>` : ''}
-        ${q.passage.text.split('\n\n').map((p) => `<p>${esc(p).replace(/^((?:Text|Article|Account|Scene|Letter from camp)[^\n:]{0,40}:[^\n]*)\n/, '<b>$1</b><br>').replace(/\n/g, '<br>')}</p>`).join('')}
+        ${q.passage.text.split('\n\n').map((p, pi) => `<p${q.passage.numbered ? ` class="numbered" data-n="${pi + 1}"` : ''}>${esc(p).replace(/⟦([^⟧]*)⟧/g, '<u>$1</u>').replace(/^((?:Text|Article|Account|Scene|Letter from camp)[^\n:]{0,40}:[^\n]*)\n/, '<b>$1</b><br>').replace(/\n/g, '<br>')}</p>`).join('')}
       </aside>` : '';
     return `
       <div class="quiz s-${color} ${test ? 'testmode' : ''}">
@@ -671,9 +678,10 @@
           <button class="icon-btn" data-act="askQuit" aria-label="Leave quest">✕</button>
           <div class="quiz-title"><b>${esc(Q.module && Q.module.short ? Q.module.short : title)}</b><span>${Q.module ? `${Q.i + 1} of ${total}` : `Question ${Q.i + 1} of ${total}`}</span></div>
           ${Q.module ? `<button class="mtimer ${leftSecs() <= 300 ? 'low' : ''}" id="mtimer" data-act="mTimer" aria-label="Time left in this module">${clockText()}</button>${Q.module.reference ? '<button class="icon-btn" data-act="mRef" aria-label="Reference sheet">📐</button>' : ''}${Q.module.calc ? '<button class="icon-btn" data-act="calcToggle" aria-label="Calculator">🧮</button>' : ''}<button class="icon-btn" data-act="mMenu" aria-label="Question menu">☰</button>` : ''}
-          ${Q.mode === 'skill' ? '<button class="icon-btn" data-act="showLesson" aria-label="Show the lesson">💡</button>' : ''}${test ? (q.calc && !Q.module ? `<button class="icon-btn" data-act="calcToggle" aria-label="Calculator">🧮</button>` : '') : `<span class="pill">⭐ ${Q.xp} XP</span>`}
+          ${Q.mode === 'skill' ? '<button class="icon-btn" data-act="showLesson" aria-label="Show the lesson">💡</button>' : ''}${test ? `<button class="icon-btn ${lineReader ? 'on' : ''}" data-act="lineReader" aria-pressed="${lineReader}" aria-label="Line reader">📏</button>` : ''}${test ? (q.calc && !Q.module ? `<button class="icon-btn" data-act="calcToggle" aria-label="Calculator">🧮</button>` : '') : `<span class="pill">⭐ ${Q.xp} XP</span>`}
         </header>
         <div class="progress"><i style="width:${pct}%"></i></div>
+        ${test && lineReader ? `<div class="line-reader" id="lineReader" style="top:${lineReaderY}px" aria-hidden="true"></div>` : ''}
         <div class="quiz-body ${q.passage ? 'with-passage' : ''}">
           ${passage}
           <section class="qcard card ${st.msg && st.msg.kind === 'try' ? 'shake' : ''}">
@@ -746,7 +754,9 @@
           else if (st.done && o === st.chosen && !st.correct) cls = 'wrong';
           else if (st.wrongOpts.includes(o)) cls = 'wrong dim';
           const dis = st.done || st.wrongOpts.includes(o);
-          return `<div class="opt-wrap"><button class="opt ${cls}" data-act="choose" data-v="${esc(o)}" ${dis ? 'disabled' : ''}>${fmt(o)}</button>${q.sayOpts ? `<button class="icon-btn mini" data-act="sayText" data-v="${esc(o)}" aria-label="Hear ${esc(o)}">🔈</button>` : ''}</div>`;
+          // answer eliminator (MAP and SAT test screens): cross out a choice; tap again to bring it back
+          const canElim = Q && Q.mode === 'test' && !st.done, out = canElim && (st.elim || []).includes(o);
+          return `<div class="opt-wrap"><button class="opt ${cls} ${out ? 'elim' : ''}" data-act="choose" data-v="${esc(o)}" ${dis ? 'disabled' : ''}>${fmt(o)}</button>${canElim ? `<button class="icon-btn mini elim-btn" data-act="elim" data-v="${esc(o)}" aria-pressed="${out}" aria-label="${out ? 'Bring back' : 'Cross out'} this choice">${out ? '↺' : '⊘'}</button>` : ''}${q.sayOpts ? `<button class="icon-btn mini" data-act="sayText" data-v="${esc(o)}" aria-label="Hear ${esc(o)}">🔈</button>` : ''}</div>`;
         }).join('')}</div>`;
       }
       case 'sort': {
@@ -758,7 +768,7 @@
           return `<button class="chip ${cls}" data-act="sortPick" data-i="${i}" ${st.done ? 'disabled' : ''}>${esc(it.w)}</button>`;
         };
         return `
-          <p class="howto">${st.chosen != null ? 'Now tap the box where it belongs.' : 'Tap a word, then tap its box.'}</p>
+          <p class="howto">${st.chosen != null ? 'Now tap the box where it belongs.' : q.items.every((it) => !/\s/.test(it.w)) ? 'Tap a word, then tap its box.' : 'Tap an item, then tap its box.'}</p>
           <div class="tray">${tray.length ? tray.map(chip).join('') : '<span class="muted">All sorted! Press Check.</span>'}</div>
           <div class="bins" style="--n:${q.bins.length}">${q.bins.map((b, bi) => `
             <div class="bin ${st.chosen != null ? 'target' : ''}" data-act="sortDrop" data-b="${bi}" role="button" tabindex="0">
@@ -975,7 +985,8 @@
         : `<button class="pop-slot" data-act="unpick" data-p="${n}" ${st.done ? 'disabled' : ''}>${fmt(q.tiles[ti])}</button>`;
     }).join('');
     const tray = q.tiles.map((t, i) => (st.picked.includes(i) ? '' : `<button class="tile pop-tile" data-act="popPick" data-i="${i}" ${st.done || st.picked.length >= slotCount(q) ? 'disabled' : ''}>${fmt(t)}</button>`)).join('');
-    return `<div class="pop-line">${parts}</div>${st.done ? '' : `<p class="howto">Tap a tile to place it in the next box. Tap a box to take its tile back.</p><div class="tiles">${tray}</div>`}`;
+    // a list of sentences (gap match in reading) reads as a normal list with a wide blank, not as a big equation
+    return `<div class="pop-line ${/\n/.test(q.template) ? 'listy' : ''}">${parts}</div>${st.done ? '' : `<p class="howto">Tap a tile to place it in the next box. Tap a box to take its tile back.</p><div class="tiles">${tray}</div>`}`;
   }
 
   // ---- set the clock: tap a number for the hour hand, tap (or drag) around the edge for the minute hand ----
@@ -1895,6 +1906,8 @@
     quit: () => { if (Q.mode === 'test') { Q = null; go('home'); return; } const back = Q.mode === 'skill' ? ['subject', { s: Q.s }] : ['home', {}]; Q = null; go(...back); },
 
     choose: (ds) => { if (Q.st.done) return; SFX.play('tap'); Q.st.chosen = ds.v; if (Q.mode === 'test') render(); else check(); },
+    elim: (ds) => { const st = Q.st; if (st.done) return; st.elim = st.elim || []; st.elim = st.elim.includes(ds.v) ? st.elim.filter((x) => x !== ds.v) : [...st.elim, ds.v]; if (st.chosen === ds.v && st.elim.includes(ds.v)) st.chosen = null; render(); },
+    lineReader: () => { lineReader = !lineReader; render(); },
     calcToggle: () => { calcOpen = !calcOpen; render(); },
     mPrev: () => goQ(Q.i - 1),
     mGo: (ds) => goQ(+ds.i),
@@ -2195,6 +2208,7 @@
     if (e.target.closest('.quiz .nline')) { lineDrag = true; lineAt(e); }
     else if (e.target.closest('.quiz .clockface') && !(e.target.dataset && e.target.dataset.k === 'h')) { clockDrag = true; clockAt(e); }
   });
+  document.addEventListener('pointermove', (e) => { if (lineReader) { const band = document.getElementById('lineReader'); if (band) { lineReaderY = Math.max(0, e.clientY - 22); band.style.top = `${lineReaderY}px`; } } });
   document.addEventListener('pointermove', (e) => { if (lineDrag) { e.preventDefault(); lineAt(e); } else if (clockDrag) { e.preventDefault(); clockAt(e); } }, { passive: false });
   document.addEventListener('pointerup', () => { if (lineDrag) { lineDrag = false; SFX.play('place'); } clockDrag = false; });
   document.addEventListener('pointercancel', () => { lineDrag = false; clockDrag = false; });

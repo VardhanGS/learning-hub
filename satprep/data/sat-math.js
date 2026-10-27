@@ -229,7 +229,8 @@
     return done(spr(`The equation ${T(`x^{2} + y^{2} ${sgn(D)}x ${sgn(E)}y ${F ? sgn(F) : ''} = 0`)} defines a circle in the xy-plane. What is the radius of the circle?`, r, { fig: Fig.table([['Complete the square', 'for x and for y']]), meta: { kind: 'circleR', args: [D, E, F] }, why: `(x ${sgn(-h)})² + (y ${sgn(-k)})² = ${r * r}, so r = ${r}.`, hint: 'Complete the square for x and for y; the number on the right is r².' }), 'G.GPE.A.1', bAt(2, 0.6), 'geo');
   }
 
-  const SK = (goal, id, name, icon, titles, std, desc, fn) => ({ goal, section: 'math', id, name, icon, levels: [0, 1, 2].map((l) => lv(titles[l], std[l], desc, [() => fn(l)])) });
+  // extra question types for some levels come from sat-math2.js (SAT_MATH_EXTRA)
+  const SK = (goal, id, name, icon, titles, std, desc, fn) => ({ goal, section: 'math', id, name, icon, levels: [0, 1, 2].map((l) => lv(titles[l], std[l], desc, [() => fn(l), ...(((typeof SAT_MATH_EXTRA !== 'undefined' && SAT_MATH_EXTRA[id]) || [])[l] || []).map((g) => () => g(l))])) });
   SAT_SKILLS.push(
     SK('alg', 'lin1', 'Linear equations in one variable', '⚖️', ['Solve for x', 'Equations from words', 'No solution'], ['A.REI.B.3', 'A.CED.A.1', 'A.REI.B.3'], 'Solve and build linear equations.', lin1),
     SK('alg', 'lin2', 'Linear functions', '📈', ['Slope', 'Equation of a line', 'Linear models'], ['F.IF.B.6', 'A.CED.A.2', 'F.LE.A.2'], 'Slope, lines, and linear functions.', lin2),

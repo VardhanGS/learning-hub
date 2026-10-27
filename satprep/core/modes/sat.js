@@ -52,7 +52,7 @@
   // ---------- the flow: module 1 → module 2 (→ break → next section) → report ----------
   const answersOf = (res, items) => items.map((it, i) => ({ b: it.b, c: it.c, ok: res.oks[i], goal: it.goal, where: it.where, pretest: !!it.pretest, answered: res.answered[i],
     // a compact copy for the review screen
-    rev: { q: res.qs[i].q, passage: res.qs[i].passage ? res.qs[i].passage.text : '', your: res.answered[i] ? yourAnswer(res.qs[i], res.sts[i]) : '', right: api.answerText(res.qs[i]), why: res.qs[i].why || '', fig: res.qs[i].fig || '' } }));
+    rev: { q: res.qs[i].q, passage: res.qs[i].passage ? res.qs[i].passage.text : '', your: res.answered[i] ? yourAnswer(res.qs[i], res.sts[i]) : '', right: api.answerText(res.qs[i]), why: res.qs[i].why || '', fig: res.qs[i].fig || '', wrongWhy: !res.oks[i] && res.answered[i] && res.qs[i].miss ? (res.qs[i].miss[yourAnswer(res.qs[i], res.sts[i])] || '') : '' } }));
   function yourAnswer(q, st) { if (q.t === 'mc') return st.chosen; if (q.t === 'num') return st.typed; return ''; }
   function begin(kind) {
     const order = kind === 'full' ? ['rw', 'math'] : [kind];
@@ -191,10 +191,11 @@
       <div class="seg"><button class="${reviewOnlyWrong ? 'on' : ''}" data-act="satRevMode" data-w="1">Missed (${r.review.filter((x) => !x.ok).length})</button><button class="${reviewOnlyWrong ? '' : 'on'}" data-act="satRevMode" data-w="0">All (${r.review.length})</button></div>
       ${list.map((x) => `<section class="card stack rev ${x.ok ? 'rev-ok' : 'rev-miss'}">
         <p class="muted">${esc(SECTIONS[x.sec].short)} · Module ${x.module} · ${esc(GOAL[x.goal].name)}${x.pretest ? ' · unscored practice question' : ''}</p>
-        ${x.passage ? `<blockquote class="passage">${esc(x.passage).replace(/\n/g, '<br>')}</blockquote>` : ''}
+        ${x.passage ? `<blockquote class="passage">${esc(x.passage).replace(/⟦([^⟧]*)⟧/g, '<u>$1</u>').replace(/\n/g, '<br>')}</blockquote>` : ''}
         <p class="prompt">${fmt(x.q)}</p>
         ${x.fig ? `<div class="fig">${x.fig}</div>` : ''}
         <p>${x.ok ? '✅' : '❌'} Your answer: <b>${x.your ? fmt(String(x.your)) : '(blank)'}</b>${x.ok ? '' : ` · Right answer: <b>${fmt(String(x.right))}</b>`}</p>
+        ${x.wrongWhy ? `<p class="fine"><b>Why your choice is wrong:</b> ${fmt(x.wrongWhy)}</p>` : ''}
         ${x.why ? `<p class="fine">${fmt(x.why)}</p>` : ''}
         ${x.where ? `<button class="link" data-act="satPractice" data-w="${x.where}">Practice this skill</button>` : ''}
       </section>`).join('') || '<section class="card"><p>No missed questions. Great work!</p></section>'}

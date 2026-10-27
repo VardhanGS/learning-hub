@@ -15,6 +15,15 @@ const MAP_NEW = [];
 
   // ===================== REAL NUMBERS =====================
   // ---- signed numbers and order of operations (grade 7 review) ----
+  // Sort ordered pairs into quadrants (drag-and-drop sorting, as in NWEA's practice items).
+  function quadSort() {
+    const pts = [], used = new Set();
+    [0, 1, 2, 3].forEach((qd) => { const sx = qd === 0 || qd === 3 ? 1 : -1, sy = qd < 2 ? 1 : -1; let p; do { p = [sx * U.int(1, 8), sy * U.int(1, 8)]; } while (used.has(p.join())); used.add(p.join()); pts.push([p, qd]); });
+    const extra = U.int(0, 3), e = [(extra === 0 || extra === 3 ? 1 : -1) * U.int(1, 8), (extra < 2 ? 1 : -1) * U.int(1, 8)];
+    if (!used.has(e.join())) pts.push([e, extra]);
+    const P = ([x, y]) => `(${fx(x)}, ${fx(y)})`;
+    return tag({ t: 'sort', q: 'Sort each ordered pair into the quadrant where it lies.', bins: ['Quadrant I', 'Quadrant II', 'Quadrant III', 'Quadrant IV'], items: U.shuffle(pts).map(([p, qd]) => ({ w: P(p), b: qd })), fig: Fig.graph({ range: [-8, 8], step: 2 }), meta: { kind: 'sortQuad', args: [] }, hint: 'Quadrant I: (+, +). II: (−, +). III: (−, −). IV: (+, −). Count counterclockwise from the top right.', why: 'The signs of x and y tell the quadrant: I (+, +), II (−, +), III (−, −), IV (+, −).' }, '6.NS.C.6', 200, 'real');
+  }
   function intAddSub() {
     const a = nz(-15, 15), b = nz(-15, 15), op = U.pick(['+', '-']), e = `${a} ${op} ${par(b)}`, v = op === '+' ? a + b : a - b;
     if (a > 0 && b > 0) return intAddSub(); // a signed-numbers review always has a negative
@@ -230,6 +239,23 @@ const MAP_NEW = [];
 
   // ---- data displays ----
   function five(xs) { const s = xs.slice().sort((a, b) => a - b), n = s.length, med = (a) => (a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2); return [s[0], med(s.slice(0, Math.floor(n / 2))), med(s), med(s.slice(Math.ceil(n / 2))), s[n - 1]]; }
+  // "Must be true / Could be true / Cannot be true" for statements about a median (a table-grid item in NWEA's
+  // practice set; here as tap-to-sort).
+  const TRUTHS = ['Must be true', 'Could be true', 'Cannot be true'];
+  function mustCould() {
+    const n = U.pick([15, 20, 21, 24, 25]), med = U.int(12, 14), top = med + U.int(2, 4), k = U.int(1, 3), odd = n % 2 === 1;
+    const S = [
+      ['exact', `At least one member is exactly ${med} years old.`, odd ? 0 : 1],
+      ['younger', `Some members are younger than ${med - k}.`, 1],
+      ['max', `No member is older than ${top}.`, 0],
+      ['half', `At least half of the members are ${med} or older.`, 0],
+      ['older', `Some members are older than ${top}.`, 2],
+      ['allbelow', `Every member is younger than ${med}.`, 2],
+    ];
+    const pick3 = U.sample(S, 3);
+    if (new Set(pick3.map((x) => x[2])).size < 2) return mustCould();
+    return tag({ t: 'sort', q: `A club has ${n} members. The median age of the members is ${med}, and the oldest member is ${top}. Based on this information, how true is each statement?`, bins: TRUTHS, items: pick3.map(([, w, b]) => ({ w, b })), fig: Fig.table([['Members', 'Median age', 'Oldest'], [String(n), String(med), String(top)]]), meta: { kind: 'sortTruth', args: [n, med, top, k, pick3.map((x) => x[0])] }, hint: 'The median is the middle value when the ages are in order. With an even number of members, it is halfway between the two middle ages.', why: odd ? `With ${n} members (odd), the median ${med} is the age of the middle member, so someone must be ${med}.` : `With ${n} members (even), the median is halfway between the two middle ages, so no one has to be exactly ${med}.` }, 'S.ID.A.2', 226, 'func');
+  }
   function boxRead() {
     let F; do { const q1 = U.int(20, 40), md = q1 + U.int(3, 12), q3 = md + U.int(3, 12); F = [q1 - U.int(4, 15), q1, md, q3, q3 + U.int(4, 15)]; } while (F[0] < 5 || F[4] > 75);
     const ask = U.pick(['median', 'IQR', 'range']), v = ask === 'median' ? F[2] : ask === 'IQR' ? F[3] - F[1] : F[4] - F[0];
@@ -254,7 +280,7 @@ const MAP_NEW = [];
 
   MAP_NEW.push(
     { goal: 'real', id: 'signed', name: 'Signed numbers review', icon: '➖', levels: [
-      lv('Add and subtract integers', '7.NS.A.1', 'Grade 7 review: negatives on a number line.', [intAddSub]),
+      lv('Add and subtract integers', '7.NS.A.1 · 6.NS.C.6', 'Grade 7 review: negatives on a number line.', [intAddSub, quadSort]),
       lv('Multiply and divide', '7.NS.A.2', 'Signs and fractions.', [mulDiv, intAddSub]),
       lv('Order of operations', '7.NS.A.3', 'Powers, negatives, and parentheses.', [orderOps, mulDiv]),
     ] },
@@ -300,7 +326,7 @@ const MAP_NEW = [];
     ] },
     { goal: 'func', id: 'data2', name: 'Data displays', icon: '📦', levels: [
       lv('Box plots', 'S.ID.A.1', 'Median, IQR, and range.', [boxRead]),
-      lv('Two-way tables', 'S.ID.B.5', 'Joint and conditional fractions.', [twoWay, boxRead]),
+      lv('Two-way tables', 'S.ID.B.5 · S.ID.A.2', 'Joint and conditional fractions.', [twoWay, boxRead, mustCould]),
       lv('The correlation coefficient', 'S.ID.C.8', 'How close to a line?', [corrR, twoWay]),
     ] },
   );

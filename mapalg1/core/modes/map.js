@@ -75,7 +75,7 @@
         const missedWhere = {};
         run.answers.forEach((a) => { if (!a.ok) missedWhere[a.where] = (missedWhere[a.where] || 0) + 1; });
         const result = { id: Math.random().toString(36).slice(2, 10), kind: 'map', at: Date.now(), term: run.term, grade: M.grade, ...rep, secs,
-          fresh: run.answers.filter((a) => a.fresh).length, missedWhere, nearWhere: nearSkills(rep.rit) };
+          fresh: run.answers.filter((a) => a.fresh).length, missedWhere, nearWhere: nearSkills(rep.rit), slowdowns: Q.slowdowns || 0 };
         api.setP((p) => { p.tests = [...(p.tests || []), result]; });
         api.touchDay((d) => { d.rounds++; d.q += rep.n; d.correct += rep.correct; });
         api.save();
@@ -144,6 +144,7 @@
       <ul class="plain">${nextSteps(r) || `<li class="muted">Great work! Keep exploring the ${esc(api.LEVEL_NAMES[2].long)} levels.</li>`}</ul>
       <details class="fine"><summary>For grown-ups: how this is worked out</summary>
         <p>Time taken: ${fmtMin(r.secs)} (not shown during the test). ${r.fresh} of ${r.n} questions came from this app's own MAP-style skills.</p>
+        ${r.slowdowns ? `<p>🦥 Slow-down reminders: ${r.slowdowns} (answers given in under 3 seconds, twice in a row). Very fast answers can make the estimate too low; like the real MAP test, the reminder asks the student to take their time.</p>` : ''}
         <p>The band is an estimate from an adaptive practice test, on a RIT-like scale: each question has an estimated difficulty, and the test picks harder or easier questions after each answer. The band adds extra room because the difficulties are estimates. Percentiles are approximate, worked out from ${M.norms.fall.table ? 'the published percentile tables' : 'the published means and standard deviations'} in ${esc(M.normsSource)}.${M.normsNote ? ' ' + esc(M.normsNote) : ''} Goal-area ratings use NWEA's percentile bands (Low under 21, LoAvg 21–40, Avg 41–60, HiAvg 61–80, High over 80) but are based on far fewer questions, so treat them as a rough guide.</p>
         <p>${esc(APP.disclaimer)}</p></details>
       <div class="row"><button class="btn primary" data-act="nav" data-to="home">Done</button><button class="btn" data-act="nav" data-to="mapHistory">My growth</button></div>

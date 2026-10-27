@@ -65,7 +65,7 @@ const Voice = (() => {
       const intro = INTROS.length ? [INTROS[parseInt(cyrb53(les.rule).slice(-4), 36) % INTROS.length]] : [];
       return [...intro, les.rule, ...(les.ex ? [LINES.forExample, speakable(les.ex)] : [])];
     },
-    passage(p) { return [p.title, ...p.text.split('\n\n')]; },
+    passage(p) { return [p.title, ...p.text.replace(/[⟦⟧]/g, '').split('\n\n')]; },
     demoEnd(q) { return [q.why || q.hint || LINES.howTo, LINES.yourTurn]; },
   };
 

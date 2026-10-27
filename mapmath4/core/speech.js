@@ -9,7 +9,7 @@ const MathText = (() => {
 
   // TeX subset -> readable plain text (the fallback when KaTeX is not available).
   function plain(tex) {
-    return String(tex)
+    return String(tex).replace(/[⟦⟧]/g, '')
       .replace(/(\d)\s*\\frac/g, '$1 \\frac')
       .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '$1/$2')
       .replace(/\\sqrt\{([^{}]+)\}/g, '√($1)').replace(/√\((\w)\)/g, '√$1')
@@ -32,7 +32,7 @@ const MathText = (() => {
       }
       // plain-text powers outside ⟪…⟫ (x^{2}, 6^0, x^(2/3)) are shown raised, never as a caret. A spaced caret
       // ("r ^ (n − 1)", how to type it) is left alone.
-      return esc(seg).replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]+)\)/g, '<sup>$1</sup>').replace(/\^([−-]?\d+|[a-zA-Z])/g, '<sup>$1</sup>').replace(/\n/g, '<br>');
+      return esc(seg).replace(/⟦([^⟧]*)⟧/g, '<u>$1</u>').replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]+)\)/g, '<sup>$1</sup>').replace(/\^([−-]?\d+|[a-zA-Z])/g, '<sup>$1</sup>').replace(/\n/g, '<br>');
     }).join('');
   }
 
@@ -57,7 +57,7 @@ const MathText = (() => {
   // Text -> what the narrator should say, with numbers kept as tokens: "3/4", "27", "-5", "1 1/2", "3.25".
   const ALONE = { '>': 'greater than', '<': 'less than', '=': 'equal to', '≥': 'greater than or equal to', '≤': 'less than or equal to', '≠': 'not equal to' };
   function spoken(text) {
-    let t = String(text ?? '');
+    let t = String(text ?? '').replace(/[⟦⟧]/g, ''); // ⟦underlined⟧ text is read normally
     if (ALONE[t.trim()]) return ALONE[t.trim()]; // a comparison sign on its own (an answer choice)
     t = t.replace(/⟪([^⟫]+)⟫/g, (_, tex) => ' ' + tex
       .replace(/(\d)\s*\\frac/g, '$1 \\frac')
@@ -111,6 +111,8 @@ const MathText = (() => {
   // With speech.split (Grade 4+), decimals and fractions are said in short recorded pieces instead of one clip each:
   // "4.647" → 4 · point · 6 · 4 · 7, and "8 4/15" → 8 · and · 4 · fifteenths. 0–999 clips plus a few words cover them all.
   function splitNum(tok) {
+    // a negative number is said as "negative" + the number, so every negative is covered by the 0–999 clips
+    if (/^-/.test(tok)) return [{ text: 'negative' }, ...splitNum(tok.slice(1))];
     let m = tok.match(/^(\d+)\.(\d+)$/);
     if (m) return [{ num: m[1] }, { text: 'point' }, ...m[2].split('').map((d) => ({ num: d }))];
     m = tok.match(/^(?:(\d+) )?(\d+)\/(\d+)$/);

@@ -39,7 +39,7 @@ const SatCore = (() => {
       if (seen.has(key)) continue;
       seen.add(key);
       // One question per passage in a test (like the real SAT): items on the same text share a passage key.
-      const pkey = q.passage ? 'P:' + String(q.passage.text).replace(/\s+/g, ' ').trim().slice(-80) : null;
+      const pkey = q.passage ? 'P:' + String(q.passage.text).replace(/[⟦⟧]/g, '').replace(/\s+/g, ' ').trim().slice(-80) : null;
       pool.push({ q, b: q.b, c: guess(q), goal: q.goal, section: L.section, key, pkey, where: L.where });
     }
     return pool;

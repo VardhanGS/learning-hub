@@ -648,7 +648,20 @@ const Fig = (() => {
     return `<svg viewBox="0 0 ${W} 80" width="${W}" role="img" aria-label="Number line: x ${op} ${v}">${b}</svg>`;
   }
 
-  return { blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
+  // Several SVG pictures as answer choices labeled A–D (2 × 2 grid, or one column for wide pictures). Same layout
+  // as Algebra 1 Quest's choicesFig; shared so other apps (SAT graph choices) can use it.
+  function choices(svgs) {
+    const dims = svgs.map((sv) => { const vb = sv.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/); return [+vb[1], +vb[2]]; });
+    const wide = dims.every(([w, h]) => w / h > 3), cols = wide ? 1 : 2, cw = wide ? 400 : 200, chh = wide ? 112 : 210, iw = wide ? 360 : 186, ih = wide ? 90 : 176;
+    let body = '';
+    svgs.forEach((sv, i) => {
+      const [w, h] = dims[i], k = Math.min(iw / w, ih / h), col = i % cols, row = Math.floor(i / cols), x0 = col * cw, y0 = row * chh;
+      const ix = wide ? x0 + 30 + (iw - w * k) / 2 : x0 + (cw - w * k) / 2, iy = wide ? y0 + (chh - h * k) / 2 : y0 + 30 + (ih - h * k) / 2;
+      body += `<rect x="${x0 + 2}" y="${y0 + 2}" width="${cw - 6}" height="${chh - 6}" rx="12" class="pc-cell"/><text x="${x0 + 14}" y="${y0 + 26}" class="fg-text" font-size="18">${'ABCD'[i]}</text><g transform="translate(${ix} ${iy}) scale(${k})">${sv.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')}</g>`;
+    });
+    return `<svg viewBox="0 0 ${cols * cw} ${Math.ceil(svgs.length / cols) * chh}" width="${cols * cw}" role="img" aria-label="Choices ${'ABCD'.slice(0, svgs.length).split('').join(', ')}">${body}</svg>`;
+  }
+  return { choices, blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
     tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
     table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig, graph, ineqLine, boxPlot };
 })();
