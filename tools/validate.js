@@ -233,6 +233,8 @@ function checkItem(where, q, levelStd) {
   if (!q.fig && !(q.passage && q.passage.fig) && !['line', 'shade', 'clock', 'coins', 'hot', 'plot'].includes(q.t) && !(q.t === 'hot')) noFig++;
   // SAT passages have no title (like the real test); every other passage needs one
   if (q.passage && q.passage.title) titles.set(q.passage.title, true);
+  // Part B quotations "…" (Paragraph N) must appear word for word in paragraph N of the passage
+  if (q.passage && q.opts) q.opts.forEach((o) => { const m = String(o).match(/^“(.+)” \(Paragraph (\d+)\)$/); if (!m) return; const para = q.passage.text.split('\n\n')[+m[2] - 1]; if (!para || !para.replace(/\n/g, ' ').includes(m[1])) fail(where, q, `quotation is not in paragraph ${m[2]}`); });
   { const m = String(q.q).match(/"([^"]{3,60})"/g); if (m && q.passage) m.forEach((t) => quoted.push({ where, q, t: t.slice(1, -1), own: q.passage.title, text: q.passage.text })); }
   if (q.passage && ((!q.passage.title && !(ctx.APP.features && ctx.APP.features.sat)) || !q.passage.text || q.passage.text.length < 20)) fail(where, q, 'passage without a title or text');
   // answer-length bias: is the right answer the single longest choice?

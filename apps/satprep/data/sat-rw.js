@@ -66,7 +66,9 @@
   // ---- Text Structure and Purpose: function of one sentence, and the main purpose ----
   function tspItem(l) {
     const p = U.pick(atLv(PS, l)), f = p.fn;
-    return mk(`Which choice best describes the function of the ${ORD[f.i]} sentence in the text as a whole?`, f.a, f.w, { passage: passage(text(p)), fig: pic([p.icon]), why: f.a, hint: 'Ask what the sentence DOES for the passage: introduce, give evidence, contrast, conclude…' }, 'RI.TS.11–12.4', bAt(l), 'cs');
+    // like the official items, the sentence in question is underlined in the text
+    const marked = p.s.map((x, i) => (i === f.i ? `⟦${x}⟧` : x)).join(' ');
+    return mk('Which choice best describes the function of the underlined sentence in the text as a whole?', f.a, f.w, { passage: passage(marked), fig: pic([p.icon]), why: f.a, hint: 'Ask what the sentence DOES for the passage: introduce, give evidence, contrast, conclude…' }, 'RI.TS.11–12.4', bAt(l), 'cs');
   }
   // ---- Cross-Text Connections ----
   function ctcItem(l) {

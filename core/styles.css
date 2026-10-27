@@ -848,3 +848,8 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 
 /* raised powers in plain text (x<sup>2/3</sup>) must not make a line taller */
 sup { line-height: 0; font-size: 0.75em; vertical-align: super; }
+
+/* numbered paragraphs (MAP-style passages: "paragraph 4") and underlined parts of a text */
+.passage p.numbered { position: relative; padding-left: 1.8em; }
+.passage p.numbered::before { content: attr(data-n); position: absolute; left: 0; font-weight: 700; opacity: 0.6; }
+.passage u, .qtext u { text-decoration-thickness: 2px; text-underline-offset: 3px; }

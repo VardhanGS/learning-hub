@@ -663,7 +663,7 @@
         <div class="passage-head"><span class="kind">${esc(q.passage.kind)}</span>${!test || testAudio() ? '<button class="btn small" data-act="readPassage">🔊 Read to me</button>' : ''}</div>
         <h2>${esc(q.passage.title)}</h2>
         ${q.passage.fig ? `<div class="fig passage-fig">${q.passage.fig}</div>` : ''}
-        ${q.passage.text.split('\n\n').map((p) => `<p>${esc(p).replace(/^((?:Text|Article|Account|Scene|Letter from camp)[^\n:]{0,40}:[^\n]*)\n/, '<b>$1</b><br>').replace(/\n/g, '<br>')}</p>`).join('')}
+        ${q.passage.text.split('\n\n').map((p, pi) => `<p${q.passage.numbered ? ` class="numbered" data-n="${pi + 1}"` : ''}>${esc(p).replace(/⟦([^⟧]*)⟧/g, '<u>$1</u>').replace(/^((?:Text|Article|Account|Scene|Letter from camp)[^\n:]{0,40}:[^\n]*)\n/, '<b>$1</b><br>').replace(/\n/g, '<br>')}</p>`).join('')}
       </aside>` : '';
     return `
       <div class="quiz s-${color} ${test ? 'testmode' : ''}">
