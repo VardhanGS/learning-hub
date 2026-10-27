@@ -89,7 +89,7 @@
     return tag(U.mcMiss(`${a} ${op} ${b} = ?`, String(ans), w.map(([v, why]) => [String(v), why]), { fig, calc: level === 2 && op === '+', meta: { kind: 'expr', args: [`${a} ${op} ${b}`] }, hint: op === '×' ? `Multiply the tens, then the ones, and add.` : 'Line up the places. Regroup when you need to.', why: `${a} ${op} ${b} = ${ans}` }, 3, () => String(U.pick([-10, 10, -1, 1, 100].map((d) => ans + d).filter((v) => v > 0)))), [...['2.NBT.B.5', '2.NBT.B.7'], op === '×' ? '4.NBT.B.5' : '4.NBT.B.4'][level], [176, 190, 206][level], 'number');
   }
   function computeEntry(level) {
-    const a = level === 0 ? U.int(31, 92) : U.int(310, 930);
+    const a = level === 0 ? U.intWhere(31, 92, (v) => v % 10 <= 8) : U.intWhere(310, 930, (v) => v % 10 <= 8 || Math.floor(v / 10) % 10 <= 8); // so a regrouping partner exists
     const b = level === 0 ? U.intWhere(12, a - 8, (x) => x % 10 > a % 10) : U.intWhere(115, a - 30, (x) => x % 10 > a % 10 || Math.floor(x / 10) % 10 > Math.floor(a / 10) % 10);
     return tag(U.num(`Type the difference.\n${a} − ${b}`, a - b, { fig: level === 0 ? Fig.blocks(a) : Fig.placeChart([a, b], '−'), meta: { kind: 'expr', args: [`${a} − ${b}`] }, miss: missMap(MQ.subMisses(a, b), a - b), hint: 'Regroup when the top digit is smaller.', why: `${a} − ${b} = ${a - b}` }), level === 0 ? '2.NBT.B.5' : '2.NBT.B.7', level === 0 ? 182 : 194, 'number');
   }
@@ -181,6 +181,41 @@
     const ans = [x, y, x, p / z][form], meta = [[p, y], [p, x], [p, y], [p, z]][form];
     return tag(U.mcMiss(`What number makes this true?\n${shown}`, String(ans), [[String(p), `${p} is the product. Find the missing factor.`], [String(form === 3 ? p + z : p - (form === 1 ? x : y)), 'That subtracts or adds. Think of a multiplication fact instead.'], [String(ans + 1), `Check: ${ans + 1} in the box does not make it true.`]], { fig: Fig.picture(['✖️', '⚖️'], 'Both sides are the same amount'), meta: { kind: 'div', args: meta }, hint: form === 2 ? `Think: ${y} × □ = ${p}.` : form === 3 ? `${x} × ${y} = ${p}. What times ${z} is also ${p}?` : 'Which multiplication fact fits?', why: `${shown.replace('□', ans)} is true.` }, 3, () => ans + U.pick([-2, -1, 2, 3])), '3.OA.A.4', 194, 'algebra');
   }
+  // ---- formats seen in NWEA's Grade 2–5 practice items (patterns only) ----
+  // Money with the unit symbol: choose the number AND the ¢ or $ tile (2.M.C.8 "using $ and ¢ symbols appropriately").
+  function moneySymbol() {
+    const [k, he] = kid(), [i1, i2] = U.sample(['a pencil', 'a sticker', 'an eraser', 'a bookmark', 'a bouncy ball', 'a postcard'], 2);
+    const a = U.int(5, 49), b = U.int(3, 45), total = a + b;
+    if (total >= 100) return moneySymbol();
+    const lo = Math.max(1, total - U.int(2, 5)), tiles = [...Array(8).keys()].map((d) => String(lo + d)).concat(['$', '¢']);
+    return tag({ t: 'pop', q: `${k} buys ${i1} for ${a}¢ and ${i2} for ${b}¢. ${cap(he)} has no money left over. How much did ${he} pay in all? Tap a number and a symbol to fill the boxes.`, template: '□ □', tiles, accept: [[String(total), '¢']], fig: Fig.picture(['🛒', '🪙'], `${a}¢ + ${b}¢`), meta: { kind: 'popMoney', args: [a, b] }, hint: 'Add the two prices. An amount less than a dollar is written with the cent sign: ¢.', why: `${a}¢ + ${b}¢ = ${total}¢. Less than a dollar, so use ¢.` }, '2.M.C.8', 184, 'geometry');
+  }
+  // Find the mistake in a student's work (2.NBT.B.9: explain why addition and subtraction strategies work).
+  function findMistake() {
+    const [k, he] = kid(), add = U.pick([true, false]);
+    let a, b, shown, right, wrongs, why;
+    if (add) {
+      a = U.intWhere(15, 68, (v) => v % 10 >= 2); b = U.intWhere(12, 89 - a, (x) => (a % 10) + (x % 10) >= 10);
+      shown = (Math.floor(a / 10) + Math.floor(b / 10)) * 10 + ((a + b) % 10); // forgot to regroup the ten
+      right = `${cap(he)} did not regroup 10 ones as 1 more ten.`;
+      wrongs = [`${cap(he)} added the tens before the ones.`, `${cap(he)} subtracted instead of adding.`, `${cap(he)} added an extra hundred.`];
+      why = `${a % 10} + ${b % 10} = ${(a % 10) + (b % 10)} ones: that is 1 ten and ${((a + b) % 10)} ones. The 1 ten must be added to the tens, so the sum is ${a + b}, not ${shown}.`;
+    } else {
+      a = U.intWhere(41, 95, (v) => v % 10 <= 7); b = U.intWhere(12, a - 10, (x) => x % 10 > a % 10 && Math.floor(x / 10) < Math.floor(a / 10));
+      shown = (Math.floor(a / 10) - Math.floor(b / 10)) * 10 + ((b % 10) - (a % 10)); // took the smaller digit from the bigger
+      right = `${cap(he)} subtracted the smaller ones digit from the bigger one instead of regrouping 1 ten as 10 ones.`;
+      wrongs = [`${cap(he)} added instead of subtracting.`, `${cap(he)} forgot to subtract the tens.`, `${cap(he)} subtracted the tens before the ones.`];
+      why = `${a % 10} ones is less than ${b % 10} ones, so regroup 1 ten as 10 ones: ${10 + (a % 10)} − ${b % 10} = ${10 + (a % 10) - (b % 10)}. The answer is ${a - b}, not ${shown}.`;
+    }
+    const op = add ? '+' : '−';
+    return tag(U.mc(`${k} solved ${a} ${op} ${b} and got ${shown}. What mistake did ${he} make?`, right, wrongs, { fig: Fig.table([['', `${Math.floor(a / 10)} tens`, `${a % 10} ones`], [op, `${Math.floor(b / 10)} tens`, `${b % 10} ones`], [`${k}'s answer`, String(Math.floor(shown / 10)), String(shown % 10)]], `${k}'s work`), meta: { kind: 'mistake', args: [add ? 'add' : 'sub', a, b, shown] }, hint: add ? 'Add the ones first. Is the sum 10 or more?' : 'Can you take the ones away without regrouping?', why }), '2.NBT.B.9', 190, 'number');
+  }
+  // Sort numbers into even and odd (2.OA.C.3), the tap-to-sort format.
+  function sortParity() {
+    const nums = U.sample([...Array(19).keys()].map((x) => x + 2), 6);
+    if (nums.every((n) => n % 2) || nums.every((n) => n % 2 === 0)) return sortParity();
+    return tag({ t: 'sort', q: 'Sort the numbers. Is each one even or odd?', bins: ['Even', 'Odd'], items: nums.map((n) => ({ w: String(n), b: n % 2 })), fig: Fig.picture(['🧦', '🧦'], 'Even: every item has a partner'), meta: { kind: 'sortParity', args: [] }, hint: 'Even numbers can be made of pairs. Look at the ones digit: 0, 2, 4, 6, 8.', why: `Even: ${nums.filter((n) => !(n % 2)).join(', ')}. Odd: ${nums.filter((n) => n % 2).join(', ')}.` }, '2.OA.C.3', 172, 'algebra');
+  }
   function storyEquation() {
     const [k, he] = kid(), t = thing(), a = U.int(12, 60), b = U.int(5, 30);
     const kind = U.pick(['gain', 'lose', 'start']);
@@ -270,7 +305,7 @@
       lv('Value, order, and forms', '2.NBT.A.1 · 2.NBT.A.3 · 2.NBT.A.4', 'What is a digit worth?', [digitValue, orderPop, buildNumberPop]),
       lv('Closest hundred and big numbers', '3.NBT.A.1', 'Rounding with a number line.', [closestHundred, orderPop]) ] },
     { goal: 'number', id: 'mcomp', name: 'Computation', icon: '🧮', levels: [
-      lv('Two-digit adding and subtracting', '2.NBT.B.5', 'Choose or type the answer.', [() => computeMC(0), () => computeEntry(0)]),
+      lv('Two-digit adding and subtracting', '2.NBT.B.5 · 2.NBT.B.9', 'Choose or type the answer.', [() => computeMC(0), () => computeEntry(0), findMistake]),
       lv('Three-digit adding and subtracting', '2.NBT.B.7', 'Regroup across places.', [() => computeMC(1), () => computeEntry(1)]),
       lv('Bigger numbers and multiplying', '4.NBT.B.4 · 4.NBT.B.5', 'A peek at Grade 4.', [() => computeMC(2)]) ] },
     { goal: 'number', id: 'mfrac', name: 'Fractions', icon: '🍰', levels: [
@@ -282,7 +317,7 @@
       lv('Balance the equation', '2.OA.B.2', 'The = sign means "the same as".', [balance, () => trueEquations(1), makeTruePop]),
       lv('Equations for stories and unknown factors', '2.OA.A.1 · 3.OA.A.4', 'Which equation fits? What is missing?', [storyEquation, mulUnknown, mulUnknown]) ] },
     { goal: 'algebra', id: 'mpat', name: 'Patterns & rules', icon: '🔁', levels: [
-      lv('Input and output', '2.OA.B.2', 'Find the rule, fill the table.', [() => ioTable(0)]),
+      lv('Input and output', '2.OA.B.2 · 2.OA.C.3', 'Find the rule, fill the table.', [() => ioTable(0), sortParity]),
       lv('Rules and patterns', '3.OA.D.9', 'How does it grow?', [() => ioTable(1), ruleMC]),
       lv('Multiplying rules', '3.OA.D.9', 'Tables that multiply.', [() => ioTable(2), ruleMC]) ] },
     { goal: 'algebra', id: 'mstory', name: 'Story problems', icon: '📘', levels: [
@@ -294,7 +329,7 @@
       lv('Sort shapes', '2.G.A.1', 'More shapes to tap.', [() => shapesHot(1)]),
       lv('Quadrilaterals', '3.G.A.1', 'Rectangles, rhombuses, squares.', [() => shapesHot(2)]) ] },
     { goal: 'geometry', id: 'mmeas', name: 'Measure, time & money', icon: '⏱️', levels: [
-      lv('Time, money, estimates', '2.M.A.3 · 2.M.C.7 · 2.M.C.8', 'Everyday measuring.', [() => clockMC(0), moneyMC, estimateLength]),
+      lv('Time, money, estimates', '2.M.A.3 · 2.M.C.7 · 2.M.C.8', 'Everyday measuring.', [() => clockMC(0), moneyMC, estimateLength, moneySymbol]),
       lv('Perimeter and time to the minute', '3.M.A.1 · 3.M.C.6', 'Around the shape.', [() => perimeterArea(0), () => clockMC(1)]),
       lv('Area and perimeter', '3.M.B.5 · 3.M.C.6', 'Inside and around.', [() => perimeterArea(1), () => perimeterArea(2)]) ] },
     { goal: 'geometry', id: 'mdata', name: 'Data', icon: '📊', levels: [

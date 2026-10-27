@@ -343,13 +343,14 @@ function checkItem(where, q, levelStd) {
       const has = (s) => ({ quad: SIDES[s] === 4, 'square corners': ['square', 'rectangle'].includes(s), '3 sides': SIDES[s] === 3, '4 sides': SIDES[s] === 4, '5 vertices': SIDES[s] === 5, '4 vertices': SIDES[s] === 4, 'more than 4 sides': SIDES[s] > 4, '6 sides': SIDES[s] === 6, 'no straight sides': s === 'circle' }[prop]);
       names.forEach((s, i) => { if (has(s) !== q.a.includes(i)) fail(where, q, `${s} marked wrong for "${prop}"`); });
       if (q.cells.length !== names.length) fail(where, q, 'pictures and names differ');
-    } else if (kind === 'popPlace' || kind === 'popOrder' || kind === 'popEq' || kind === 'popExpanded') {
+    } else if (kind === 'popPlace' || kind === 'popOrder' || kind === 'popEq' || kind === 'popExpanded' || kind === 'popMoney') {
       // Try every way to fill the boxes from the tiles: the accepted fills must be exactly the correct ones.
       const k = (q.template.match(/□/g) || []).length, fills = [];
       const go = (cur, used) => { if (cur.length === k) { fills.push(cur); return; } q.tiles.forEach((t, i) => { if (!used.has(i)) go([...cur, t], new Set([...used, i])); }); };
       go([], new Set());
       const correct = (vals) => {
         if (kind === 'popPlace') return +vals[0] * 100 + +vals[1] * 10 + +vals[2] === args[0];
+        if (kind === 'popMoney') return vals[0] === String(args[0] + args[1]) && vals[1] === (args[0] + args[1] < 100 ? '¢' : '$');
         if (kind === 'popOrder') return vals.map((v) => +String(v).replace(/,/g, '')).join(',') === [...args[0]].sort((a, b) => a - b).join(',');
         if (kind === 'popExpanded') { const ns = vals.map((v) => +String(v).replace(/,/g, '')); return ns.reduce((t, v) => t + v, 0) === args[0] && ns.every((v, i) => i === 0 || v < ns[i - 1]) && ns.every((v) => /^[1-9]0*$/.test(String(v))); }
         let j = 0; const eq = q.template.replace(/□/g, () => vals[j++]); const [l, r] = eq.split(' = '); return ev(l) === ev(r);
@@ -358,6 +359,18 @@ function checkItem(where, q, levelStd) {
       fills.forEach((f) => { if (correct(f) !== acc.has(f.join('|'))) fail(where, q, `fill ${f.join(',')} is ${correct(f) ? 'right' : 'wrong'} but marked the other way`); });
       if (!q.accept.length) fail(where, q, 'no accepted answer');
       q.accept.forEach((acc) => { const left = [...q.tiles]; acc.forEach((v) => { const i = left.indexOf(v); if (i < 0) fail(where, q, `accepted answer ${acc.join(',')} cannot be built from the tiles`); else left.splice(i, 1); }); });
+    } else if (kind === 'mistake') {
+      // the shown wrong answer must really come from that mistake, and must differ from the right answer
+      const [op, a, b, shown] = args, right = op === 'add' ? a + b : a - b;
+      const fromMistake = op === 'add' ? (Math.floor(a / 10) + Math.floor(b / 10)) * 10 + ((a + b) % 10) : (Math.floor(a / 10) - Math.floor(b / 10)) * 10 + Math.abs((a % 10) - (b % 10));
+      if (shown === right || shown !== fromMistake) fail(where, q, `shown answer ${shown} is not the result of the described mistake (right ${right})`);
+      if (!/regroup/.test(q.a)) fail(where, q, 'the right explanation must name the regrouping mistake');
+    } else if (kind === 'sortParity') {
+      q.items.forEach((it) => { if ((+it.w % 2) !== it.b) fail(where, q, `${it.w} sorted into the wrong bin`); });
+    } else if (kind === 'sortQuad') {
+      q.items.forEach((it) => { const [x, y] = it.w.replace(/[()−]/g, (c) => (c === '−' ? '-' : '')).split(',').map(Number), qd = x > 0 ? (y > 0 ? 0 : 3) : (y > 0 ? 1 : 2); if (qd !== it.b) fail(where, q, `${it.w} is in quadrant ${qd + 1}`); });
+    } else if (kind === 'sortTruth') {
+      const [cases] = args; q.items.forEach((it, i) => { if (cases[i] !== it.b) fail(where, q, `statement ${i + 1} sorted wrong`); });
     } else if (kind === 'hotPred') {
       const [pred, param, values] = args;
       if (values.length !== q.cells.length) fail(where, q, 'values and cells differ');
@@ -539,6 +552,7 @@ function checkItem(where, q, levelStd) {
   }
 }
 
+const whereMiss = new Map(); // levels where U.intWhere found no number that fits (it then returns its lower bound)
 const levels = [];
 for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => levels.push({ s, k, L, l }));
 if (!levels.length) { console.log('No levels found.'); process.exit(1); }
@@ -548,8 +562,10 @@ for (const { s, k, L, l } of levels) {
   if (!LESSONS[`${k.id}.${l}`]) errors.push(`${where}: no "Watch first" lesson (LESSONS['${k.id}.${l}'])`);
   let n = 0, rounds = 0;
   while (n < per) {
+    const m0 = ctx.U.whereMisses || 0;
     const round = L.gen({});
     rounds++;
+    if ((ctx.U.whereMisses || 0) > m0) whereMiss.set(where, (whereMiss.get(where) || 0) + 1);
     if (round.length < 6) errors.push(`${where}: a round had only ${round.length} questions`);
     const keys = round.map((q) => ctx.U.qkey(q));
     if (new Set(keys).size !== keys.length) errors.push(`${where}: repeated question in one round`);
@@ -562,6 +578,7 @@ for (const { s, k, L, l } of levels) {
 
 // a question that names another passage's title cannot be answered from the passage on screen
 for (const x of quoted) if (titles.has(x.t) && x.t !== x.own && !String(x.text).includes(x.t)) fail(x.where, x.q, `question refers to another passage, "${x.t}"`);
+for (const [w, n] of whereMiss) errors.push(`${w}: U.intWhere found no fitting number in ${n} round(s) and fell back to its lower bound (a condition was silently not met)`);
 for (const [k, g] of groups) errors.push(`${k} (${g.n}×)\n      e.g. ${g.ex}`);
 console.log(`${appId}: ${total.toLocaleString()} items from ${levels.length} levels · ${Object.entries(types).map(([t, c]) => `${t} ${c}`).join(', ')}`);
 if (errors.length) {

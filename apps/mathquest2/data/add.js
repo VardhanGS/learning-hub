@@ -45,21 +45,21 @@
 
   // ---------- Add & subtract within 100 ----------
   function addNoRegroup() {
-    const a = U.int(11, 87), b = U.intWhere(2, 99 - a, (x) => ones(a) + ones(x) < 10 && x % 10 !== 0);
+    const a = U.intWhere(11, 87, (v) => v % 10 <= 8), b = U.intWhere(2, 99 - a, (x) => ones(a) + ones(x) < 10 && x % 10 !== 0); // ones 9 has no partner without regrouping
     return tag(U.num(`${a} + ${b} = ?`, a + b, { meta: { kind: 'add', args: [a, b] }, hint: 'Add the ones first. Then add the tens.', why: `${a} + ${b} = ${a + b}`, fig: Fig.addBlocks(a, b), miss: missMap(addMisses(a, b), a + b) }), '2.NBT.B.5', 172, 'number');
   }
   function subNoRegroup() {
-    const a = U.int(25, 98), b = U.intWhere(11, a - 5, (x) => ones(x) <= ones(a) && x % 10 !== 0);
+    const a = U.intWhere(25, 98, (v) => v % 10 >= 1), b = U.intWhere(11, a - 5, (x) => ones(x) <= ones(a) && x % 10 !== 0);
     return tag(U.num(`${a} − ${b} = ?`, a - b, { fig: Fig.blocks(a), meta: { kind: 'sub', args: [a, b] }, hint: 'Subtract the ones. Then subtract the tens.', why: `${a} − ${b} = ${a - b}`, miss: missMap(subMisses(a, b), a - b) }), '2.NBT.B.5', 174, 'number');
   }
   function addRegroup(asMC) {
-    const a = U.int(15, 79), b = U.intWhere(12, 99 - a, (x) => ones(a) + ones(x) >= 10 && x % 10 !== 0);
+    const a = U.intWhere(15, 79, (v) => v % 10 >= 1), b = U.intWhere(12, 99 - a, (x) => ones(a) + ones(x) >= 10 && x % 10 !== 0);
     const extra = { fig: Fig.addBlocks(a, b), meta: { kind: 'add', args: [a, b] }, hint: 'Add the ones. If there are 10 or more, regroup 10 ones as 1 ten.', why: `${ones(a)} + ${ones(b)} = ${ones(a) + ones(b)} ones → 1 ten and ${pl(ones(a) + ones(b) - 10, 'one')}. ${a} + ${b} = ${a + b}.` };
     if (asMC) return tag(U.mcMiss(`${a} + ${b} = ?`, a + b, addMisses(a, b), extra, 3, () => a + b + U.pick([-2, -1, 1, 2, 9, 11])), '2.NBT.B.5', 184, 'number');
     return tag(U.num(`${a} + ${b} = ?`, a + b, { ...extra, miss: missMap(addMisses(a, b), a + b) }), '2.NBT.B.5', 185, 'number');
   }
   function subRegroup(asMC) {
-    const a = U.int(31, 98), b = U.intWhere(12, a - 6, (x) => ones(x) > ones(a) && x % 10 !== 0);
+    const a = U.intWhere(31, 98, (v) => v % 10 <= 8), b = U.intWhere(12, a - 6, (x) => ones(x) > ones(a) && x % 10 !== 0);
     const extra = { fig: Fig.blocks(a), meta: { kind: 'sub', args: [a, b] }, hint: `${ones(a)} is less than ${ones(b)}. Regroup 1 ten as 10 ones first.`, why: `${a} − ${b} = ${a - b}` };
     if (asMC) return tag(U.mcMiss(`${a} − ${b} = ?`, a - b, subMisses(a, b), extra, 3, () => a - b + U.pick([-2, -1, 1, 2, 9, 11])), '2.NBT.B.5', 187, 'number');
     return tag(U.num(`${a} − ${b} = ?`, a - b, { ...extra, miss: missMap(subMisses(a, b), a - b) }), '2.NBT.B.5', 188, 'number');
@@ -71,10 +71,10 @@
   }
   function grade3AddSub() {
     if (U.pick([true, false])) {
-      const a = U.int(208, 689), b = U.intWhere(115, 999 - a, (x) => ones(a) + ones(x) >= 10 && x % 10 !== 0);
+      const a = U.intWhere(208, 689, (v) => v % 10 >= 1), b = U.intWhere(115, 999 - a, (x) => ones(a) + ones(x) >= 10 && x % 10 !== 0);
       return tag(U.num(`${a} + ${b} = ?`, a + b, { fig: Fig.placeChart([a, b], '+'), meta: { kind: 'add', args: [a, b] }, hint: 'Line up hundreds, tens, and ones. Regroup when a place has 10 or more.', why: `${a} + ${b} = ${a + b}`, miss: missMap(addMisses(a, b), a + b) }), '3.NBT.A.2', 195, 'number');
     }
-    const a = U.int(302, 951), b = U.intWhere(118, a - 25, (x) => ones(x) > ones(a));
+    const a = U.intWhere(302, 951, (v) => v % 10 <= 8), b = U.intWhere(118, a - 25, (x) => ones(x) > ones(a));
     return tag(U.mcMiss(`${a} − ${b} = ?`, a - b, subMisses(a, b), { fig: Fig.placeChart([a, b], '−'), meta: { kind: 'sub', args: [a, b] }, hint: `${ones(a)} is less than ${ones(b)}, so regroup 1 ten as 10 ones first.`, why: `${a} − ${b} = ${a - b}` }, 3, () => a - b + U.pick([-100, 100, -1, 1])), '3.NBT.A.2', 198, 'number');
   }
 
@@ -92,10 +92,10 @@
   }
   function threeDigit(op) {
     if (op === 'add') {
-      const a = U.int(118, 587), b = U.intWhere(105, 999 - a, (x) => ones(a) + ones(x) >= 10 || MQ.tens(a) + MQ.tens(x) >= 10);
+      const a = U.intWhere(118, 587, (v) => v % 10 >= 1 || MQ.tens(v) >= 1), b = U.intWhere(105, 999 - a, (x) => ones(a) + ones(x) >= 10 || MQ.tens(a) + MQ.tens(x) >= 10);
       return tag(U.num(`${a} + ${b} = ?`, a + b, { fig: Fig.placeChart([a, b], '+'), meta: { kind: 'add', args: [a, b] }, hint: 'Add ones, then tens, then hundreds. Regroup when a place has 10 or more.', why: `${a} + ${b} = ${a + b}`, miss: missMap(addMisses(a, b), a + b) }), '2.NBT.B.7', 190, 'number');
     }
-    const a = U.int(312, 985), b = U.intWhere(108, a - 30, (x) => ones(x) > ones(a) || MQ.tens(x) > MQ.tens(a));
+    const a = U.intWhere(312, 985, (v) => v % 10 <= 8 || MQ.tens(v) <= 8), b = U.intWhere(108, a - 30, (x) => ones(x) > ones(a) || MQ.tens(x) > MQ.tens(a));
     return tag(U.mcMiss(`${a} − ${b} = ?`, a - b, subMisses(a, b), { fig: Fig.placeChart([a, b], '−'), meta: { kind: 'sub', args: [a, b] }, hint: 'Start with the ones. If the top digit is smaller, regroup from the next place.', why: `${a} − ${b} = ${a - b}` }, 3, () => a - b + U.pick([-10, 10, -100, 100])), '2.NBT.B.7', 192, 'number');
   }
   function estimate() {

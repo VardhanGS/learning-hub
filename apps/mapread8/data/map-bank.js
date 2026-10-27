@@ -87,7 +87,7 @@ const MAPBANK = (() => {
     return { ...k, fresh: false, goal, levels: k.levels.map((L, l) => {
       const tagIt = (q0) => { const q = longer(q0); return { ...q, goal, std: q.std || L.std, rit: BASE[l] + (TAG_OFFSET[q.tag] ?? 0), passage: q.passage ? { ...q.passage, fig: figFor(q) } : q.passage, fig: q.passage ? q.fig : (q.fig || figFor(q)) }; };
       // ELA Quest rounds have 5–6 questions; keep drawing until a round has 8.
-      const gen = () => { const seen = new Set(), out = []; for (let t = 0; t < 12 && out.length < 8; t++) L.gen({}).forEach((q) => { const key = q.q + q.a; if (!seen.has(key)) { seen.add(key); out.push(q); } }); return out.map(tagIt); };
+      const gen = () => { const seen = new Set(), out = []; for (let t = 0; t < 40 && out.length < 8; t++) L.gen({}).forEach((q) => { const key = q.q + q.a; if (!seen.has(key)) { seen.add(key); out.push(q); } }); return out.map(tagIt); };
       const all = () => { const seen = new Set(), out = []; for (let r = 0; r < 30; r++) L.gen({}).forEach((q) => { const key = q.q + q.a + (q.passage ? q.passage.title : ''); if (!seen.has(key)) { seen.add(key); out.push(tagIt(q)); } }); return out; };
       return { ...L, gen, all };
     }) };
