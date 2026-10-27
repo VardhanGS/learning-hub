@@ -11,7 +11,7 @@ window.APP = {
   firebase: { apiKey: 'AIzaSyC5LJI3n6mcb7aG8oR7pyQFvG9UA0E_CSo', projectId: 'ela-quest', appId: '' }, // not registered yet
   tracks: {
     g2: {
-      label: 'Grades 1–2 puzzles', short: 'Grade 2', ready: 'the Grades 3–4 puzzles',
+      label: 'Grades 1–2 puzzles', short: 'Grade 2', ready: 'Grades 3–4',
       levels: [
         { short: 'Base Camp', grade: 'Grades 1–2', long: 'Base Camp' },
         { short: 'Ridge', grade: 'Grades 1–2', long: 'Ridge' },

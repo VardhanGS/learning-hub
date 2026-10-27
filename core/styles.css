@@ -331,8 +331,8 @@ p { margin: 0; }
 .tapw.sel { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, var(--surface)); }
 .big-input { font-size: 1.4rem; text-align: center; }
 
-.steps { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-.step-list { margin: 0; padding: 10px 14px 10px 34px; border-radius: 14px; background: color-mix(in srgb, var(--gold) 10%, var(--surface)); border: 2px dashed color-mix(in srgb, var(--gold) 55%, var(--surface)); display: flex; flex-direction: column; gap: 6px; }
+.hint-steps { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; width: 100%; }
+.step-list { align-self: stretch; box-sizing: border-box; margin: 0; padding: 10px 14px 10px 34px; border-radius: 14px; background: color-mix(in srgb, var(--gold) 10%, var(--surface)); border: 2px dashed color-mix(in srgb, var(--gold) 55%, var(--surface)); display: flex; flex-direction: column; gap: 6px; }
 .step-list li { line-height: 1.45; }
 .fb { border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; border: 2px solid; }
 .fb b { font-family: var(--f-display); font-size: 1.15rem; font-weight: 600; }

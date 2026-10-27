@@ -19,6 +19,9 @@ const PZ = (() => {
   const frac = (n, d) => { const g = gcd(n, d); return d / g === 1 ? String(n / g) : `${n / g}/${d / g}`; };
   const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const COLORS = { r: 'red', g: 'green', b: 'blue', y: 'yellow', p: 'purple' };
+  const ord = (n) => `${n}${[11, 12, 13].includes(n % 100) ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
+  const sq = (k) => `${k}-by-${k}`; // "2-by-2": clearer than 2 × 2 for young children
+  const sing = (w) => w.replace(/s$/, '');
   const core = (fam, params, x) => ({ meta: { kind: 'pz', args: [fam, params] }, wrongs: [], ...x });
 
   // ---------- counting squares in a grid ----------
@@ -29,18 +32,18 @@ const PZ = (() => {
     const total = bySize.reduce((s, v) => s + v, 0);
     if (m >= 2 && Math.random() < 0.35) { // one size only: "how many 2 × 2 squares?"
       const k = d <= 4 ? 2 : U.int(2, m), cnt = bySize[k - 1];
-      return core('squares', [a, b, k], { q: `How many ${k} × ${k} squares can you find in this ${a} by ${b} grid? (They may overlap.)`, a: cnt, fig: Fig.rect(a, b, { grid: true }),
-        why: `A ${k} × ${k} square fits in ${b - k + 1} places across and ${a - k + 1} places down: ${b - k + 1} × ${a - k + 1} = ${cnt}.`,
-        wrongs: [[Math.floor(a / k) * Math.floor(b / k), 'The squares may overlap: slide the frame one square at a time.'], [a * b, 'That counts the small 1 × 1 squares.'], [cnt + 1, 'Check the last place the frame fits.'], [total, 'That counts every size.']],
-        steps: [`Put a ${k} × ${k} frame in the top-left corner.`, 'Slide it one square at a time to the right. How many places does it fit in a row?', 'How many rows of places are there? Multiply.'] });
+      return core('squares', [a, b, k], { q: `How many ${sq(k)} squares can you find in this ${a} by ${b} grid? (They may overlap.)`, a: cnt, fig: Fig.rect(b, a, { grid: true }),
+        why: `A ${sq(k)} square fits in ${pl(b - k + 1, 'place')} across and ${pl(a - k + 1, 'place')} down: ${b - k + 1} × ${a - k + 1} = ${cnt}.`,
+        wrongs: [[Math.floor(a / k) * Math.floor(b / k), 'The squares may overlap: slide the frame one square at a time.'], [a * b, 'That counts the small 1-by-1 squares.'], [cnt + 1, 'Check the last place the frame fits.'], [total, 'That counts every size.']],
+        steps: [`Put a ${sq(k)} frame in the top-left corner.`, 'Slide it one square at a time to the right. How many places does it fit in a row?', 'How many rows of places are there? Multiply.'] });
     }
-    const list = bySize.map((v, i) => `${pl(v, `${i + 1} × ${i + 1} square`)}`).join(', ');
+    const list = bySize.map((v, i) => `${sq(i + 1)} squares: ${v}`).join('; ');
     return core('squares', [a, b], {
-      q: `How many squares of any size are in this ${a} by ${b} grid?`, a: total, fig: Fig.rect(a, b, { grid: true }),
+      q: `How many squares of any size are in this ${a} by ${b} grid?`, a: total, fig: Fig.rect(b, a, { grid: true }),
       why: `Count by size: ${list}. In all: ${bySize.join(' + ')} = ${total}.`,
-      wrongs: [[a * b, `That counts only the small 1 × 1 squares. Bigger squares are made of several small ones.`], [a * b + 1, 'That counts the small squares and the whole grid, but misses the middle sizes.'],
-        [total - bySize[bySize.length - 1], `That misses the biggest squares (${m} × ${m}).`], [total + 1, 'Check each size again: one square was counted twice.']],
-      steps: [`Count the small 1 × 1 squares first: ${a} rows of ${b}.`, `Now count the 2 × 2 squares. Slide a 2 × 2 frame across a row: how many places does it fit? How many rows?`, `Keep going with each bigger size, up to ${m} × ${m}, and add all the sizes together.`],
+      wrongs: [[a * b, `That counts only the small 1-by-1 squares. Bigger squares are made of several small ones.`], [a * b + 1, 'That counts the small squares and the whole grid, but misses the middle sizes.'],
+        [total - bySize[bySize.length - 1], `That misses the biggest squares (${sq(m)}).`], [total + 1, 'Check each size again: one square was counted twice.']],
+      steps: [`Count the small 1-by-1 squares first: ${a} rows of ${b}.`, `Now count the 2-by-2 squares. Slide a 2-by-2 frame across a row: how many places does it fit? How many rows?`, m > 2 ? `Keep going with each bigger size, up to ${sq(m)}, and add all the sizes together.` : 'Add the two sizes together.'],
     });
   }
   // ---------- counting rectangles ----------
@@ -95,15 +98,15 @@ const PZ = (() => {
     if (d >= 4) {
       const n = d === 4 ? R(40, 70) : R(80, 200), ans = DAYS[(first + n - 1) % 7];
       return core('dayN', [first, n], { q: `Day 1 of a long school project is a ${DAYS[first]}. What day of the week is day ${n} of the project?`, a: ans, opts: DAYS, fig: Fig.calendar(first, 28, { 1: '★' }, 'Day 1 is starred'),
-        why: `Every 7 days the weekday repeats. Day ${n} is ${n - 1} days after day 1, and ${n - 1} ÷ 7 = ${Math.floor((n - 1) / 7)} remainder ${(n - 1) % 7}. Count ${(n - 1) % 7} days on from ${DAYS[first]}: ${ans}.`,
+        why: `Every 7 days the weekday repeats. Day ${n} is ${n - 1} days after day 1, and ${n - 1} ÷ 7 = ${Math.floor((n - 1) / 7)} remainder ${(n - 1) % 7}. Count ${pl((n - 1) % 7, 'day')} on from ${DAYS[first]}: ${ans}.`,
         wrongs: [[DAYS[(first + n) % 7], 'Day 1 is the starting day, so count n − 1 days after it, not n.'], [DAYS[(first + n - 2) % 7], 'Check the remainder: count on one more day.']],
         steps: ['The days of the week repeat every 7 days.', `How many days after day 1 is day ${n}? Divide that by 7 and look at the remainder.`] });
     }
     const days = R(28, 31), n = d === 0 ? R(8, 14) : d === 1 ? R(15, 22) : R(23, days), ans = DAYS[(first + n - 1) % 7];
-    return core('dayOf', [first, n], { q: `In this month, the 1st is a ${DAYS[first]}. What day of the week is the ${n}${['th', 'st', 'nd', 'rd'][n % 10 > 3 || [11, 12, 13].includes(n) ? 0 : n % 10]}?`, a: ans, opts: DAYS, fig: Fig.calendar(first, days, { [n]: '?' }),
-      why: `Every 7 days the weekday comes back. The 1st, ${[8, 15, 22, 29].filter((x) => x <= n).join(', ')} are all ${DAYS[first]}s. Count on from there to the ${n}: ${ans}.`,
+    return core('dayOf', [first, n], { q: `In this month, the 1st is a ${DAYS[first]}. What day of the week is the ${ord(n)}?`, a: ans, opts: DAYS, fig: Fig.calendar(first, days, { [n]: '?' }),
+      why: `Every 7 days the weekday comes back. The ${[1, 8, 15, 22, 29].filter((x) => x <= n).map(ord).join(', ').replace(/, ([^,]*)$/, ' and $1')} are all ${DAYS[first]}s. Count on from there to the ${ord(n)}: ${ans}.`,
       wrongs: [[DAYS[(first + n) % 7], 'Count again: the 1st is day one, so you count n − 1 days after it.'], [DAYS[(first + n - 2) % 7], 'Count on one more day.']],
-      steps: [`The 1st, 8th, 15th, 22nd and 29th are all the same weekday. Why?`, `Find the one of those just before the ${n}, then count on.`] });
+      steps: [`The 1st, 8th, 15th, 22nd and 29th are all the same weekday. Why?`, `Find the one of those just before the ${ord(n)}, then count on.`] });
   }
   // ---------- balances ----------
   const FRUIT = ['🍎', '🍐', '🍊', '🍋', '🍓', '🥝'];
@@ -124,7 +127,12 @@ const PZ = (() => {
         steps: [`Use the first scale to find what one ${X} weighs.`, `On the second scale, swap each ${X} for its weight.`, m === 1 ? `Now read off what one ${Y} weighs.` : `That is the weight of ${m} ${Y}. Share it.`] });
     }
     if (d <= 5) {
-      const x = R(2, 9), y = R(2, 9) + (d >= 4 ? R(0, 6) : 0), S = x + y, T = 2 * x + y;
+      const x = R(2, 9), y = R(2, 9) + (d >= 4 ? R(0, 6) : 0), S = x + y, T = 2 * x + y, askY = d >= 4 && Math.random() < 0.5;
+      if (askY) return core('bal3', [S, T, 'y'], { q: `Both scales are balanced. How much does one ${Y} weigh?`, a: y,
+        fig: Fig.pair(Fig.balance([X, Y], [String(S)]), Fig.balance([X, X, Y], [String(T)])),
+        why: `The second scale has one more ${X} than the first and weighs ${T} − ${S} = ${x} more, so one ${X} weighs ${x}. Then on the first scale, ${Y} = ${S} − ${x} = ${y}.`,
+        wrongs: [[x, `That is the ${X}. One more step!`], [S, `That is ${X} and ${Y} together.`], [T - S, `That is the ${X}.`], [T - x, 'Use the first scale for the last step.'], [y + 1, 'Check: does the first scale balance?']].filter(([v]) => v !== y && v > 0),
+        steps: ['Compare the two scales. What is on the second one that is not on the first?', `That tells you what one ${X} weighs.`, `Now use the first scale to find the ${Y}.`] });
       return core('bal3', [S, T], { q: `Both scales are balanced. How much does one ${X} weigh?`, a: x,
         fig: Fig.pair(Fig.balance([X, Y], [String(S)]), Fig.balance([X, X, Y], [String(T)])),
         why: `The second scale has one more ${X} than the first, and it weighs ${T} − ${S} = ${x} more. So one ${X} weighs ${x} (and one ${Y} weighs ${S} − ${x} = ${y}).`,
@@ -134,7 +142,7 @@ const PZ = (() => {
     const x = R(3, 15), y = R(3, 15), z = R(3, 15), S = x + y, T = y + z, Uu = x + z, all = x + y + z;
     const askAll = Math.random() < 0.5;
     return core('bal4', [S, T, Uu, askAll ? 'all' : 'x'], { q: askAll ? `${X} + ${Y} weigh ${S}, ${Y} + ${Z} weigh ${T}, and ${X} + ${Z} weigh ${Uu}. How much do ${X}, ${Y}, and ${Z} weigh together?` : `${X} + ${Y} weigh ${S}, ${Y} + ${Z} weigh ${T}, and ${X} + ${Z} weigh ${Uu}. How much does ${X} weigh?`,
-      a: askAll ? all : x, fig: Fig.pair(Fig.pair(Fig.balance([X, Y], [String(S)]), Fig.balance([Y, Z], [String(T)])), Fig.balance([X, Z], [String(Uu)])),
+      a: askAll ? all : x, fig: Fig.table([['On the scale', 'Weight'], [`${X} + ${Y}`, String(S)], [`${Y} + ${Z}`, String(T)], [`${X} + ${Z}`, String(Uu)]], 'Three balanced scales'),
       why: `Put all three scales together: every fruit appears twice, so 2 × (${X} + ${Y} + ${Z}) = ${S} + ${T} + ${Uu} = ${2 * all}, and all three weigh ${all}.${askAll ? '' : ` Then ${X} = ${all} − (${Y} + ${Z}) = ${all} − ${T} = ${x}.`}`,
       wrongs: askAll ? [[2 * all, 'Each fruit was counted twice: divide by 2.'], [S + T, 'Use all three scales.'], [all + 1, 'Check the addition.']] : [[all, 'That is all three fruits.'], [y, `That is the ${Y}.`], [z, `That is the ${Z}.`], [S - x + z, 'Subtract the right pair from the total.']].filter(([v]) => v !== x),
       steps: ['Add all three scales together. How many times does each fruit appear?', 'So the three totals add up to twice the weight of all three fruits.', askAll ? 'Halve it.' : `Now take away the scale that has no ${X}.`] });
@@ -157,9 +165,9 @@ const PZ = (() => {
     const mi = d === 1 || d === 4 ? pick([0, n - 1]) : R(1, n - 2), shown = rows.map((r, i) => (i === rows.length - 1 ? r.map((v, j) => (j === mi ? '?' : String(v))) : i === 0 ? [String(T)] : r.map(() => '')));
     const w = (n === 3 ? [1, 2, 1] : n === 4 ? [1, 3, 3, 1] : [1, 4, 6, 4, 1])[mi];
     return core('pyrMiss', [row.map((v, j) => (j === mi ? null : v)), T], { q: `Each brick is the sum of the two bricks under it. The top brick is ${T}. What number is missing from the bottom row?`, a: row[mi], fig: Fig.pyramid(shown),
-      why: `Every bottom brick reaches the top a certain number of times (${(n === 3 ? '1, 2, 1' : n === 4 ? '1, 3, 3, 1' : '1, 4, 6, 4, 1')} from left to right). The known bricks give ${T - w * row[mi]} of the top, so the missing brick counts ${w} times toward the other ${w * row[mi]}: it is ${row[mi]}. Check by filling the pyramid in.`,
+      why: `On the way up, the bottom bricks are counted ${(n === 3 ? '1, 2, 1' : n === 4 ? '1, 3, 3, 1' : '1, 4, 6, 4, 1')} times (left to right). The known bricks give ${T - w * row[mi]} of the top. That leaves ${T} − ${T - w * row[mi]} = ${w * row[mi]}${w === 1 ? ', which is the missing brick itself' : `, which is ${w} times the missing brick`}: ${row[mi]}. Check by filling the pyramid in.`,
       wrongs: [[T - row.reduce((s, v, j) => s + (j === mi ? 0 : v), 0), 'The top is not just the sum of the bottom row: middle bricks count more than once.'], [w * row[mi], `That is how much the missing brick adds to the top, not the brick itself.`], [row[mi] + 1, 'Check by filling the pyramid in.'], [row[mi] + 2, 'Check by filling the pyramid in.']].filter(([v]) => v !== row[mi] && v > 0),
-      steps: ['Try a number in the empty brick and fill the pyramid in. Is the top too big or too small?', `Each bottom brick is counted ${n === 3 ? '1, 2, 1' : n === 4 ? '1, 3, 3, 1' : '1, 4, 6, 4, 1'} times in the top. How much do the known bricks give?`, `What is left must come from the missing brick, counted ${pl(w, 'time')}.`] });
+      steps: ['Try a number in the empty brick and fill the pyramid in. Is the top too big or too small?', `Each bottom brick is counted ${n === 3 ? '1, 2, 1' : n === 4 ? '1, 3, 3, 1' : '1, 4, 6, 4, 1'} times in the top. How much do the known bricks give?`, w === 1 ? 'What is left must be the missing brick.' : `What is left is the missing brick counted ${w} times.`] });
   }
   // ---------- digits ----------
   const perms = (ds, k) => { const out = []; const go = (cur, left) => { if (cur.length === k) { out.push(cur); return; } left.forEach((x, i) => go([...cur, x], left.filter((_, j) => j !== i))); }; go([], ds); return out; };
@@ -173,7 +181,7 @@ const PZ = (() => {
       wrongs: [[6, 'A number cannot start with 0.'], [9, 'Each digit is used at most once.'], [3, 'Each digit can go in more than one place.'], [27, 'Each digit is used at most once.']].filter(([v]) => v !== nums.length),
       steps: ['Pick the first digit. How many choices are there?', 'Then the second digit, then the last. Multiply the numbers of choices.'] });
     const ans = kind === 'max' || kind === 'max2' ? mx : kind === 'min' ? mn : mx - mn;
-    return core('dig', [ds, k, kind], { q: kind === 'diff' ? `Using each of the digits ${list} once, make the largest and the smallest ${k}-digit numbers. What is their difference? (A number cannot start with 0.)` : `Using the digits ${list}, each at most once, what is the ${kind === 'min' ? 'smallest' : 'largest'} ${k}-digit number you can make?${zero && kind === 'min' ? ' (A number cannot start with 0.)' : ''}`,
+    return core('dig', [ds, k, kind], { q: kind === 'diff' ? `Using each of the digits ${list} once, make the largest and the smallest ${k}-digit numbers. What is their difference?${zero ? ' (A number cannot start with 0.)' : ''}` : `Using the digits ${list}, each at most once, what is the ${kind === 'min' ? 'smallest' : 'largest'} ${k}-digit number you can make?${zero && kind === 'min' ? ' (A number cannot start with 0.)' : ''}`,
       a: ans, fig: Fig.picture(ds.map((x) => ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'][x])),
       why: kind === 'diff' ? `Largest: biggest digits first, ${mx}. Smallest: smallest digit that is not 0 first, ${mn}. ${mx} − ${mn} = ${ans}.` : kind === 'min' ? `Put the smallest digit first${zero ? ' (but not 0)' : ''}, then the rest from smallest to largest: ${mn}.` : `Put the biggest digit first, then the next biggest: ${mx}.`,
       wrongs: kind === 'diff' ? [[mx - +[...ds].sort((a, b) => a - b).join('').slice(0, k), 'A number cannot start with 0.'], [mx + mn, 'Difference means subtract.'], [mx - mn - 10, 'Check the subtraction.'], [mx - mn + 9, 'Check the subtraction.']]
@@ -206,9 +214,9 @@ const PZ = (() => {
     const [A, B, la, lb, ea, eb] = pair, total = d === 0 ? R(3, 4) : d <= 2 ? R(4, 7) : d <= 5 ? R(8, 20) : R(20, 60), nb = R(1, total - 1), na = total - nb, L = na * la + nb * lb;
     const unit = A === 'bikes' ? 'wheels' : 'legs';
     return core('legs', [total, la, lb, L], { q: `A ${A === 'bikes' ? 'yard' : 'farm'} has ${total} ${A} and ${B} in all, with ${L} ${unit}. How many ${B} are there?`, a: nb, fig: Fig.picture([ea, eb], `${total} in all · ${L} ${unit}`),
-      why: `Pretend all ${total} are ${A}: that is ${total * la} ${unit}. The real count, ${L}, is ${Math.abs(L - total * la)} ${L > total * la ? 'more' : 'fewer'}. Swapping one of the ${A} for one of the ${B} changes the count by ${Math.abs(lb - la)}. So there are ${Math.abs(L - total * la)} ÷ ${Math.abs(lb - la)} = ${nb} ${B} (and ${na} ${A}). Check: ${na} × ${la} + ${nb} × ${lb} = ${L}.`,
+      why: `Pretend all ${total} are ${A}: that is ${total * la} ${unit}. The real count, ${L}, is ${Math.abs(L - total * la)} ${L > total * la ? 'more' : 'fewer'}. Swapping one ${sing(A)} for one ${sing(B)} changes the count by ${Math.abs(lb - la)}. So there are ${Math.abs(L - total * la)} ÷ ${Math.abs(lb - la)} = ${nb} ${nb === 1 ? sing(B) : B} (and ${na} ${na === 1 ? sing(A) : A}). Check: ${na} × ${la} + ${nb} × ${lb} = ${L}.`,
       wrongs: [[na, `That is the number of ${A}.`], [Math.round(L / lb), `Not all of them are ${B}.`], [L - total * la, `That is the extra ${unit}. Each of the ${B} adds more than one.`], [nb + 1, 'Check: count the ' + unit + ' again.']].filter(([v]) => v !== nb && v > 0),
-      steps: [`Pretend every one of the ${total} is one of the ${A}. How many ${unit} would that be?`, `How many extra ${unit} are there? Each of the ${B} adds ${Math.abs(lb - la)}.`, 'So how many of them must there be? Check your answer.'] });
+      steps: [`Pretend every one of the ${total} is one of the ${A}. How many ${unit} would that be?`, `How far off is that? Each ${sing(B)} you swap in changes it by ${Math.abs(lb - la)}.`, 'So how many of them must there be? Check your answer.'] });
   }
   // ---------- ages ----------
   function agesQ(d) {
@@ -221,7 +229,7 @@ const PZ = (() => {
     }
     const y = d <= 5 ? R(3, 9) : R(6, 15), k = d <= 5 ? 2 : pick([2, 3]), t = R(2, 12), x = k * (y + t) - t;
     return core('ageTimes', [x, y, k], { q: `${p1} is ${x} and ${p2} is ${y}. In how many years will ${p1} be ${k === 2 ? 'twice' : 'three times'} as old as ${p2}?`, a: t, fig: Fig.table([['Years from now', '0', '…', '?'], [p1, String(x), '…', ''], [p2, String(y), '…', '']]),
-      why: `In t years they are ${x} + t and ${y} + t. We need ${x} + t = ${k}(${y} + t). Try values in a table, or solve: ${x} + t = ${k * y} + ${k}t, so ${k === 2 ? '' : `${k - 1}`}t = ${x - k * y}, t = ${t}. Check: ${x + t} = ${k} × ${y + t}.`,
+      why: `The age difference is always ${x} − ${y} = ${x - y}. When ${p1} is ${k === 2 ? 'twice' : 'three times'} as old as ${p2}, that difference is ${k === 2 ? `the same as ${p2}'s age` : `2 times ${p2}'s age`}, so ${p2} will be ${(x - y) / (k - 1)}. That is ${(x - y) / (k - 1)} − ${y} = ${t} years from now. Check: ${x + t} = ${k} × ${y + t}.`,
       wrongs: [[x - k * y, k === 2 ? 'Close! Check: is the age then really twice?' : 'Both ages grow by the same number of years.'], [t + 1, 'Check with the table.'], [Math.abs(x - y), 'That is the age difference, which never changes.'], [t * 2, 'Check: both of them get older.']].filter(([v]) => v !== t && v > 0),
       steps: [`Both ${p1} and ${p2} get one year older each year, so the difference ${x - y} stays the same.`, `Make a table: years from now, ${p1}'s age, ${p2}'s age. When is the first age ${k === 2 ? 'twice' : 'three times'} the second?`] });
   }
@@ -260,9 +268,10 @@ const PZ = (() => {
     for (const [o, k] of ops) { v = o === 'add' ? v + k : o === 'sub' ? v - k : o === 'mul' ? v * k : v / 2; if (!Number.isInteger(v) || v < 0) ok = false; }
     if (!ok) return backQ(d); // every step must stay a whole number
     const words = { add: (k) => `add ${k}`, sub: (k) => `take away ${k}`, mul: (k) => `multiply by ${k}`, half: () => 'halve it' };
+    const does = { add: (k) => `adds ${k}`, sub: (k) => `takes away ${k}`, mul: (k) => `multiplies it by ${k}`, half: () => 'halves it' };
     const undo = { add: (k) => `take away ${k}`, sub: (k) => `add ${k}`, mul: (k) => `divide by ${k}`, half: () => 'double it' };
     const [p1] = two();
-    return core('back', [ops, v], { q: `${p1} thinks of a number, ${ops.map(([o, k]) => words[o](k)).join(', then ')}, and gets ${v}. What number did ${p1} start with?`, a: start, fig: Fig.picture(['🤔', '➡️', '❓'], ops.map(([o, k]) => words[o](k)).join(' → ') + ` → ${v}`),
+    return core('back', [ops, v], { q: `${p1} thinks of a number, ${ops.map(([o, k]) => does[o](k)).join(', then ')}, and gets ${v}. What number did ${p1} start with?`, a: start, fig: Fig.picture(['🤔', '➡️', '❓'], ops.map(([o, k]) => words[o](k)).join(' → ') + ` → ${v}`),
       why: `Work backward from ${v}, undoing each step in reverse order: ${[...ops].reverse().map(([o, k]) => undo[o](k)).join(', then ')}. That gives ${start}. Check it forward.`,
       wrongs: [[ops.reduce((x, [o, k]) => (o === 'add' ? x - k : o === 'sub' ? x + k : o === 'mul' ? Math.round(x / k) : x * 2), v) === start ? start + 2 : ops.reduce((x, [o, k]) => (o === 'add' ? x - k : o === 'sub' ? x + k : o === 'mul' ? Math.round(x / k) : x * 2), v), 'Undo the steps in REVERSE order, starting with the last one.'], [start + 1, 'Check by doing the steps forward.'], [v, 'That is where the number ended up.'], [start + (ops[0][0] === 'add' ? ops[0][1] : 3), 'Check by doing the steps forward.']].filter(([v2]) => v2 !== start && v2 > 0),
       steps: [`Start at the end, ${v}.`, `Undo the last step first: the opposite of "${words[ops[ops.length - 1][0]](ops[ops.length - 1][1])}".`, 'Keep undoing steps until you reach the start. Then check it forward.'] });
@@ -271,18 +280,19 @@ const PZ = (() => {
   function paintedQ(d) {
     const n = d <= 6 ? 3 : R(4, 5), k = pick([0, 1, 2, 3]);
     const f = [(n - 2) ** 3, 6 * (n - 2) ** 2, 12 * (n - 2), 8][k];
-    return core('paint', [n, k], { q: `A ${n} × ${n} × ${n} cube made of small cubes is painted on the outside, then taken apart. How many small cubes have exactly ${k === 0 ? 'no' : k} painted face${k === 1 ? '' : 's'}?`, a: f, fig: Fig.prism(n, n, n),
+    return core('paint', [n, k], { q: `A ${n} × ${n} × ${n} cube made of small cubes is painted on the outside, then taken apart. How many small cubes have ${k === 0 ? 'no painted faces' : `exactly ${k} painted face${k === 1 ? '' : 's'}`}?`, a: f, fig: Fig.prism(n, n, n),
       why: [`Only the hidden inside cubes have no paint: a ${n - 2} × ${n - 2} × ${n - 2} block, ${f}.`, `One painted face: the middle of each of the 6 faces, ${n - 2} × ${n - 2} each: 6 × ${(n - 2) ** 2} = ${f}.`, `Two painted faces: along the 12 edges, not counting corners, ${n - 2} each: 12 × ${n - 2} = ${f}.`, 'Three painted faces: the 8 corners.'][k],
       wrongs: [[n ** 3 - f, 'That counts all the others.'], [[(n - 2) ** 3, 6 * (n - 2) ** 2, 12 * (n - 2), 8][(k + 1) % 4], 'That is a different number of painted faces.'], [[(n - 1) ** 3, 6 * n * n, 12 * n, 6][k], 'Corners and edges belong to more than one face: do not count them in the middle.'], [f + 1, 'Check the count.']].filter(([v]) => v !== f),
       steps: ['Where on the big cube does a small cube with that many painted faces sit: a corner, an edge, the middle of a face, or hidden inside?', 'Count how many such places the big cube has.', 'For edges and faces, leave out the corners and edges they share.'] });
   }
   // ---------- last digit of a power ----------
   function lastDigitQ() {
-    const a = R(2, 9), n = R(12, 99), cyc = []; let x = a % 10; while (!cyc.includes(x)) { cyc.push(x); x = (x * a) % 10; }
+    const a = pick([2, 3, 4, 7, 8, 9, 12, 13, 17, 18, 19, 23, 27, 33]), n = R(12, 99), cyc = []; let x = a % 10; while (!cyc.includes(x)) { cyc.push(x); x = (x * a) % 10; }
     const L = cyc.length, ans = cyc[(n - 1) % L];
-    return core('last', [a, n], { q: `What is the last digit of ${a}^${n}?`, a: ans, fig: Fig.table([['Power', `${a}^1`, `${a}^2`, `${a}^3`, `${a}^4`, `${a}^5`], ['Last digit', ...[1, 2, 3, 4, 5].map((k) => String(cyc[(k - 1) % L]))]]),
+    return core('last', [a, n], { q: `What is the last digit of ${a}^${n}?`, a: ans, fig: Fig.table([['Power', `${a}^1`, `${a}^2`, `${a}^3`, `${a}^4`, `${a}^5`], ['Last digit', String(cyc[0]), String(cyc[1 % L]), '?', '?', '?']]),
       why: `The last digits repeat in a cycle of ${L}: ${cyc.join(', ')}. ${n} ÷ ${L} leaves remainder ${n % L}, so ${a}^${n} ends like ${a}^${((n - 1) % L) + 1}: ${ans}.`,
-      wrongs: [[cyc[n % L], 'Check the remainder: the cycle starts at the first power.'], [(a * n) % 10, 'Powers multiply the number by itself; they do not multiply by the exponent.'], [a, 'The last digit changes as the powers grow.'], [(ans + 2) % 10, 'Write out more powers to see the cycle.']].filter(([v]) => v !== ans),
+      wrongs: [[cyc[n % L], 'Check the remainder: the cycle starts at the first power.'], [(a * n) % 10, 'Powers multiply the number by itself; they do not multiply by the exponent.'], [a % 10, 'The last digit changes as the powers grow.'], [(ans + 2) % 10, 'Write out more powers to see the cycle.']].filter(([v]) => v !== ans),
+      fill: () => R(0, 9),
       steps: ['Write the last digits of the first few powers.', 'They repeat. How long is the cycle?', `Divide ${n} by the cycle length and use the remainder.`] });
   }
   // ---------- number of factors ----------
@@ -309,7 +319,7 @@ const PZ = (() => {
   function avgQ() {
     const k = R(3, 6), m = R(78, 88), m2 = m + R(1, 3), need = (k + 1) * m2 - k * m;
     if (need > 100) return avgQ();
-    return core('avg', [k, m, m2], { q: `After ${k} tests, Kai's average is ${m}. What score on the next test raises the average to ${m2}?`, a: need, fig: Fig.table([['Tests', String(k), String(k + 1)], ['Average', String(m), String(m2)], ['Total', String(k * m), String((k + 1) * m2)]]),
+    return core('avg', [k, m, m2], { q: `After ${k} tests, Kai's average is ${m}. What score on the next test raises the average to ${m2}?`, a: need, fig: Fig.table([['Tests', String(k), String(k + 1)], ['Average', String(m), String(m2)], ['Total', '?', '?']]),
       why: `Total so far: ${k} × ${m} = ${k * m}. Needed total: ${k + 1} × ${m2} = ${(k + 1) * m2}. Next score: ${(k + 1) * m2} − ${k * m} = ${need}.`,
       wrongs: [[m2, 'The new score must pull the whole average up.'], [m2 + (m2 - m), 'Each earlier test also needs raising: use totals.'], [need - (m2 - m), 'Use totals: average × number of tests.'], [need + 1, 'Check the totals.']].filter(([v]) => v !== need),
       steps: ['Average × number of tests = total. Find the total so far.', 'Find the total needed for the new average after one more test.', 'The next score is the difference.'] });
@@ -350,7 +360,7 @@ const PZ = (() => {
       return q;
     }
     const isFrac = /\//.test(String(cr.a));
-    return U.mcMiss(cr.q, cr.a, cr.wrongs, base, 4, isFrac ? () => frac(R(1, 11), 36) : near(+cr.a));
+    return U.mcMiss(cr.q, cr.a, cr.wrongs, base, 4, cr.fill || (isFrac ? () => frac(R(1, 11), 36) : near(+cr.a)));
   }
   // Typed answer with step-by-step hints (Summit Trail and Sprint-style).
   function num(fam, d, extra = {}) {
@@ -379,10 +389,12 @@ const PZAPP = {
 };
 // What core/modes/contest.js asks for.
 const CONTEST = {
-  skills: (tier) => PZAPP.contest.filter((k) => k.levels[tier] && k.levels[tier].length),
+  // families that cannot be typed (word or fraction answers) are left out of typed contests
+  fams: (k, tier, typed) => (k.levels[tier] || []).filter(([f]) => !typed || !['beads', 'calendar', 'dice'].includes(f)),
+  skills: (tier, typed) => PZAPP.contest.filter((k) => CONTEST.fams(k, tier, typed).length),
   draw(tier, typed) {
-    const ks = CONTEST.skills(tier), k = U.pick(ks);
-    const fams = k.levels[tier].filter(([f, d]) => !typed || f !== 'beads' && f !== 'calendar' && f !== 'dice');
+    const ks = CONTEST.skills(tier, typed), k = U.pick(ks);
+    const fams = CONTEST.fams(k, tier, typed);
     if (!fams.length) return null;
     const [f, d] = U.pick(fams);
     const q = typed ? PZ.num(f, d) : PZ.mc(f, d);
@@ -395,7 +407,7 @@ const CONTEST = {
 // lesson is the lesson of its first family (an app may override any of them in LESSONS).
 const LESSONS = {};
 const PZLESSON = {
-  squares: { rule: 'Count squares by SIZE: first the small ones, then the 2 × 2 ones, then bigger. A frame of each size slides one square at a time.', ex: '3 by 3 grid: 9 small + 4 of size 2 × 2 + 1 big = 14 squares', fig: () => Fig.rect(3, 3, { grid: true }) },
+  squares: { rule: 'Count squares by SIZE: first the small ones, then the 2-by-2 ones, then bigger. A frame of each size slides one square at a time.', ex: '3 by 3 grid: 9 small + 4 two-by-two + 1 big = 14 squares', fig: () => Fig.rect(3, 3, { grid: true }) },
   rects: { rule: 'A rectangle is fixed by two up-and-down lines and two side-to-side lines. Count the ways to pick each pair, then multiply.', ex: 'A strip of 4 squares has 5 lines: 5 × 4 ÷ 2 = 10 rectangles', fig: () => Fig.rect(4, 1, { grid: true }) },
   cubes: { rule: 'Count cubes in an organized way: column by column, or one layer at a time. Hidden cubes count too!', ex: 'Staircase 1 + 2 + 3 + 4 = 10 cubes · box 3 × 2 × 2: one layer 6, two layers 12', fig: () => Fig.cubeStack([1, 2, 3, 4]) },
   beads: { rule: 'Find the part that repeats. Divide by its length: the remainder tells you where you land in the pattern.', ex: 'red, blue, green, red, blue, green… bead 14: 14 ÷ 3 = 4 remainder 2 → like bead 2: blue', fig: () => Fig.beads(['r', 'b', 'g', 'r', 'b', 'g'], 1) },

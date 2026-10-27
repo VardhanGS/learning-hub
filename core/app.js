@@ -710,7 +710,7 @@
     const n = st.done ? q.steps.length : Math.min(st.stepsShown || 0, q.steps.length);
     const more = !st.done && n < q.steps.length;
     if (!n && !more) return '';
-    return `<div class="steps">${n ? `<ol class="step-list">${q.steps.slice(0, n).map((x) => `<li>${fmt(x)}</li>`).join('')}</ol>` : ''}${more ? `<button class="btn small ghost" data-act="showStep">💡 ${n ? 'Next hint' : 'Show a hint'} (${n + 1} of ${q.steps.length})</button>` : ''}</div>`;
+    return `<div class="hint-steps">${n ? `<ol class="step-list">${q.steps.slice(0, n).map((x) => `<li>${fmt(x)}</li>`).join('')}</ol>` : ''}${more ? `<button class="btn small ghost" data-act="showStep">💡 ${n ? 'Next hint' : 'Show a hint'} (${n + 1} of ${q.steps.length})</button>` : ''}</div>`;
   }
 
   function feedback(st) {

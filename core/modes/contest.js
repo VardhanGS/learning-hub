@@ -27,7 +27,7 @@
         const key = U.qkey(q), sk = String(q.where || '').split('.')[0];
         if (seen.has(key)) continue;
         // spread topics: skip a skill already used more than its fair share in this tier (relaxed as tries pile up)
-        if ((used[sk] || 0) > Math.floor(k / Math.max(1, CONTEST.skills(tier).length)) && guard < count * 30) continue;
+        if ((used[sk] || 0) > Math.floor(k / Math.max(1, CONTEST.skills(tier, !!f.typed).length)) && guard < count * 30) continue;
         seen.add(key); used[sk] = (used[sk] || 0) + 1;
         items.push({ q, tier, pts: f.points ? f.points[tier] : 1 });
         k++;

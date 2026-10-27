@@ -206,7 +206,7 @@ const PZSOLVE = {
   dayN: ([first, n]) => { let w = first; for (let i = 1; i < n; i++) w = (w + 1) % 7; return PZDAYS[w]; },
   bal1: ([k, W]) => { for (let x = 1; x <= 200; x++) if (k * x === W) return x; return '?'; },
   bal2: ([k1, W1, m, n]) => { for (let x = 1; x <= 100; x++) if (k1 * x === W1) for (let y = 1; y <= 400; y++) if (m * y === n * x) return y; return '?'; },
-  bal3: ([S, T]) => { for (let x = 1; x <= 100; x++) for (let y = 1; y <= 100; y++) if (x + y === S && 2 * x + y === T) return x; return '?'; },
+  bal3: ([S, T, ask]) => { for (let x = 1; x <= 100; x++) for (let y = 1; y <= 100; y++) if (x + y === S && 2 * x + y === T) return ask === 'y' ? y : x; return '?'; },
   bal4: ([S, T, V, ask]) => { for (let x = 1; x <= 60; x++) for (let y = 1; y <= 60; y++) for (let z = 1; z <= 60; z++) if (x + y === S && y + z === T && x + z === V) return ask === 'all' ? x + y + z : x; return '?'; },
   // the top of a pyramid is the bottom row weighted by binomial coefficients
   pyrTop: ([row]) => row.reduce((t, v, i) => t + choose(row.length - 1, i) * v, 0),
