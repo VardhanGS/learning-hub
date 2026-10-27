@@ -223,6 +223,30 @@ Suggested order: 1–2 (review + coverage report to the user) → 5 (realism com
   linear modules have 33 items, Math 27 (nonadaptive version). Educator Question Bank: 1,845 SAT R&W items with
   Easy/Medium/Hard tags.
 
+### Later on 2026-10-26
+
+- Fix set 1 was published (deploy.sh + main pushed; all 9 live sw cache names matched dist).
+- NWEA practice sets studied (Math 2–5 and 8, Reading 2–5 and 6+); findings in reports/2026-10-26-realism.md.
+  Verified there: MAP Reading uses Part A / Part B from Grade 2 with "(Paragraph N)" / "(Line N)" evidence; MAP Math
+  uses two-part items; other formats seen: 5-choice MC, picture choices, click-and-pop with $ and ¢ tiles, unit labels
+  after entry boxes, build-a-line-plot, table grid (must / could / cannot be true), gap match, hot text with bold
+  selectable phrases, choose-two checkboxes, underlined key words, numbered paragraphs, photos with captions.
+  The practice site login is lost when the browser pane closes.
+- **Fix set 3 (realism) DONE locally, NOT published** — commits after 87b522b:
+  SAT: Conventions/Transitions/WIC passages are single coherent texts (apps/satprep/data/sat-sec.js + lead sentences; no
+  filler); underlined sentences (⟦…⟧ markup, core) for function items; new R&W forms in sat-rw2.js ("most nearly mean",
+  overall structure, quotation from an original poem, two-series data statements); new Math types in sat-math2.js
+  (word problems now ≈33% of operational Math items; which equation/inequality represents, interpretation, graph
+  choices via Fig.choices, I/II, NOT, dot plot, weighted mean, sample estimate, study-design claims, absolute value,
+  line meets parabola, ladder, tickets); wrong-choice explanations for transitions and conventions, shown in review.
+  MAP: numbered paragraphs, underlined key words, Part A/B in Reading 2 and 4 (readkit 'ab'), gap match ('gap'),
+  find-the-clue ('clue'), true-detail main-idea distractors (Reading 4), $/¢ click-and-pop, find-the-mistake
+  (2.NBT.B.9), even/odd sort, quadrant sort, must/could/cannot sort, make-a-line-plot sort. Test screens: answer
+  eliminator, line reader, MAP slow-down pause (count in report). Validator: U.intWhere fallback is now an error
+  (found real "no-regroup" items that regrouped in Math Quest 2 / MAP Math 2 / demo; fixed).
+  Not done from fix set 3: literary attribution frame for SAT literature passages, mid-sentence transitions,
+  5-choice MC in MAP math, a protractor tool, Part A/B in the MAP adaptive test pool (Part B is practice-only).
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude

@@ -111,6 +111,8 @@ const MathText = (() => {
   // With speech.split (Grade 4+), decimals and fractions are said in short recorded pieces instead of one clip each:
   // "4.647" → 4 · point · 6 · 4 · 7, and "8 4/15" → 8 · and · 4 · fifteenths. 0–999 clips plus a few words cover them all.
   function splitNum(tok) {
+    // a negative number is said as "negative" + the number, so every negative is covered by the 0–999 clips
+    if (/^-/.test(tok)) return [{ text: 'negative' }, ...splitNum(tok.slice(1))];
     let m = tok.match(/^(\d+)\.(\d+)$/);
     if (m) return [{ num: m[1] }, { text: 'point' }, ...m[2].split('').map((d) => ({ num: d }))];
     m = tok.match(/^(?:(\d+) )?(\d+)\/(\d+)$/);
