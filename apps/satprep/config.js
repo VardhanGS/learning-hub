@@ -55,7 +55,7 @@ window.APP = {
         <p>The angles of a triangle add up to 180°.</p></div>`,
     },
   },
-  data: ['sat-common.js', 'sat-passages.js', 'sat-rw.js', 'sat-math.js', 'sat-bank.js', 'sat-lessons.js'],
+  data: ['sat-common.js', 'sat-passages.js', 'sat-sec.js', 'sat-rw.js', 'sat-math.js', 'sat-bank.js', 'sat-lessons.js'],
   about: 'SAT Prep gives practice for the digital SAT: timed two-stage practice tests, untimed practice in every skill, and timed drills. All passages and questions are original. Levels are tagged with the 2023 New Jersey Student Learning Standards (ELA grades 11–12 and high school mathematics).',
   disclaimer: 'Unofficial practice. SAT® is a trademark of the College Board, which is not affiliated with this app. Scores are practice estimates, not SAT scores.',
 };

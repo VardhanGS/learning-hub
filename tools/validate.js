@@ -479,7 +479,7 @@ function checkItem(where, q, levelStd) {
       if (RIGHT[k] !== a || q.a !== a) fail(where, q, `${k}: expected "${RIGHT[k]}", answer "${q.a}"`);
       if (q.opts.filter((o) => o === RIGHT[k]).length !== 1) fail(where, q, 'the right punctuation is not exactly one option');
     } else if (kind === 'agree') {
-      const [subj, right, sing] = args, head = subj.replace(/ (of|on|in|across|at|from|with) .*/, '').split(' ').pop();
+      const [subj, right, sing] = args, head = subj.replace(/,? (of|on|in|near|along|across|at|from|with|which|together) .*/, '').split(' ').pop();
       const singular = /^(Each|Neither|collection|flock|sound|list)$/.test(head) || (!/s$/.test(head));
       if (singular !== sing) fail(where, q, `subject "${head}" looks ${singular ? 'singular' : 'plural'} but is tagged the other way`);
       const sVerb = ['was', 'has', 'is'].includes(right) || (/s$/.test(right) && !['was'].includes(right));

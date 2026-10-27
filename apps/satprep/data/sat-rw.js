@@ -11,6 +11,30 @@
 
   // ===================== CRAFT AND STRUCTURE =====================
   // ---- Words in Context: [level, sentence with ______, best word, three wrong words, why] ----
+  const WIC_LEAD = ['In the valley where the Ortega family grows corn, the spring of 2023 was one of the wettest on record.',
+    'The Hallam Museum of Natural History spent three years planning its exhibit on the history of life on Earth.',
+    'The iron bridge over Mill Creek was built in 1903 and carried traffic for more than a century.',
+    'The Westfield girls’ soccer team lost its opening game this season by four goals.',
+    'A team of ecologists spent five years measuring how quickly fallen leaves decay in mountain forests.',
+    'A cookbook published by a local school includes a page of meals that students can make themselves.',
+    'The summer of 2022 brought almost no rain to the farming town of Elm Hollow.',
+    'Twins Ama and Efua Owusu often play tricks on their classmates at the start of each school year.',
+    'Writer Clara Imani published her first three novels in the 1960s.',
+    'For years, farmers in the region struggled to pump water from deep wells during power outages.',
+    'Last month, a city committee voted to turn an empty lot downtown into a public garden.',
+    'A diary kept by a sailor in the 1850s describes a voyage from Boston to San Francisco.',
+    'Officials hoped that closing one lane of Market Street to cars would make the downtown area less congested.',
+    'Marine biologists have been monitoring reefs in the region since a series of unusually hot summers.',
+    'At the town meeting, a high school student spoke in favor of adding bike lanes to Main Street.',
+    'Census records for the mountain village of San Remo go back more than two hundred years.',
+    'The film follows a soldier who returns home after a long war and finds that his family has moved away.',
+    'In 2015, chemist Leila Haddad reported that a common mineral could clean metals from polluted water.',
+    'Composer Arvo Lind was famous for music that sounded fresh and unplanned.',
+    'After two years of disputes over fishing rights, the two nations signed a treaty in 1922.',
+    'Many people imagine deserts as empty stretches of sand where almost nothing can live.',
+    'A new biography examines the life of a nineteenth-century inventor who held more than two hundred patents.',
+    'The poet Ines Varga wrote short, unrhymed poems about ordinary objects such as cups and keys.',
+    'A health researcher wanted to know whether a short daily walk improves people’s sleep.'];
   const WIC = [
     [0, 'After weeks of rain, the farmers were ______ to see the sun, and they hurried out to plant their fields.', 'relieved', ['annoyed', 'puzzled', 'reluctant'], '“Relieved” fits: after weeks of rain, they hurried out happily.'],
     [0, 'The museum’s new exhibit is so ______ that visitors often need two full days to see everything.', 'extensive', ['brief', 'fragile', 'silent'], 'Needing two days to see everything means the exhibit is large: “extensive.”'],
@@ -37,7 +61,7 @@
     [2, 'Early reviewers ______ the poet’s plain style as a lack of skill; only later did critics see it as a deliberate choice.', 'dismissed', ['celebrated', 'imitated', 'translated'], 'Treating the style as a lack of skill means reviewers “dismissed” it.'],
     [2, 'The data were too ______ to support firm conclusions: the study included only twelve participants over a single week.', 'limited', ['robust', 'precise', 'surprising'], 'Twelve people over one week is a small, “limited” data set.'],
   ];
-  const wicItem = (l) => { const [, s, a, w, why] = U.pick(WIC.filter((x) => x[0] === l)); return mk('Which choice completes the text with the most logical and precise word or phrase?', a, w, { passage: passage(withCtx(s)), fig: pic(['📝']), why, hint: 'Read the whole sentence. Look for clue words like “although,” “rather than,” or a description that explains the blank.' }, 'L.VL.11–12.3', bAt(l), 'cs'); };
+  const wicItem = (l) => { const it = U.pick(WIC.filter((x) => x[0] === l)), [, s, a, w, why] = it; return mk('Which choice completes the text with the most logical and precise word or phrase?', a, w, { passage: passage(`${WIC_LEAD[WIC.indexOf(it)]} ${s}`), fig: pic(['📝']), why, hint: 'Read the whole sentence. Look for clue words like “although,” “rather than,” or a description that explains the blank.' }, 'L.VL.11–12.3', bAt(l), 'cs'); };
 
   // ---- Text Structure and Purpose: function of one sentence, and the main purpose ----
   function tspItem(l) {
@@ -106,79 +130,23 @@
   }
 
   // ===================== STANDARD ENGLISH CONVENTIONS =====================
-  // Independent clause pairs [first, second] (each a full sentence without its end mark).
-  // A sentence of context put before each Standard English Conventions item (SAT texts are at least 25 words).
-  const CTX = [
-    'Local newspapers covered the story for weeks, and many readers wrote letters about it.',
-    'The details below come from a community newsletter that is mailed to every home in town.',
-    'This short account appeared in a school magazine last spring, written by two students.',
-    'A brief report, later shared with the town council, described what happened next.',
-    'Many residents still talk about the event today, and some keep photographs of it.',
-    'The following passage comes from a student’s research notes for a history project.',
-    'An article in the regional paper summed up the situation in just a few sentences.',
-    'Here is how one reporter described the situation in a story published that week.',
-  ];
-  // one context sentence, or two when the item itself is short (SAT texts are 25–150 words)
-  // The same item always gets the same context (picked from its text), so each passage is stable and recorded once.
-  const hash = (t) => [...t].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
-  const withCtx = (t) => { const h = hash(t), c1 = CTX[h % CTX.length], c2 = CTX[(h + 3) % CTX.length], one = `${c1} ${t}`; return one.split(/\s+/).length >= 27 ? one : `${c1} ${c2} ${t}`; };
-  const CLAUSES = [
-    ['The storm knocked out power across the county', 'crews worked through the night to restore it'],
-    ['Maya practiced the piano for an hour every day', 'her teacher noticed a big improvement'],
-    ['The museum reopened after a long renovation', 'thousands of visitors lined up on the first morning'],
-    ['The river flooded the lower fields in April', 'the farmers planted their corn two weeks late'],
-    ['Astronomers spotted a new comet last winter', 'it will pass closest to the Sun next year'],
-    ['The team’s first design was too heavy to fly', 'the engineers replaced the steel frame with aluminum'],
-    ['The novel was translated into forty languages', 'its author still answers letters from readers by hand'],
-    ['The city planted two thousand trees along its avenues', 'summer temperatures on those streets dropped noticeably'],
-    ['Octopuses can change color in a fraction of a second', 'special cells in their skin expand and shrink'],
-    ['The bakery sells out of bread by noon', 'customers often arrive before it opens'],
-  ];
-  const INTRO = [['After the long winter', 'the first warm day brought everyone outside'], ['Unlike most frogs', 'the glass frog has see-through skin on its belly'], ['Before the invention of the printing press', 'books were copied by hand'], ['Despite the heavy rain', 'the parade went on as planned'], ['Within a few hours of hatching', 'baby sea turtles crawl toward the ocean']];
-  const APPOS = [['Dr. Lena Ortiz', 'a marine biologist', 'studies how whales communicate'], ['The Ravel Bridge', 'the longest bridge in the region', 'opened in 1987'], ['Halvorsen', 'the town’s oldest bakery', 'still uses its original oven'], ['Kofi Mensah', 'a high school chemistry teacher', 'won the state science award']];
-  const LISTS = [['The recipe needs only three ingredients', ['flour', 'water', 'salt']], ['The expedition carried the essentials', ['tents', 'maps', 'two weeks of food']], ['The study measured three things', ['sleep', 'mood', 'test scores']]];
-  const cap = (s) => s[0].toUpperCase() + s.slice(1);
-  const lowFirst = (s) => (/^(The|Her|Its|Their|It|They|Some|Many|Every|Most|Each)\b/.test(s) ? s[0].toLowerCase() + s.slice(1) : s);
-  // Each kind: [passage with ______, right choice, three wrong choices, why]
+  // Each item is one coherent passage from data/sat-sec.js (no filler sentences; see that file's header).
+  const BOUND_KINDS = ['semi', 'period', 'conj', 'intro', 'appos', 'dash', 'colon', 'however', 'svc', 'question'];
+  const SEC_STEM = 'Which choice completes the text so that it conforms to the conventions of Standard English?';
   function boundItem(l) {
-    const kind = l === 0 ? U.pick(['semi', 'intro', 'period']) : l === 1 ? U.pick(['semi', 'appos', 'colon', 'conj']) : U.pick(['appos', 'colon', 'however', 'conj']);
-    let s, a, w, why;
-    if (kind === 'semi') { const [x, y] = U.pick(CLAUSES); s = `${x}______ ${lowFirst(y)}.`; a = ';'; w = [',', '(no punctuation)', ', which']; why = 'Two complete sentences can be joined with a semicolon. A comma alone would make a comma splice.'; }
-    else if (kind === 'period') { const [x, y] = U.pick(CLAUSES); s = `${x}______ ${cap(y)}.`; a = '.'; w = [',', '(no punctuation)', ', and']; why = 'The second part starts a new complete sentence (with a capital letter), so a period ends the first one.'; }
-    else if (kind === 'conj') { const [x, y] = U.pick(CLAUSES); s = `${x}______ ${lowFirst(y)}.`; a = ', and'; w = ['and,', ',', '; and,']; why = 'Joining two complete sentences with “and” takes a comma before “and.”'; }
-    else if (kind === 'intro') { const [x, y] = U.pick(INTRO); s = `${x}______ ${y}.`; a = ','; w = [';', ':', '.']; why = 'An introductory phrase is followed by a comma. A semicolon, colon, or period would leave a fragment.'; }
-    else if (kind === 'appos') { const [n, ap, rest] = U.pick(APPOS); s = `${n}, ${ap}______ ${rest}.`; a = ','; w = [';', '(no punctuation)', ':']; why = `“${ap}” is extra information about ${n}, so it is set off by a comma on both sides.`; }
-    else if (kind === 'colon') { const [x, items] = U.pick(LISTS); s = `${x}______ ${items[0]}, ${items[1]}, and ${items[2]}.`; a = ':'; w = [';', ', such as:', '(no punctuation)']; why = 'A colon introduces a list after a complete sentence.'; }
-    else { const [x, y] = U.pick(CLAUSES); s = `${x}______ however, ${lowFirst(y)}.`; a = ';'; w = [',', '(no punctuation)', ':']; why = '“However” between two complete sentences needs a semicolon (or a period) before it and a comma after it.'; }
-    return mk('Which choice completes the text so that it conforms to the conventions of Standard English?', a, w, { passage: passage(withCtx(s)), fig: pic(['✍️']), meta: { kind: 'boundary', args: [kind, a] }, why, hint: 'Is each part on both sides of the blank a complete sentence? A comma alone cannot join two sentences.' }, 'L.SS.11–12.1', bAt(l), 'sec');
+    const [, kind, t, a, w, why] = U.pick(SAT_SEC.filter((x) => x[0] === l && BOUND_KINDS.includes(x[1])));
+    const meta = ['semi', 'period', 'conj', 'intro', 'appos', 'colon', 'however'].includes(kind) ? { meta: { kind: 'boundary', args: [kind, a] } } : {};
+    return mk(SEC_STEM, a, w, { passage: passage(t), fig: pic(['✍️']), ...meta, why, hint: kind === 'svc' ? 'Find the subject and its verb. Nothing should come between them.' : kind === 'question' ? 'Is the question asked directly, or reported inside a statement?' : 'Is each part on both sides of the blank a complete sentence?' }, 'L.SS.11–12.1', bAt(l), 'sec');
   }
-  // Subject–verb agreement and verb form, with a phrase between subject and verb.
-  // [subject phrase, right verb, three wrong forms, rest of the sentence, singular subject?]
-  const AGREE = [
-    ['The collection of rare stamps', 'was', ['were', 'are', 'have been'], 'donated to the town museum in 1990', true],
-    ['The members of the city council', 'were', ['was', 'is', 'has been'], 'divided on the new budget', false],
-    ['Each of the paintings in the gallery', 'has', ['have', 'are having', 'having'], 'a small card describing its history', true],
-    ['The results of the survey', 'suggest', ['suggests', 'is suggesting', 'has suggested'], 'that most residents want more parks', false],
-    ['A flock of geese', 'flies', ['fly', 'are flying', 'have flown'], 'over the lake every October', true],
-    ['The instructions on the box', 'explain', ['explains', 'is explaining', 'has explained'], 'how to assemble the shelf in ten minutes', false],
-    ['Neither of the two candidates', 'has', ['have', 'are', 'were'], 'agreed to a second debate', true],
-    ['The sound of the waves', 'helps', ['help', 'are helping', 'have helped'], 'many visitors fall asleep', true],
-    ['The bridges across the river', 'need', ['needs', 'is needing', 'has needed'], 'repairs after the spring floods', false],
-    ['The list of required books', 'is', ['are', 'were', 'have been'], 'posted on the classroom door', true],
-  ];
-  const TENSE = [
-    ['Last summer, the research team', 'traveled', ['travels', 'will travel', 'is traveling'], 'to the Arctic to measure melting ice', '“Last summer” means the past tense: “traveled.”'],
-    ['By the time the guests arrived, the chef', 'had prepared', ['prepares', 'will prepare', 'is preparing'], 'all twelve courses', 'An action finished before another past action takes “had prepared.”'],
-    ['Next year, the school', 'will open', ['opened', 'had opened', 'was opening'], 'a new science wing', '“Next year” points to the future: “will open.”'],
-    ['Every morning, the baker', 'arrives', ['arrived', 'had arrived', 'will have arrived'], 'at four o’clock to start the bread', '“Every morning” describes a habit in the present: “arrives.”'],
-  ];
   function fssItem(l) {
-    if (l === 0 || U.pick([true, false])) {
-      const [subj, right, w, rest, sing] = U.pick(AGREE), head = subj.replace(/ of .*/, '');
-      return mk('Which choice completes the text so that it conforms to the conventions of Standard English?', right, w, { passage: passage(withCtx(`${subj} ______ ${rest}.`)), fig: pic(['🔤']), meta: { kind: 'agree', args: [subj, right, sing] }, why: `The subject is “${head},” which is ${sing ? 'singular' : 'plural'}, so the verb is “${right}.” Skip the phrase in between.`, hint: 'Find the real subject. Skip over the “of …” phrase between the subject and the verb.' }, 'L.SS.11–12.1', bAt(l, sing ? 0.4 : 0.6), 'sec');
+    const pool = SAT_SEC.filter((x) => x[0] <= l && ['agree', 'tense', 'modifier'].includes(x[1]) && (l === 0 || x[0] >= l - 1));
+    const it = U.pick(pool), kind = it[1];
+    if (kind === 'agree') {
+      const [lv0, , lead, subj, right, w, rest, sing] = it;
+      return mk(SEC_STEM, right, w, { passage: passage(`${lead} ${subj} ______ ${rest}.`), fig: pic(['🔤']), meta: { kind: 'agree', args: [subj.replace(/,$/, ''), right, sing] }, why: `The subject is “${subj.replace(/,$/, '').replace(/ (of|on|in|near|along|with|together|which).*/, '')}” (${sing ? 'singular' : 'plural'}), so the verb is “${right}.” The words in between do not change that.`, hint: 'Find the subject. Skip the words between the subject and the verb.' }, 'L.SS.11–12.1', bAt(lv0), 'sec');
     }
-    const [lead, a, w, rest, why] = U.pick(TENSE);
-    return mk('Which choice completes the text so that it conforms to the conventions of Standard English?', a, w, { passage: passage(withCtx(`${lead} ______ ${rest}.`)), fig: pic(['⏳']), why, hint: 'Look for time words (last, next, every, by the time) that tell you the tense.' }, 'L.SS.11–12.1', bAt(l, 0.5), 'sec');
+    const [lv0, , t, a, w, why] = it;
+    return mk(SEC_STEM, a, w, { passage: passage(t), fig: pic([kind === 'tense' ? '⏳' : '🧩']), why, hint: kind === 'tense' ? 'Look for time words (last, next, by, currently) that set the tense.' : 'Who or what does the opening phrase describe? That must come right after the comma.' }, 'L.SS.11–12.1', bAt(lv0), 'sec');
   }
 
   // ===================== EXPRESSION OF IDEAS =====================
@@ -191,6 +159,30 @@
     sequence: ['Later', 'Then', 'Afterward'],
     similar: ['Similarly', 'Likewise'],
   };
+  const TRS_LEAD = ['In the 1700s, the town of Easton grew up beside a wide, fast river.',
+    'Cacti are known for surviving long periods with very little water in hot, dry places.',
+    'The Riverside Hawks finished last in their league two seasons in a row.',
+    'Scientists once believed that using tools was a skill found only in humans and apes.',
+    'Farmers in many countries depend on bees, and some even rent hives each spring.',
+    'Students at Easton High asked the town library to stay open longer during exam season.',
+    'Engineers choosing metals for ships and bridges must think about how each metal reacts to water.',
+    'A winter storm moved through the region overnight, dropping freezing rain on every road.',
+    'In the 1600s, astronomers were eager to study the outer planets.',
+    'Languages differ in how their speakers describe the positions of objects.',
+    'Doctors at the Lister Clinic tested a new medicine for seasonal allergies.',
+    'For seventy years, no wolves lived in the park, and herds of elk grazed wherever they liked.',
+    'In the early twentieth century, a group of artists in Vienna wanted to break with the past.',
+    'Coastal ecosystems can reduce the damage caused by storms.',
+    'Last year Easton High installed solar panels on the roof of its gym.',
+    'Many coastal ecosystems shield nearby land from the ocean.',
+    'A collection of letters from the 1700s was discovered in the attic of an old farmhouse.',
+    'Psychologist Lena Varga studied whether listening to music improves memory.',
+    'After World War II, many families moved to the city of Harlow for factory jobs.',
+    'In the 1920s, record players became common in homes across the region.',
+    'Glaciers shape mountain valleys as they slowly slide downhill.',
+    'In 1994, the two neighboring nations signed a trade treaty.',
+    'The poet Ana Soler published six collections over forty years.',
+    'Some animals use sound to find food in places where it is too dark to see.'];
   const TRS = [
     [0, 'The first bridge across the river was made of wood.', 'it washed away in a flood after only six years.', 'sequence'],
     [0, 'Most cacti grow in deserts.', 'some species grow in tropical rainforests, clinging to trees.', 'contrast'],
@@ -218,9 +210,9 @@
     [2, 'Bats find insects by listening to echoes of their own calls.', 'dolphins locate fish by sending out clicks and reading the returning sound.', 'similar'],
   ];
   function transItem(l) {
-    const [, s1, s2, rel] = U.pick(TRS.filter((x) => x[0] === l)), a = U.pick(TR[rel]);
+    const it = U.pick(TRS.filter((x) => x[0] === l)), [, s1, s2, rel] = it, a = U.pick(TR[rel]);
     const others = U.shuffle(Object.keys(TR).filter((r) => r !== rel && !(rel === 'addition' && r === 'similar') && !(rel === 'similar' && r === 'addition') && !(rel === 'result' && r === 'sequence') && !(rel === 'sequence' && r === 'result'))).slice(0, 3).map((r) => U.pick(TR[r]));
-    return mk('Which choice completes the text with the most logical transition?', a, others, { passage: passage(withCtx(`${s1} ______, ${s2}`)), fig: pic(['🔗']), meta: { kind: 'transition', args: [rel, a, others] }, why: `The second sentence ${{ contrast: 'contrasts with', result: 'is a result of', addition: 'adds to', example: 'gives an example of', sequence: 'comes later than', similar: 'is similar to' }[rel]} the first, so “${a}” fits.`, hint: 'Decide how the two sentences relate first: contrast, cause and result, addition, example, time order, or similarity.' }, 'L.KL.11–12.2', bAt(l), 'eoi');
+    return mk('Which choice completes the text with the most logical transition?', a, others, { passage: passage(`${TRS_LEAD[TRS.indexOf(it)]} ${s1} ______, ${s2}`), fig: pic(['🔗']), meta: { kind: 'transition', args: [rel, a, others] }, why: `The second sentence ${{ contrast: 'contrasts with', result: 'is a result of', addition: 'adds to', example: 'gives an example of', sequence: 'comes later than', similar: 'is similar to' }[rel]} the first, so “${a}” fits.`, hint: 'Decide how the two sentences relate first: contrast, cause and result, addition, example, time order, or similarity.' }, 'L.KL.11–12.2', bAt(l), 'eoi');
   }
   // ---- Rhetorical Synthesis: notes + a goal; the right choice meets the goal using the notes ----
   const NOTES = [
