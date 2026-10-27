@@ -661,7 +661,98 @@ const Fig = (() => {
     });
     return `<svg viewBox="0 0 ${cols * cw} ${Math.ceil(svgs.length / cols) * chh}" width="${cols * cw}" role="img" aria-label="Choices ${'ABCD'.slice(0, svgs.length).split('').join(', ')}">${body}</svg>`;
   }
-  return { choices, blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
+  // ===== Puzzle pictures (Puzzle Peak) =====
+  // A balance in balance: items on each pan. An item is an emoji, or a number (drawn as a weight block with that number).
+  function balance(left, right, { tilt = 0 } = {}) {
+    const W = 340, cx = W / 2, beamY = 40 + tilt * 0, pan = (items, x0, y) => {
+      const n = items.length, per = Math.min(5, Math.max(1, n)), rows = Math.ceil(n / per), s = 30;
+      let b = `<path d="M${x0 - 62} ${y} h124 l-14 16 h-96 z" class="fg-fill"/>`;
+      items.forEach((it, i) => {
+        const r = Math.floor(i / per), c = i % per, inRow = Math.min(per, n - r * per), x = x0 - (inRow * s) / 2 + c * s + s / 2, yy = y - 4 - r * s;
+        b += /^\d+$/.test(String(it)) ? `<rect x="${x - 13}" y="${yy - 26}" width="26" height="24" rx="4" class="bm-part bm-p2"/><text x="${x}" y="${yy - 9}" class="fg-text" font-size="13" text-anchor="middle">${it}</text>`
+          : `<text x="${x}" y="${yy - 3}" font-size="24" text-anchor="middle">${it}</text>`;
+      });
+      return { b, top: y - rows * s - 6 };
+    };
+    const L = pan(left, cx - 100, beamY + 40), R = pan(right, cx + 100, beamY + 40);
+    const top = Math.min(L.top, R.top, 6), dy = 10 - top;
+    let body = `<g transform="translate(0 ${dy})">`;
+    body += `<path d="M${cx} ${beamY} L${cx - 22} ${beamY + 92} h44 z" class="fg-fill"/><line x1="${cx - 100}" y1="${beamY}" x2="${cx + 100}" y2="${beamY}" class="fg-stroke" style="stroke-width:4"/>`;
+    body += `<line x1="${cx - 100}" y1="${beamY}" x2="${cx - 100}" y2="${beamY + 40}" class="fg-stroke"/><line x1="${cx + 100}" y1="${beamY}" x2="${cx + 100}" y2="${beamY + 40}" class="fg-stroke"/>`;
+    body += L.b + R.b + `<circle cx="${cx}" cy="${beamY}" r="6" class="tf-a"/></g>`;
+    return svg(W, beamY + 96 + dy, body, `A balance: ${left.join(' ')} on the left balance ${right.join(' ')} on the right`);
+  }
+  // A number pyramid: rows from the top down; each brick sits on the two below it. Cells: numbers, '?' (dashed), or ''.
+  function pyramid(rows) {
+    const n = rows.length, bw = 64, bh = 38, W = n * bw + 8;
+    let body = '';
+    rows.forEach((row, r) => {
+      const x0 = 4 + ((n - row.length) * bw) / 2;
+      row.forEach((v, i) => {
+        const x = x0 + i * bw, y = 4 + r * bh, unk = v === '?';
+        body += `<rect x="${x + 2}" y="${y + 2}" width="${bw - 4}" height="${bh - 4}" rx="6" class="${unk ? 'bm-unknown' : 'bm-part bm-p' + (r % 3)}"/>${v === '' ? '' : `<text x="${x + bw / 2}" y="${y + bh / 2 + 6}" class="fg-text" font-size="17" text-anchor="middle">${v}</text>`}`;
+      });
+    });
+    return svg(W, n * bh + 8, body, `A number pyramid: ${rows.map((r) => r.join(' ')).join(' / ')}`);
+  }
+  // A string of beads that repeats (colors: r g b y p o k = red green blue yellow purple orange black), then `more` '?' beads.
+  const BEAD = { r: '#e0484d', g: '#2f9e57', b: '#2b6fd6', y: '#f2b01e', p: '#8a5bd6', o: '#ee7d22', k: '#333a4d' };
+  function beads(list, more = 1) {
+    const s = 34, W = (list.length + more) * s + 16;
+    let body = `<line x1="6" y1="24" x2="${W - 6}" y2="24" class="fg-stroke" style="stroke-width:2"/>`;
+    list.forEach((c, i) => { body += `<circle cx="${14 + i * s + s / 2 - 6}" cy="24" r="14" fill="${BEAD[c]}" stroke="#1d2640" stroke-width="1.5"/>`; });
+    for (let i = 0; i < more; i++) { const x = 14 + (list.length + i) * s + s / 2 - 6; body += `<circle cx="${x}" cy="24" r="14" class="bm-unknown"/><text x="${x}" y="30" class="fg-text" font-size="16" text-anchor="middle">?</text>`; }
+    return svg(W, 48, body, `Beads: ${list.join(' ')} then ${more} unknown`);
+  }
+  // Columns of unit cubes seen from the front (heights left to right), with a slight top face.
+  function cubeStack(heights) {
+    const s = 26, d = 8, H = Math.max(...heights), W = heights.length * s + d + 8;
+    let body = '';
+    heights.forEach((h, c) => {
+      for (let k = 0; k < h; k++) {
+        const x = 4 + c * s, y = d + 4 + (H - 1 - k) * s;
+        body += `<rect x="${x}" y="${y}" width="${s}" height="${s}" class="fg-fill"/>`;
+        if (k === h - 1) body += `<path d="M${x} ${y} l${d} ${-d} h${s} l${-d} ${d} z" class="fg-fill" style="opacity:.75"/>`;
+        if (c === heights.length - 1 || heights[c + 1] <= k) body += `<path d="M${x + s} ${y} l${d} ${-d} v${s} l${-d} ${d} z" class="fg-fill" style="opacity:.55"/>`;
+      }
+    });
+    return svg(W, H * s + d + 8, body, `Stacks of cubes, ${heights.join(', ')} high`);
+  }
+  // A street grid of w × h blocks with A at the bottom left and B at the top right (shortest paths go right and up).
+  function gridPath(w, h) {
+    const g = 40, x0 = 22, y0 = 14, W = x0 + w * g + 26, H = y0 + h * g + 30;
+    let body = '';
+    for (let i = 0; i <= w; i++) body += `<line x1="${x0 + i * g}" y1="${y0}" x2="${x0 + i * g}" y2="${y0 + h * g}" class="fg-stroke" style="stroke-width:2.5"/>`;
+    for (let j = 0; j <= h; j++) body += `<line x1="${x0}" y1="${y0 + j * g}" x2="${x0 + w * g}" y2="${y0 + j * g}" class="fg-stroke" style="stroke-width:2.5"/>`;
+    body += `<circle cx="${x0}" cy="${y0 + h * g}" r="9" class="tf-a"/><text x="${x0 - 4}" y="${y0 + h * g + 26}" class="fg-text" font-size="16" text-anchor="middle">A</text>`;
+    body += `<circle cx="${x0 + w * g}" cy="${y0}" r="9" class="tf-a"/><text x="${x0 + w * g + 16}" y="${y0 + 6}" class="fg-text" font-size="16">B</text>`;
+    return svg(W, H, body, `A grid of streets ${w} blocks wide and ${h} blocks tall, from A to B`);
+  }
+  // A month page: `first` = weekday of the 1st (0 = Sunday), `days` in the month; marks {day: label} (label '?' or '★').
+  function calendar(first, days, marks = {}, title = '') {
+    const cw = 40, ch = 30, top = title ? 26 : 0, rows = Math.ceil((first + days) / 7), W = 7 * cw + 4;
+    let body = title ? `<text x="${W / 2}" y="18" class="fg-text" font-size="15" text-anchor="middle">${title}</text>` : '';
+    'SMTWTFS'.split('').forEach((d, i) => { body += `<text x="${2 + i * cw + cw / 2}" y="${top + 18}" class="fg-text" font-size="13" text-anchor="middle">${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</text>`; });
+    for (let day = 1; day <= days; day++) {
+      const k = first + day - 1, r = Math.floor(k / 7), c = k % 7, x = 2 + c * cw, y = top + 26 + r * ch, m = marks[day];
+      body += `<rect x="${x + 1}" y="${y + 1}" width="${cw - 2}" height="${ch - 2}" rx="4" class="${m ? 'bm-unknown' : 'pc-cell'}" style="${m ? '' : 'fill:var(--surface)'}"/><text x="${x + cw / 2}" y="${y + 20}" class="fg-text" font-size="13" text-anchor="middle">${m === '?' ? '?' : day}</text>`;
+    }
+    return svg(W, top + 30 + rows * ch, body, `A calendar month that starts on ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][first]}`);
+  }
+  // Two dice faces (values 1–6), or a 6 × 6 table of sums when sums = true.
+  function dice(a, b) {
+    const pip = { 1: [[1, 1]], 2: [[0, 0], [2, 2]], 3: [[0, 0], [1, 1], [2, 2]], 4: [[0, 0], [2, 0], [0, 2], [2, 2]], 5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]], 6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]] };
+    const face = (v, x) => `<rect x="${x}" y="4" width="64" height="64" rx="12" class="pc-cell" style="fill:var(--surface);stroke-width:3"/>` + pip[v].map(([i, j]) => `<circle cx="${x + 14 + i * 18}" cy="${18 + j * 18}" r="6" class="fg-text"/>`).join('');
+    return svg(160, 72, face(a, 4) + face(b, 88), `Two dice showing ${a} and ${b}`);
+  }
+
+  // A regular polygon with n sides (any n ≥ 3), one corner at the top.
+  function regular(n) {
+    const R0 = 70, c = 76, pts = Array.from({ length: n }, (_, i) => { const t = -Math.PI / 2 + (2 * Math.PI * i) / n; return `${(c + R0 * Math.cos(t)).toFixed(1)},${(c + R0 * Math.sin(t)).toFixed(1)}`; });
+    return svg(152, 152, `<polygon points="${pts.join(' ')}" class="fg-fill"/>`, `a regular polygon with ${n} sides`);
+  }
+
+  return { regular, balance, pyramid, beads, cubeStack, gridPath, calendar, dice, choices, blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
     tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
     table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig, graph, ineqLine, boxPlot };
 })();

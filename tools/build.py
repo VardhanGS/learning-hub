@@ -49,7 +49,7 @@ def build(app_id):
     os.makedirs(out)
 
     feats = cfg.get('features', {})
-    modes = [f'core/modes/{m}.js' for m in (['map-core', 'map'] if feats.get('map') else []) + (['fluency'] if feats.get('fluency') else []) + (['sat-core', 'sat'] if feats.get('sat') else [])]
+    modes = [f'core/modes/{m}.js' for m in (['map-core', 'map'] if feats.get('map') else []) + (['fluency'] if feats.get('fluency') else []) + (['sat-core', 'sat'] if feats.get('sat') else []) + (['contest'] if feats.get('contest') else [])]
     # 'otherApp:file.js' borrows a content file from another app (copied into this app's data/ folder)
     data = [f"data/{f.split(':')[-1]}" for f in cfg.get('data', [])]
     if os.path.exists(os.path.join(src, 'data', 'videos.js')) or cfg.get('videosFrom'):
