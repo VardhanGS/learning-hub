@@ -397,7 +397,7 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   hint giving the answer away, 4 options, wrong weekday …).
 - `contesttest.js` 3 apps × all 7 formats × 100–200 contests: lengths, 3 → 4 → 5 order, no repeats, typed-only Sprint,
   even topics, scores (all right = 96 / 120 / 25 / 30; wrong answers cost nothing).
-- `check_videos.js` all apps OK; `sattest` OK; `maptest` 6 MAP apps (see below).
+- `check_videos.js` all apps OK; `sattest` OK; `maptest` OK for all 6 MAP apps (regression; only their lesson video keys changed).
 - **Chromium (Playwright) in the cloud**, built with a stub icon step (the real icons need Apple Color Emoji): full
   play-through of every level of contest2/4/8 (24 levels each, 0 failures, 0 page errors), hints reveal 1-2-3 then the
   button goes, a full practice contest submitted and scored (48/96, 60/120 with half right), review with solutions;
