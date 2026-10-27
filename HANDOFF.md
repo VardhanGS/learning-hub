@@ -431,6 +431,9 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   three web-app configs (or register them while signed in on the Mac — Claude cannot type passwords); the rules
   allowlist update for contest2/contest4/contest8 is approved (publish rules, verify with rules_test.mjs).
 - **Voices:** the grade-matched voices (g2/g4/g8) are fine — keep them.
+- **Firebase web apps registered by the user (2026-10-27):** appIds are in apps/contest2|4|8/config.js (assumed
+  registration order 2, 4, 8 — the configs were pasted unlabeled; check the nicknames in Project settings → Your apps).
+  firestore.rules already lists contest2/4/8 in the repo; the Mac must PUBLISH the rules and run rules_test.mjs.
 
 ## PENDING — next steps, in order
 

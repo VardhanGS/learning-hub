@@ -8,7 +8,7 @@ window.APP = {
   icon: '🧗',
   iconLabel: '',
   theme: { primary: '#6a4fd0', bg: '#f7f5fd' },
-  firebase: { apiKey: 'AIzaSyC5LJI3n6mcb7aG8oR7pyQFvG9UA0E_CSo', projectId: 'ela-quest', appId: '' }, // not registered yet
+  firebase: { apiKey: 'AIzaSyC5LJI3n6mcb7aG8oR7pyQFvG9UA0E_CSo', projectId: 'ela-quest', appId: '1:327475844624:web:cc70cfae86fdd3163a5c95' }, // registered 2026-10-27 as "Puzzle Peak 2"
   tracks: {
     g2: {
       label: 'Grades 1–2 puzzles', short: 'Grade 2', ready: 'Grades 3–4',
