@@ -140,17 +140,36 @@
   function boundItem(l) {
     const [, kind, t, a, w, why] = U.pick(SAT_SEC.filter((x) => x[0] === l && BOUND_KINDS.includes(x[1])));
     const meta = ['semi', 'period', 'conj', 'intro', 'appos', 'colon', 'however'].includes(kind) ? { meta: { kind: 'boundary', args: [kind, a] } } : {};
-    return mk(SEC_STEM, a, w, { passage: passage(t), fig: pic(['✍️']), ...meta, why, hint: kind === 'svc' ? 'Find the subject and its verb. Nothing should come between them.' : kind === 'question' ? 'Is the question asked directly, or reported inside a statement?' : 'Is each part on both sides of the blank a complete sentence?' }, 'L.SS.11–12.1', bAt(l), 'sec');
+    const NOTE = {
+      ',': kind === 'appos' || kind === 'intro' ? '' : 'A comma alone cannot join two complete sentences; that makes a comma splice.',
+      '(no punctuation)': kind === 'appos' ? 'The extra information needs a closing comma to match the opening one.' : kind === 'colon' ? 'Without punctuation, the list or explanation runs into the sentence before it.' : 'Without punctuation, two complete sentences run together.',
+      ', which': '“Which” turns the second part into a description, but it is a complete sentence of its own.',
+      ';': kind === 'intro' || kind === 'appos' || kind === 'dash' ? 'A semicolon can only join two complete sentences, and one side here is not a complete sentence.' : 'A semicolon does not introduce an explanation or list the way a colon does.',
+      ':': 'A colon must come after a complete sentence and introduce what follows it; that does not fit here.',
+      '.': 'A period here would leave a sentence fragment.',
+      ', and': 'This would join a phrase to a sentence with “and,” which does not fit.',
+      'and,': 'The comma belongs before “and,” not after it.',
+      '; and,': 'A semicolon and “and” together are not used to join these sentences.',
+      ', such as:': 'A colon after “such as” is not used; and the list needs a colon after a complete sentence.',
+      ', such as': '“Such as” would make the next part an example list, which does not fit the sentence.',
+      '; however': '“However” would need a comma after it, and it does not fit the meaning here.',
+      '—': 'The extra information was opened with a comma, so it must close with a comma, not a dash.',
+    };
+    const missOf = (o) => (kind === 'dash' && o !== ';' ? 'The extra information was opened with a dash, so it must close with a dash.' : kind === 'svc' ? 'No punctuation belongs between a subject and its verb.' : kind === 'question' ? (/\?$/.test(o) ? 'A question reported inside a statement ends with a period, not a question mark.' : 'A reported question uses statement word order (subject before verb).') : NOTE[o] || '');
+    const miss = Object.fromEntries(w.map((o) => [o, missOf(o)]).filter(([, v]) => v));
+    return mk(SEC_STEM, a, w, { passage: passage(t), fig: pic(['✍️']), ...meta, why, miss, hint: kind === 'svc' ? 'Find the subject and its verb. Nothing should come between them.' : kind === 'question' ? 'Is the question asked directly, or reported inside a statement?' : 'Is each part on both sides of the blank a complete sentence?' }, 'L.SS.11–12.1', bAt(l), 'sec');
   }
   function fssItem(l) {
     const pool = SAT_SEC.filter((x) => x[0] <= l && ['agree', 'tense', 'modifier'].includes(x[1]) && (l === 0 || x[0] >= l - 1));
     const it = U.pick(pool), kind = it[1];
     if (kind === 'agree') {
       const [lv0, , lead, subj, right, w, rest, sing] = it;
-      return mk(SEC_STEM, right, w, { passage: passage(`${lead} ${subj} ______ ${rest}.`), fig: pic(['🔤']), meta: { kind: 'agree', args: [subj.replace(/,$/, ''), right, sing] }, why: `The subject is “${subj.replace(/,$/, '').replace(/ (of|on|in|near|along|with|together|which).*/, '')}” (${sing ? 'singular' : 'plural'}), so the verb is “${right}.” The words in between do not change that.`, hint: 'Find the subject. Skip the words between the subject and the verb.' }, 'L.SS.11–12.1', bAt(lv0), 'sec');
+      const miss = Object.fromEntries(w.map((o) => [o, /ing$/.test(o) ? `“${o}” is not a complete verb; the sentence needs a verb that agrees with the subject.` : `“${o}” is ${sing ? 'a plural' : 'a singular'} or wrong-tense form; the ${sing ? 'singular' : 'plural'} subject needs “${right}.”`]));
+      return mk(SEC_STEM, right, w, { passage: passage(`${lead} ${subj} ______ ${rest}.`), fig: pic(['🔤']), miss, meta: { kind: 'agree', args: [subj.replace(/,$/, ''), right, sing] }, why: `The subject is “${subj.replace(/,$/, '').replace(/ (of|on|in|near|along|with|together|which).*/, '')}” (${sing ? 'singular' : 'plural'}), so the verb is “${right}.” The words in between do not change that.`, hint: 'Find the subject. Skip the words between the subject and the verb.' }, 'L.SS.11–12.1', bAt(lv0), 'sec');
     }
     const [lv0, , t, a, w, why] = it;
-    return mk(SEC_STEM, a, w, { passage: passage(t), fig: pic([kind === 'tense' ? '⏳' : '🧩']), why, hint: kind === 'tense' ? 'Look for time words (last, next, by, currently) that set the tense.' : 'Who or what does the opening phrase describe? That must come right after the comma.' }, 'L.SS.11–12.1', bAt(lv0), 'sec');
+    const miss = Object.fromEntries(w.map((o) => [o, kind === 'tense' ? `“${o}” does not match the time described in the text.` : `This choice puts something other than “${a.split(' ').slice(0, 3).join(' ')}…” right after the opening phrase, so the phrase seems to describe the wrong thing.`]));
+    return mk(SEC_STEM, a, w, { passage: passage(t), fig: pic([kind === 'tense' ? '⏳' : '🧩']), why, miss, hint: kind === 'tense' ? 'Look for time words (last, next, by, currently) that set the tense.' : 'Who or what does the opening phrase describe? That must come right after the comma.' }, 'L.SS.11–12.1', bAt(lv0), 'sec');
   }
 
   // ===================== EXPRESSION OF IDEAS =====================
@@ -216,7 +235,10 @@
   function transItem(l) {
     const it = U.pick(TRS.filter((x) => x[0] === l)), [, s1, s2, rel] = it, a = U.pick(TR[rel]);
     const others = U.shuffle(Object.keys(TR).filter((r) => r !== rel && !(rel === 'addition' && r === 'similar') && !(rel === 'similar' && r === 'addition') && !(rel === 'result' && r === 'sequence') && !(rel === 'sequence' && r === 'result'))).slice(0, 3).map((r) => U.pick(TR[r]));
-    return mk('Which choice completes the text with the most logical transition?', a, others, { passage: passage(`${TRS_LEAD[TRS.indexOf(it)]} ${s1} ______, ${s2}`), fig: pic(['🔗']), meta: { kind: 'transition', args: [rel, a, others] }, why: `The second sentence ${{ contrast: 'contrasts with', result: 'is a result of', addition: 'adds to', example: 'gives an example of', sequence: 'comes later than', similar: 'is similar to' }[rel]} the first, so “${a}” fits.`, hint: 'Decide how the two sentences relate first: contrast, cause and result, addition, example, time order, or similarity.' }, 'L.KL.11–12.2', bAt(l), 'eoi');
+    // each wrong choice gets its own reason (College Board explains every wrong choice)
+    const SIG = { contrast: 'a contrast', result: 'a result of the sentence before', addition: 'an added, similar point', example: 'an example of the sentence before', sequence: 'a later event in time', similar: 'a similarity between two different things' };
+    const relOf = (o) => Object.keys(TR).find((r) => TR[r].includes(o)), miss = Object.fromEntries(others.map((o) => [o, `“${o}” signals ${SIG[relOf(o)]}, but here the sentence after the blank ${{ contrast: 'contrasts with', result: 'is a result of', addition: 'adds to', example: 'gives an example of', sequence: 'comes later than', similar: 'is similar to' }[rel]} the one before it.`]));
+    return mk('Which choice completes the text with the most logical transition?', a, others, { miss, passage: passage(`${TRS_LEAD[TRS.indexOf(it)]} ${s1} ______, ${s2}`), fig: pic(['🔗']), meta: { kind: 'transition', args: [rel, a, others] }, why: `The second sentence ${{ contrast: 'contrasts with', result: 'is a result of', addition: 'adds to', example: 'gives an example of', sequence: 'comes later than', similar: 'is similar to' }[rel]} the first, so “${a}” fits.`, hint: 'Decide how the two sentences relate first: contrast, cause and result, addition, example, time order, or similarity.' }, 'L.KL.11–12.2', bAt(l), 'eoi');
   }
   // ---- Rhetorical Synthesis: notes + a goal; the right choice meets the goal using the notes ----
   const NOTES = [
