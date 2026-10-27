@@ -247,6 +247,100 @@ Suggested order: 1–2 (review + coverage report to the user) → 5 (realism com
   Not done from fix set 3: literary attribution frame for SAT literature passages, mid-sentence transitions,
   5-choice MC in MAP math, a protractor tool, Part A/B in the MAP adaptive test pool (Part B is practice-only).
 
+## Cloud session of 2026-10-27 (branch `claude/happy-edison-eaje3r`)
+
+Work done in a claude.ai cloud container: no Kokoro voice, no video rendering, no publishing. Everything here waits
+for the Mac session to record, render, play through, and publish (see "Still to do on the Mac" at the end of this
+section).
+
+### Verified facts for plan item 6 (looked up 2026-10-27)
+
+The official sites could not be opened directly from the cloud container (its proxy refuses mathkangaroo.org,
+maa.org and mathcounts.org), so these were read from search-engine extracts of the official pages listed. Re-check
+anything marked "not confirmed" on the real pages before using it in the app's wording.
+
+- **Math Kangaroo USA (individual contest)**, mathkangaroo.org/mks/faqs/about-the-test/,
+  mathkangaroo.org/mks/resources/math-kangaroo-scoring/, mathkangaroo.org/mks/resources/math-kangaroo-logistics/,
+  2026 answer key mathkangaroo.org/mks/wp-content/uploads/2026/04/2026.pdf:
+  75 minutes, multiple choice, grades 1–12 (kindergarteners take the grade 1 level). **24 questions for grades 1–4,
+  30 for grades 5–12.** One third of the questions are worth 3 points, one third 4 points, one third 5 points;
+  **no points taken off for wrong answers**; maximum 96 (grades 1–4) and 120 (grades 5–12). **Calculators, phones and
+  other devices are not allowed.** The answer key has six columns: Grades 1–2, 3–4, 5–6, 7–8, 9–10, 11–12 (one test
+  paper per pair of grades). Answer key published about a month after the contest; results by May 1.
+  The separate Team Competition (6 levels, 60 minutes, 25/50-point questions) is a different event — not modeled.
+  *Not confirmed:* five answer choices (A–E) per question (true of past papers as commonly reported, not seen on
+  the official page today); whether each grade is ranked separately within a two-grade paper (the Team FAQ says each
+  grade has its own scoring bracket for the team event).
+- **AMC 8 (MAA)**, maa.org/student-programs/amc/, MAA 2025–26 AMC flyer (maa.org/wp-content/uploads/2025/06/
+  AMC-Flyers-for-2025-26.pdf), maa.org/student-programs/amc/information-for-students-and-parents/:
+  **25 questions, 40 minutes, multiple choice, score = number correct, no penalty for guessing**; for students in
+  grade 8 and below (age limit under 15.5 on the contest day); one sitting per year. MAA lists the 2026–27 AMC 8
+  window as January 21–27, 2027. *Not confirmed on maa.org today:* five choices A–E and "no calculators" (both are
+  printed on past official papers as reported by several sites; MAA's policy page was not readable from here).
+- **MATHCOUNTS Competition Series**, mathcounts.org/programs/competition-rules-faq,
+  mathcounts.org/programs/mathcounts-competition-series, "Rules Highlights for Competitors" PDF, 2024–25 Guide for
+  New Coaches: grades 6–8; levels school → chapter → state → national; four rounds: **Sprint 30 problems / 40 min / no
+  calculator; Target 8 problems in 4 pairs, 6 minutes per pair, calculator allowed; Team 10 problems / 20 min /
+  calculator, 4-student teams; Countdown (oral, head-to-head, up to 45 s per problem, no calculator, optional below
+  nationals)**. Individual score = Sprint correct + 2 × Target correct (max 46) — from the Rules Highlights sheet,
+  which may be older than the 2026–27 rules. Answers are short answers, not multiple choice. 2027 School Competition
+  released Nov. 3, 2026.
+- **Terms / trademarks.** Past problems of all three contests are copyrighted by their owners; patterns only (the
+  content rule), never items. Marks used only to say what our practice is *like*: "Math Kangaroo" (Math Kangaroo in
+  USA, NFP), "MATHCOUNTS" (MATHCOUNTS Foundation), "AMC" / "AMC 8" / "American Mathematics Competitions" (Mathematical
+  Association of America). Registration status of each mark was not checked; the app's notice says "are trademarks of
+  their respective owners, who are not affiliated with this app."
+
+### Design note: plan item 6 (competitive math) and plan item 7 (deeper problem solving)
+
+**Shape: one new app per child, "Puzzle Peak 2 / 4 / 8"** (`apps/contest2`, `apps/contest4`, `apps/contest8`), on the
+shared engine. Why three apps and not one with three tracks: each app records one grade-matched voice profile
+(g2 / g4 / g8), each child already has "their" row of apps, and one Firebase app id per child keeps progress apart.
+Shared puzzle code lives once in `apps/contest2/data/pzkit.js` and is borrowed by the other two (`contest2:pzkit.js`,
+the same way the reading apps borrow readkit.js). Not added to the hub; not in `firestore.rules` yet (cloud sync for
+these ids needs the allowlist updated and the rules re-published — the user's call).
+
+Each app has two parts:
+
+1. **Contest Practice** (plan item 6) — untimed skills, 3 levels each, in the style of the contests the child can
+   enter. Topics follow what these contests actually test at each level (picture/counting puzzles, logic, number
+   puzzles, patterns, measurement and calendars, geometry; for Grade 8 also counting/probability and number theory).
+   Level 1 ≈ the contest's 3-point questions, Level 2 ≈ 4-point, Level 3 ≈ 5-point (or the next paper up).
+   - **Practice contest** (new core mode `core/modes/contest.js`, reusing the SAT module runner: timer, Back/Next,
+     mark for review, question menu, submit): questions ordered 3-point → 4-point → 5-point, scored like the real
+     contest, review of every question with the worked solution, history, grown-up dashboard.
+     - Puzzle Peak 2: *Kangaroo-style, Grades 1–2 paper*: 24 questions, 75 min, 8 × 3 + 8 × 4 + 8 × 5 points, max 96,
+       5 choices, no penalty, no calculator. A "half contest" (12 questions, 38 min) for a 2nd grader's first tries.
+     - Puzzle Peak 4: *Kangaroo-style, Grades 3–4 paper*: same shape (24 / 75 / max 96), plus the half contest.
+     - Puzzle Peak 8: *Kangaroo-style, Grades 7–8 paper* (30 questions, 75 min, max 120); *AMC 8-style* (25 questions,
+       40 min, 1 point each, 5 choices); *Sprint-style* (30 typed short answers, 40 min, no calculator).
+       Target/Team/Countdown rounds are not modeled (noted in the app).
+   - Wording on screen: "Contest-style practice (unofficial)". Footer: "Math Kangaroo, MATHCOUNTS, and AMC 8 are
+     trademarks of their respective owners, who are not affiliated with this app. All problems are original."
+2. **Summit Trail** (plan item 7, our own name; *in the spirit of* deep problem-solving books, imitating none) —
+   multi-step problems where the answer is typed (no choices to guess from). Each problem has:
+   - **hints that reveal one step at a time** (a new engine feature: `q.steps = [...]`; a "Show a hint (1 of 3)"
+     button reveals the next step; earlier steps never contain the final answer — the validator checks this);
+   - a **worked solution** shown after answering (the "why", with the method named: work backward, make a table,
+     organized list, look for a pattern, draw a picture, solve a simpler problem, use symmetry);
+   - a picture where it helps. Three skills × 3 levels per app, each skill one strategy family.
+   - Notice in the app's About: "Summit Trail is original. Beast Academy and Art of Problem Solving are trademarks of
+     AoPS Incorporated, which is not affiliated with this app."
+
+**Pictures**: new core figures for the puzzles (balance scales, number pyramids, cube stacks, dice, calendar
+pages, repeating bead strings, grids with paths); existing ones (rect grids, arrays, prisms, number lines, tables)
+everywhere else. Every question and lesson has one unless it is pure words by design (validator "Pictures:" line).
+
+**Voice / wording**: g2 upbeat short sentences; g4 friendly; g8 calm coach. Numbers in problems kept small enough to
+read aloud; contest mode keeps read-aloud off unless the grown-up turns it on (as in MAP test mode).
+
+**Correctness**: every puzzle is generated with random numbers from a family; the generator computes the answer one
+way and `tools/validate.js` recomputes it a different way (brute force / enumeration where possible) via
+`meta: {kind: 'pz', args: [family, params]}`. Five options per contest item, all different, answer among them,
+wrong options from real mistakes (e.g. counting only the 1 × 1 squares, forgetting the remainder, off-by-one).
+Each level is tagged with the closest 2023 NJSLS code (contest problems often go past grade standards; the tag says
+which standard the reasoning practices).
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
