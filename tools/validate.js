@@ -369,6 +369,15 @@ function checkItem(where, q, levelStd) {
       q.items.forEach((it) => { if ((+it.w % 2) !== it.b) fail(where, q, `${it.w} sorted into the wrong bin`); });
     } else if (kind === 'sortQuad') {
       q.items.forEach((it) => { const [x, y] = it.w.replace(/[()−]/g, (c) => (c === '−' ? '-' : '')).split(',').map(Number), qd = x > 0 ? (y > 0 ? 0 : 3) : (y > 0 ? 1 : 2); if (qd !== it.b) fail(where, q, `${it.w} is in quadrant ${qd + 1}`); });
+    } else if (kind === 'popGap') {
+      const [right, wrongs] = args;
+      if (q.accept.length !== 1 || q.accept[0][0] !== right) fail(where, q, 'the accepted step is not the missing step');
+      if (wrongs.includes(right)) fail(where, q, 'a wrong tile equals the missing step');
+      if (!q.tiles.includes(right)) fail(where, q, 'the missing step is not among the tiles');
+    } else if (kind === 'hotClue') {
+      const [phrases, right] = args, text = q.passage.text.replace(/\n/g, ' ');
+      phrases.forEach((ph) => { if (!text.includes(ph)) fail(where, q, `phrase "${ph}" is not in the passage`); });
+      if (q.cells[q.a[0]] !== right) fail(where, q, 'the answer cell is not the clue phrase');
     } else if (kind === 'sortPlot') {
       q.items.forEach((it) => { if (String(parseInt(it.w, 10)) !== q.bins[it.b]) fail(where, q, `${it.w} placed above ${q.bins[it.b]}`); });
     } else if (kind === 'sortTruth') {

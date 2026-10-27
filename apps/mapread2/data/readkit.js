@@ -50,6 +50,16 @@ const RK = (() => {
     }
     const rit = base + (TAG_RIT[tag] ?? 0);
     const common = { passage, std, rit, goal, tag: TAG_NAME[tag] || tag };
+    //   ['gap', q, [steps …], index of the missing step, [wrong tiles …], why, tag]   gap match: fill the missing step
+    if (type === 'gap') {
+      const [, q, steps, m, wrongs, why] = spec;
+      return { t: 'pop', q, template: steps.map((x, i) => `${i + 1}. ${i === m ? '□' : x}`).join('\n'), tiles: U.shuffle([steps[m], ...wrongs]), accept: [[steps[m]]], meta: { kind: 'popGap', args: [steps[m], wrongs] }, why, ...common };
+    }
+    //   ['clue', word, [phrases from the passage …], right phrase, why, tag]   hot text: the phrase that is the context clue
+    if (type === 'clue') {
+      const [, word, phrases, right, why] = spec, cells = U.shuffle(phrases);
+      return { t: 'hot', q: `Select the phrase from the passage that ⟦best⟧ helps the reader understand the meaning of “${word}.”`, cells, layout: 'list', a: [cells.indexOf(right)], meta: { kind: 'hotClue', args: [phrases, right] }, why, ...common };
+    }
     if (type === 'mc') {
       const [, q, a, ws, why] = spec, miss = {};
       ws.map(wrongOf).forEach(([w, note]) => { if (note) miss[w] = note; });

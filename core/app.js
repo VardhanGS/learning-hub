@@ -985,7 +985,8 @@
         : `<button class="pop-slot" data-act="unpick" data-p="${n}" ${st.done ? 'disabled' : ''}>${fmt(q.tiles[ti])}</button>`;
     }).join('');
     const tray = q.tiles.map((t, i) => (st.picked.includes(i) ? '' : `<button class="tile pop-tile" data-act="popPick" data-i="${i}" ${st.done || st.picked.length >= slotCount(q) ? 'disabled' : ''}>${fmt(t)}</button>`)).join('');
-    return `<div class="pop-line">${parts}</div>${st.done ? '' : `<p class="howto">Tap a tile to place it in the next box. Tap a box to take its tile back.</p><div class="tiles">${tray}</div>`}`;
+    // a list of sentences (gap match in reading) reads as a normal list with a wide blank, not as a big equation
+    return `<div class="pop-line ${/\n/.test(q.template) ? 'listy' : ''}">${parts}</div>${st.done ? '' : `<p class="howto">Tap a tile to place it in the next box. Tap a box to take its tile back.</p><div class="tiles">${tray}</div>`}`;
   }
 
   // ---- set the clock: tap a number for the hour hand, tap (or drag) around the edge for the minute hand ----

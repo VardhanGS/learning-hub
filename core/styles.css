@@ -859,3 +859,8 @@ sup { line-height: 0; font-size: 0.75em; vertical-align: super; }
 .elim-btn { flex: none; }
 .line-reader { position: fixed; left: 0; right: 0; height: 44px; z-index: 40; pointer-events: none; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.42); border-top: 2px solid var(--primary, #2b6cb0); border-bottom: 2px solid var(--primary, #2b6cb0); }
 .icon-btn.on { outline: 2px solid currentColor; }
+
+/* gap match in reading: a numbered list of sentences with one wide blank */
+.pop-line.listy { display: block; font-size: 1.05rem; font-weight: 500; line-height: 1.7; text-align: left; }
+.pop-line.listy .pop-slot { display: inline-block; min-width: 70%; min-height: 2em; vertical-align: middle; text-align: left; font-size: 1rem; }
+.pop-line.listy + .howto + .tiles .pop-tile, .tiles .pop-tile { white-space: normal; }
