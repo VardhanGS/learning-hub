@@ -853,3 +853,9 @@ sup { line-height: 0; font-size: 0.75em; vertical-align: super; }
 .passage p.numbered { position: relative; padding-left: 1.8em; }
 .passage p.numbered::before { content: attr(data-n); position: absolute; left: 0; font-weight: 700; opacity: 0.6; }
 .passage u, .qtext u { text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+/* test tools: answer eliminator and line reader */
+.opt.elim { text-decoration: line-through; opacity: 0.45; }
+.elim-btn { flex: none; }
+.line-reader { position: fixed; left: 0; right: 0; height: 44px; z-index: 40; pointer-events: none; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.42); border-top: 2px solid var(--primary, #2b6cb0); border-bottom: 2px solid var(--primary, #2b6cb0); }
+.icon-btn.on { outline: 2px solid currentColor; }
