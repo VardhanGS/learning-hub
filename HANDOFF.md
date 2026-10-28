@@ -448,6 +448,22 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   mathquest2, satprep: 0 failures, no console errors after the fix.
 - Then merged into main and published with tools/deploy.sh (user-approved).
 
+### Printing (2026-10-28, user request: "I want the tests to be printable")
+- Shared print feature in core/app.js (`printSheet` / `printHTML`, CSS at the end of core/styles.css): a print-only
+  page with the questions, pictures, A–E choices or answer lines, then an answer key with worked solutions on a new
+  page; always black on white (even in dark mode). Screen verbs become paper verbs ("Tap" → "Circle", tile questions →
+  "Write … in the blanks"). Interactive types print as: number line / shading / graph grid to mark, a blank clock face,
+  a sorting table, "Use these" tiles with blanks, ☐ lists for choose-all.
+- Where: "🖨️ Print a worksheet" (Level 1/2/3, 12 questions + the Watch-first rule) under every skill in every app;
+  Puzzle Peak practice-contest screen (each format, with point values and a Score box); SAT practice-test screen
+  (Reading and Writing or Math, two modules each, Math with the reference sheet; paper cannot adapt, so both modules
+  are mixed difficulty); MAP practice-test screen (a fixed 43-question set from easier to harder, balanced across goal
+  areas, for the chosen season; no score band).
+- Tested in the cloud (Chromium print media → PDF, dark mode on purpose): contest2, contest8 Sprint, SAT Math and R&W,
+  MAP Math 2, MAP Reading 4, two level worksheets: right question/answer counts, no broken numbers, pages looked at;
+  play-through regression mathquest2, satprep, contest2, mapmath2: 0 failures. NOT tested: printing from Safari on
+  the iPad/iPhone (window.print from an installed home-screen app) — check once on a real device.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude

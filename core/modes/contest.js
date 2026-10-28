@@ -62,6 +62,8 @@
       <span class="lbl">Which contest?</span>
       <div class="stack">${C.formats.map((f, i) => `<button class="btn ${i ? '' : 'primary big'}" data-act="ctStart" data-f="${f.id}"><span>${esc(f.name)}</span><small class="fine"> · ${f.per.reduce((a, b) => a + b, 0)} questions · ${Math.round(f.secs / 60)} min${f.points ? ` · ${f.points.join('/')} points` : ''}</small></button>`).join('')}</div>
       <p class="fine">${C.formats.map((f) => esc(f.note || '')).filter(Boolean).join(' ')}</p>
+      <span class="lbl">🖨️ Print a paper contest (with an answer key)</span>
+      <div class="row">${C.formats.map((f) => `<button class="btn small" data-act="ctPrint" data-f="${f.id}">${esc(f.short)}</button>`).join('')}</div>
       <button class="btn ghost" data-act="nav" data-to="home">Not now</button>
       <p class="fine">${esc(C.notice)}</p>
     </section></div>`;
@@ -93,6 +95,15 @@
     api.touchDay((d) => { d.rounds++; d.q += review.length; d.correct += result.right; });
     lastResult = result;
     return 'ctReport';
+  }
+
+  // ---------- paper contest: the same build, printed with point values and an answer key ----------
+  function printContest(id) {
+    const f = FORMATS[id], items = build(f), n = items.length;
+    const sections = f.per.map((count, tier) => ({ name: f.points ? `${f.points[tier]}-point questions` : (tier === 0 ? 'Questions' : ''), items: items.filter((it) => it.tier === tier).map((it) => ({ q: it.q, pts: f.points ? it.pts : 0 })) }));
+    api.printSheet({ title: f.name, sub: `${n} questions · ${Math.round(f.secs / 60)} minutes${f.points ? ` · ${f.points.join(', ')} points` : ' · 1 point each'} · no calculator`,
+      notes: [f.typed ? 'Write each answer on its line.' : 'Circle the letter of your answer.', 'A wrong answer costs nothing, so answer every question.', 'Use scrap paper and draw pictures.'],
+      sections, keyTitle: 'Answer key and solutions' });
   }
 
   // ---------- report ----------
@@ -161,6 +172,7 @@
     acts: {
       ctIntro: () => api.go('ctIntro'),
       ctStart: (ds) => start(ds.f),
+      ctPrint: (ds) => printContest(ds.f),
       ctRevMode: (ds) => { reviewOnlyWrong = ds.w === '1'; api.render(); },
       ctPractice: (ds) => { const [k, l] = ds.w.split('.'); const s = api.SUBJ().find((x) => x.skills.some((y) => y.id === k)); if (s) api.startRound({ mode: 'skill', s: s.id, k, l: +l }); },
     },
