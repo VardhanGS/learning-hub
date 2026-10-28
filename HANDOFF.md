@@ -435,6 +435,19 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   registration order 2, 4, 8 — the configs were pasted unlabeled; check the nicknames in Project settings → Your apps).
   firestore.rules already lists contest2/4/8 in the repo; the Mac must PUBLISH the rules and run rules_test.mjs.
 
+### Finished on the Mac with the user (2026-10-28, guided from the cloud session)
+- Voices recorded for contest2/4/8 (voicecheck: every line recorded). The Mac session fixed Puzzle Peak's story-puzzle
+  name pairs and bead color orders to a small fixed set (fewer voice lines) — validated after the change.
+- All new videos rendered (check_videos: "not rendered yet: none" in every app); Puzzle Peak's 9 rendered by the user.
+- Firestore rules with contest2/4/8 published from the console; `node tools/rules_test.mjs after` 14/14 PASS.
+- Hub: Puzzle Peak 2/4/8 rows + a Math Kangaroo / AMC 8 / MATHCOUNTS trademark line (the Mac session's hub edit).
+- Bug found by the browser play-through and fixed: the empty "make a line plot" picture (Math Quest 2 / MAP Math 2,
+  live since 2026-10-26) had height -Infinity. `Fig.linePlot` now handles an empty plot; validate.js fails any picture
+  containing NaN / Infinity / undefined (planted-bug check: caught 17×).
+- Tests on the Mac: validate all 12 apps ✓, contesttest ✓, voicecheck ✓, browser play-through contest2/4/8,
+  mathquest2, satprep: 0 failures, no console errors after the fix.
+- Then merged into main and published with tools/deploy.sh (user-approved).
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
