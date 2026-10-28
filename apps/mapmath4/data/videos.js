@@ -85,5 +85,185 @@ const VIDEOS = [
   "src": "videos/map-tips4.mp4",
   "poster": "videos/map-tips4.jpg",
   "secs": 54
+ },
+ {
+  "id": "place-value4",
+  "title": "Place Value to a Million",
+  "subject": "number",
+  "label": "Place value",
+  "desc": "Each place is 10 times the place to its right: values of digits, comparing, and expanded form.",
+  "practice": [
+   "number",
+   "pv",
+   0
+  ],
+  "src": "videos/place-value4.mp4",
+  "poster": "videos/place-value4.jpg",
+  "secs": 81
+ },
+ {
+  "id": "rounding4",
+  "title": "Rounding and Estimating",
+  "subject": "number",
+  "label": "Rounding",
+  "desc": "Find the two numbers it is between, check the halfway mark, and use rounding to check answers.",
+  "practice": [
+   "number",
+   "round",
+   0
+  ],
+  "src": "videos/rounding4.mp4",
+  "poster": "videos/rounding4.jpg",
+  "secs": 81
+ },
+ {
+  "id": "addsub4",
+  "title": "Adding and Subtracting Big Numbers",
+  "subject": "number",
+  "label": "Add & subtract",
+  "desc": "Line up the places, regroup, subtract across zeros, and line up decimal points.",
+  "practice": [
+   "number",
+   "addsub",
+   0
+  ],
+  "src": "videos/addsub4.mp4",
+  "poster": "videos/addsub4.jpg",
+  "secs": 104
+ },
+ {
+  "id": "fraction-ops4",
+  "title": "Adding and Multiplying Fractions",
+  "subject": "number",
+  "label": "Fraction operations",
+  "desc": "Same-size pieces add on top; mixed numbers; a whole number times a fraction.",
+  "practice": [
+   "number",
+   "fop",
+   0
+  ],
+  "src": "videos/fraction-ops4.mp4",
+  "poster": "videos/fraction-ops4.jpg",
+  "secs": 70
+ },
+ {
+  "id": "times-as-many4",
+  "title": "Times as Many",
+  "subject": "algebra",
+  "label": "Times as many",
+  "desc": "Comparing by multiplying: times as many, the smaller amount, and times as many versus more than.",
+  "practice": [
+   "algebra",
+   "times",
+   0
+  ],
+  "src": "videos/times-as-many4.mp4",
+  "poster": "videos/times-as-many4.jpg",
+  "secs": 69
+ },
+ {
+  "id": "multi-step4",
+  "title": "Multi-Step Problems",
+  "subject": "algebra",
+  "label": "Multi-step",
+  "desc": "Plan the steps, and decide what a remainder means.",
+  "practice": [
+   "algebra",
+   "steps",
+   0
+  ],
+  "src": "videos/multi-step4.mp4",
+  "poster": "videos/multi-step4.jpg",
+  "secs": 81
+ },
+ {
+  "id": "factors4",
+  "title": "Factors, Multiples, and Primes",
+  "subject": "algebra",
+  "label": "Factors",
+  "desc": "Factor pairs as arrays, multiples by skip counting, primes and composites, and order of operations.",
+  "practice": [
+   "algebra",
+   "factors",
+   0
+  ],
+  "src": "videos/factors4.mp4",
+  "poster": "videos/factors4.jpg",
+  "secs": 69
+ },
+ {
+  "id": "patterns4",
+  "title": "Number Patterns",
+  "subject": "algebra",
+  "label": "Patterns",
+  "desc": "Use a rule to extend a pattern, notice features the rule does not say, and relate two patterns.",
+  "practice": [
+   "algebra",
+   "pattern",
+   0
+  ],
+  "src": "videos/patterns4.mp4",
+  "poster": "videos/patterns4.jpg",
+  "secs": 69
+ },
+ {
+  "id": "lines4",
+  "title": "Lines, Symmetry, and Grids",
+  "subject": "geometry",
+  "label": "Lines & symmetry",
+  "desc": "Lines, rays, and segments; parallel and perpendicular; lines of symmetry; points on a grid.",
+  "practice": [
+   "geometry",
+   "lines",
+   0
+  ],
+  "src": "videos/lines4.mp4",
+  "poster": "videos/lines4.jpg",
+  "secs": 72
+ },
+ {
+  "id": "measurement4",
+  "title": "Changing Units",
+  "subject": "geometry",
+  "label": "Measurement",
+  "desc": "Feet and inches, pounds and ounces, elapsed time, and metric units.",
+  "practice": [
+   "geometry",
+   "meas",
+   0
+  ],
+  "src": "videos/measurement4.mp4",
+  "poster": "videos/measurement4.jpg",
+  "secs": 77
+ },
+ {
+  "id": "area4",
+  "title": "Area, Perimeter, and Volume",
+  "subject": "geometry",
+  "label": "Area & volume",
+  "desc": "The formulas, using them backward for a missing side, and counting cubes for volume.",
+  "practice": [
+   "geometry",
+   "area",
+   0
+  ],
+  "src": "videos/area4.mp4",
+  "poster": "videos/area4.jpg",
+  "secs": 76
+ },
+ {
+  "id": "lineplots4",
+  "title": "Line Plots with Fractions",
+  "subject": "geometry",
+  "label": "Line plots",
+  "desc": "Read X marks on fraction number lines, find differences, and share amounts equally.",
+  "practice": [
+   "geometry",
+   "data",
+   0
+  ],
+  "src": "videos/lineplots4.mp4",
+  "poster": "videos/lineplots4.jpg",
+  "secs": 65
  }
 ];

@@ -10,5 +10,35 @@ const VIDEOS = [
   "src": "videos/map-tips.mp4",
   "poster": "videos/map-tips.jpg",
   "secs": 61
+ },
+ {
+  "id": "equations2",
+  "title": "The Equal Sign",
+  "subject": "algebra",
+  "label": "Equations",
+  "desc": "The equal sign means \"the same as\": true or false, and finding the missing number.",
+  "practice": [
+   "algebra",
+   "meq",
+   1
+  ],
+  "src": "videos/equations2.mp4",
+  "poster": "videos/equations2.jpg",
+  "secs": 72
+ },
+ {
+  "id": "patterns2",
+  "title": "Patterns and Rules",
+  "subject": "algebra",
+  "label": "Patterns",
+  "desc": "Find the rule in a growing pattern and in an In and Out table.",
+  "practice": [
+   "algebra",
+   "mpat",
+   0
+  ],
+  "src": "videos/patterns2.mp4",
+  "poster": "videos/patterns2.jpg",
+  "secs": 77
  }
 ];

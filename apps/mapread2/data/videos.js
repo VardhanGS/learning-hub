@@ -115,5 +115,50 @@ const VIDEOS = [
   "src": "videos/map-tips-r2.mp4",
   "poster": "videos/map-tips-r2.jpg",
   "secs": 46
+ },
+ {
+  "id": "characters2",
+  "title": "Characters and How They Feel",
+  "subject": "lit",
+  "label": "Characters",
+  "desc": "What a character wants, how they feel, how they change, and what they are like inside.",
+  "practice": [
+   "lit",
+   "characters",
+   0
+  ],
+  "src": "videos/characters2.mp4",
+  "poster": "videos/characters2.jpg",
+  "secs": 65
+ },
+ {
+  "id": "purpose2",
+  "title": "Why Did the Author Write It?",
+  "subject": "info",
+  "label": "Author's purpose",
+  "desc": "To explain, to entertain, or to persuade; a point and its reasons; two texts on one topic.",
+  "practice": [
+   "info",
+   "purpose",
+   0
+  ],
+  "src": "videos/purpose2.mp4",
+  "poster": "videos/purpose2.jpg",
+  "secs": 69
+ },
+ {
+  "id": "wordplay2",
+  "title": "Fun with Words",
+  "subject": "vocab",
+  "label": "Word play",
+  "desc": "Stronger and weaker words, opposites, words with two meanings, similes, and sayings.",
+  "practice": [
+   "vocab",
+   "wordplay",
+   0
+  ],
+  "src": "videos/wordplay2.mp4",
+  "poster": "videos/wordplay2.jpg",
+  "secs": 70
  }
 ];

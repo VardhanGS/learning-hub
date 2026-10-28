@@ -119,5 +119,50 @@ const VIDEOS = [
   "src": "videos/word-problems.mp4",
   "poster": "videos/word-problems.jpg",
   "secs": 57
+ },
+ {
+  "id": "shapes2",
+  "title": "Sides and Corners",
+  "subject": "geo",
+  "label": "Geometry",
+  "desc": "Name shapes by counting sides and corners, and meet the quadrilateral family.",
+  "practice": [
+   "geo",
+   "shapes",
+   0
+  ],
+  "src": "videos/shapes2.mp4",
+  "poster": "videos/shapes2.jpg",
+  "secs": 77
+ },
+ {
+  "id": "graphs2",
+  "title": "Reading Bar and Picture Graphs",
+  "subject": "data",
+  "label": "Data",
+  "desc": "Read a bar to its number, count pictures with a key, and answer how many more.",
+  "practice": [
+   "data",
+   "graphs",
+   0
+  ],
+  "src": "videos/graphs2.mp4",
+  "poster": "videos/graphs2.jpg",
+  "secs": 64
+ },
+ {
+  "id": "lineplots2",
+  "title": "Line Plots",
+  "subject": "data",
+  "label": "Data",
+  "desc": "An X for every object: read a line plot, find the longest and shortest.",
+  "practice": [
+   "data",
+   "lineplot",
+   0
+  ],
+  "src": "videos/lineplots2.mp4",
+  "poster": "videos/lineplots2.jpg",
+  "secs": 57
  }
 ];

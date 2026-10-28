@@ -100,5 +100,185 @@ const VIDEOS = [
   "src": "videos/math-geometry.mp4",
   "poster": "videos/math-geometry.jpg",
   "secs": 55
+ },
+ {
+  "id": "rw-structure",
+  "title": "Text Structure and Purpose",
+  "subject": "rw",
+  "label": "Craft & Structure",
+  "desc": "Name what a sentence does, spot the old view → new evidence → conclusion pattern, and choose precise role answers.",
+  "practice": [
+   "rw",
+   "tsp",
+   0
+  ],
+  "src": "videos/rw-structure.mp4",
+  "poster": "videos/rw-structure.jpg",
+  "secs": 77
+ },
+ {
+  "id": "rw-cross-text",
+  "title": "Cross-Text Connections",
+  "subject": "rw",
+  "label": "Craft & Structure",
+  "desc": "Find each text’s claim, decide how Text 2 responds, and answer only from what Text 2 says.",
+  "practice": [
+   "rw",
+   "ctc",
+   0
+  ],
+  "src": "videos/rw-cross-text.mp4",
+  "poster": "videos/rw-cross-text.jpg",
+  "secs": 57
+ },
+ {
+  "id": "rw-evidence",
+  "title": "Command of Evidence",
+  "subject": "rw",
+  "label": "Information & Ideas",
+  "desc": "Choose the finding or data point that supports exactly the claim, and read graphs accurately.",
+  "practice": [
+   "rw",
+   "coe",
+   0
+  ],
+  "src": "videos/rw-evidence.mp4",
+  "poster": "videos/rw-evidence.jpg",
+  "secs": 68
+ },
+ {
+  "id": "rw-inference",
+  "title": "Inferences",
+  "subject": "rw",
+  "label": "Information & Ideas",
+  "desc": "Pick the ending that must follow from the text, and match its careful wording.",
+  "practice": [
+   "rw",
+   "inf",
+   0
+  ],
+  "src": "videos/rw-inference.mp4",
+  "poster": "videos/rw-inference.jpg",
+  "secs": 54
+ },
+ {
+  "id": "rw-synthesis",
+  "title": "Rhetorical Synthesis",
+  "subject": "rw",
+  "label": "Expression of Ideas",
+  "desc": "Every choice is true; pick the one that does exactly what the goal asks.",
+  "practice": [
+   "rw",
+   "rsyn",
+   0
+  ],
+  "src": "videos/rw-synthesis.mp4",
+  "poster": "videos/rw-synthesis.jpg",
+  "secs": 50
+ },
+ {
+  "id": "math-inequalities",
+  "title": "Linear Inequalities",
+  "subject": "math",
+  "label": "Algebra",
+  "desc": "Solve and flip, translate at most and at least, and test points in a system.",
+  "practice": [
+   "math",
+   "ineq",
+   0
+  ],
+  "src": "videos/math-inequalities.mp4",
+  "poster": "videos/math-inequalities.jpg",
+  "secs": 80
+ },
+ {
+  "id": "math-exponential",
+  "title": "Exponential Functions",
+  "subject": "math",
+  "label": "Advanced Math",
+  "desc": "Percent growth and decay as a multiplier, composing functions, and half-life.",
+  "practice": [
+   "math",
+   "expo",
+   0
+  ],
+  "src": "videos/math-exponential.mp4",
+  "poster": "videos/math-exponential.jpg",
+  "secs": 74
+ },
+ {
+  "id": "math-ratios",
+  "title": "Ratios, Rates, and Percents",
+  "subject": "math",
+  "label": "Problem Solving",
+  "desc": "Percent of a number, unit conversion with fractions equal to 1, and successive percent changes.",
+  "practice": [
+   "math",
+   "ratio",
+   0
+  ],
+  "src": "videos/math-ratios.mp4",
+  "poster": "videos/math-ratios.jpg",
+  "secs": 62
+ },
+ {
+  "id": "math-data",
+  "title": "Data and Inference",
+  "subject": "math",
+  "label": "Problem Solving",
+  "desc": "Mean, median, and outliers; predictions from a line of fit; margin of error.",
+  "practice": [
+   "math",
+   "stats",
+   0
+  ],
+  "src": "videos/math-data.mp4",
+  "poster": "videos/math-data.jpg",
+  "secs": 79
+ },
+ {
+  "id": "math-probability",
+  "title": "Probability from Tables",
+  "subject": "math",
+  "label": "Problem Solving",
+  "desc": "Favorable over total, and which total to divide by for “and” versus “given.”",
+  "practice": [
+   "math",
+   "prob",
+   0
+  ],
+  "src": "videos/math-probability.mp4",
+  "poster": "videos/math-probability.jpg",
+  "secs": 59
+ },
+ {
+  "id": "math-angles",
+  "title": "Lines, Angles, and Triangles",
+  "subject": "math",
+  "label": "Geometry",
+  "desc": "Triangle angle sums, parallel lines cut by a transversal, and similar triangles.",
+  "practice": [
+   "math",
+   "tri",
+   0
+  ],
+  "src": "videos/math-angles.mp4",
+  "poster": "videos/math-angles.jpg",
+  "secs": 67
+ },
+ {
+  "id": "math-circles",
+  "title": "Circles",
+  "subject": "math",
+  "label": "Geometry",
+  "desc": "Reading center and radius from the equation, arc length, and completing the square.",
+  "practice": [
+   "math",
+   "circle",
+   0
+  ],
+  "src": "videos/math-circles.mp4",
+  "poster": "videos/math-circles.jpg",
+  "secs": 80
  }
 ];

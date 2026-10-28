@@ -12,7 +12,9 @@ const PZ = (() => {
   const R = (lo, hi) => U.int(lo, hi);
   const pick = (a) => U.pick(a);
   const NAMES = ['Maya', 'Leo', 'Aarav', 'Sofia', 'Kenji', 'Zara', 'Omar', 'Lily', 'Diego', 'Ava', 'Noah', 'Priya', 'Mateo', 'Hana', 'Eli', 'Nia'];
-  const two = () => U.sample(NAMES, 2);
+  // A fixed set of name pairs (not any 2 of 16): each pair is a recorded voice line, and 240 pairs were too many to record.
+  const PAIRS = [['Maya', 'Leo'], ['Aarav', 'Sofia'], ['Kenji', 'Zara'], ['Omar', 'Lily'], ['Diego', 'Ava'], ['Noah', 'Priya'], ['Mateo', 'Hana'], ['Eli', 'Nia']];
+  const two = () => U.shuffle(pick(PAIRS).slice());
   const c = (n) => Number(n).toLocaleString('en-US');
   const pl = (n, w, ws = w + 's') => `${n} ${n === 1 ? w : ws}`;
   const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
@@ -77,7 +79,8 @@ const PZ = (() => {
   // ---------- repeating patterns ----------
   function beadsQ(d) {
     const k = d === 0 ? 2 : d <= 2 ? 3 : d <= 4 ? 4 : 5;
-    const pat = U.sample(['r', 'g', 'b', 'y', 'p'], k), N = d === 0 ? R(7, 12) : d === 1 ? R(10, 20) : d === 2 ? R(20, 40) : d <= 4 ? R(30, 99) : R(100, 300);
+    // Counting puzzles name the colors aloud, so they use a few fixed 5-color orders (any order made 120 voice lines).
+    const pat = d >= 5 ? pick([['r', 'b', 'y', 'g', 'p'], ['g', 'y', 'p', 'r', 'b'], ['b', 'p', 'r', 'y', 'g'], ['y', 'g', 'b', 'p', 'r']]).slice() : U.sample(['r', 'g', 'b', 'y', 'p'], k), N = d === 0 ? R(7, 12) : d === 1 ? R(10, 20) : d === 2 ? R(20, 40) : d <= 4 ? R(30, 99) : R(100, 300);
     const shown = pat.concat(pat).slice(0, k + Math.min(k, 3));
     if (d >= 5 && Math.random() < 0.5) {
       const col = pick(pat), per = Math.floor(N / k), extra = pat.slice(0, N % k).filter((x) => x === col).length, total = per + extra;
