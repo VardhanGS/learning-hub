@@ -283,6 +283,8 @@ function checkItem(where, q, levelStd) {
   // counted only when the right answer is VISIBLY longest: at least 20% and 8 characters longer than every wrong choice
   if (q.t === 'mc' && q.opts.length >= 3 && !q.meta) { lenStats.n++; const al = plain(q.a).length, nxt = Math.max(...q.opts.filter((o) => o !== q.a).map((o) => plain(o).length)); if (al >= nxt * 1.2 && al - nxt >= 8) lenStats.longest++; }
   if (!q.q || typeof q.q !== 'string') fail(where, q, 'missing prompt');
+  // a picture with a broken number (NaN, Infinity, undefined) draws blank or broken in the browser
+  [q.fig, q.passage && q.passage.fig, ...(q.cells || [])].forEach((f) => { if (typeof f === 'string' && f.includes('<svg') && /NaN|Infinity|undefined/.test(f)) fail(where, q, 'a picture has a broken number (NaN/Infinity/undefined)'); });
   if (!levelStd) fail(where, q, 'level has no standard code');
   if (!MathText.spoken(q.q)) fail(where, q, 'prompt has nothing to say aloud');
   const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins', 'hot', 'pop', 'expr', 'plot'].includes(q.t) || (q.t === 'mc' && q.meta);
