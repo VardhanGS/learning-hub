@@ -132,7 +132,7 @@ const Fig = (() => {
     const n = (max - min) * den, W = 430, pad = 26, x = (v) => pad + ((v - min) * den / n) * (W - 2 * pad);
     const counts = {};
     values.forEach((v) => { counts[v] = (counts[v] || 0) + 1; });
-    const top = Math.max(...Object.values(counts)), base = 40 + top * 22;
+    const top = Math.max(0, ...Object.values(counts)), base = 40 + top * 22; // an empty plot ("make a line plot") has no X yet
     let body = `<text x="${W / 2}" y="16" class="fg-text" font-size="15" text-anchor="middle">${title}</text><line x1="${pad - 10}" y1="${base}" x2="${W - pad + 10}" y2="${base}" class="fg-stroke"/>`;
     for (let i = 0; i <= n; i++) {
       const v = min + i / den;
