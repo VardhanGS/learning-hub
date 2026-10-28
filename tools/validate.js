@@ -108,6 +108,8 @@ const TEXT = {
   ruleAdd: ([seq]) => `add ${seq[1] - seq[0]}`,
   storyEq: ([kind, a, b]) => (kind === 'gain' ? `${a} + ${b} = □` : kind === 'lose' ? `${a + b} − ${b} = □` : `□ + ${b} = ${a + b}`),
   mulStory: ([g, n]) => `${g} × ${n}`,
+  repAdd: ([g, n]) => Array(g).fill(n).join(' + '),
+  checkSub: ([a, b]) => `${a - b} + ${b} = ${a}`,
   estFact: ([i]) => ['7 inches', '7 feet', '1 inch', '40 feet', '9 centimeters', '10 meters'][i],
   centsText: (list) => `${list.reduce((t, k) => t + COINV[k], 0)}¢`,
   dataQ: () => 'How many votes were there in all?',
