@@ -187,6 +187,8 @@ their patterns, and our questions should match those patterns:
 
 Suggested order: 1–2 (review + coverage report to the user) → 5 (realism comparison) → 4 (decision) → 3 (videos) →
 6 → 7. Ask before publishing anything new.
+**Status 2026-10-27:** 1, 2, 5 done and published; 3, 6, 7 built in the cloud (scripts / apps, NOT rendered, voiced
+or published — see "Cloud session of 2026-10-27" below); 4 waits for the user's decision.
 
 ## PROGRESS on the next plan (session of 2026-10-26)
 
@@ -246,6 +248,205 @@ Suggested order: 1–2 (review + coverage report to the user) → 5 (realism com
   (found real "no-regroup" items that regrouped in Math Quest 2 / MAP Math 2 / demo; fixed).
   Not done from fix set 3: literary attribution frame for SAT literature passages, mid-sentence transitions,
   5-choice MC in MAP math, a protractor tool, Part A/B in the MAP adaptive test pool (Part B is practice-only).
+
+## Cloud session of 2026-10-27 (branch `claude/happy-edison-eaje3r`)
+
+Work done in a claude.ai cloud container: no Kokoro voice, no video rendering, no publishing. Everything here waits
+for the Mac session to record, render, play through, and publish (see "Still to do on the Mac" at the end of this
+section).
+
+### Verified facts for plan item 6 (looked up 2026-10-27)
+
+The official sites could not be opened directly from the cloud container (its proxy refuses mathkangaroo.org,
+maa.org and mathcounts.org), so these were read from search-engine extracts of the official pages listed. Re-check
+anything marked "not confirmed" on the real pages before using it in the app's wording.
+
+- **Math Kangaroo USA (individual contest)**, mathkangaroo.org/mks/faqs/about-the-test/,
+  mathkangaroo.org/mks/resources/math-kangaroo-scoring/, mathkangaroo.org/mks/resources/math-kangaroo-logistics/,
+  2026 answer key mathkangaroo.org/mks/wp-content/uploads/2026/04/2026.pdf:
+  75 minutes, multiple choice, grades 1–12 (kindergarteners take the grade 1 level). **24 questions for grades 1–4,
+  30 for grades 5–12.** One third of the questions are worth 3 points, one third 4 points, one third 5 points;
+  **no points taken off for wrong answers**; maximum 96 (grades 1–4) and 120 (grades 5–12). **Calculators, phones and
+  other devices are not allowed.** The answer key has six columns: Grades 1–2, 3–4, 5–6, 7–8, 9–10, 11–12 (one test
+  paper per pair of grades). Answer key published about a month after the contest; results by May 1.
+  The separate Team Competition (6 levels, 60 minutes, 25/50-point questions) is a different event — not modeled.
+  *Not confirmed:* five answer choices (A–E) per question (true of past papers as commonly reported, not seen on
+  the official page today); whether each grade is ranked separately within a two-grade paper (the Team FAQ says each
+  grade has its own scoring bracket for the team event).
+- **AMC 8 (MAA)**, maa.org/student-programs/amc/, MAA 2025–26 AMC flyer (maa.org/wp-content/uploads/2025/06/
+  AMC-Flyers-for-2025-26.pdf), maa.org/student-programs/amc/information-for-students-and-parents/:
+  **25 questions, 40 minutes, multiple choice, score = number correct, no penalty for guessing**; for students in
+  grade 8 and below (age limit under 15.5 on the contest day); one sitting per year. MAA lists the 2026–27 AMC 8
+  window as January 21–27, 2027. *Not confirmed on maa.org today:* five choices A–E and "no calculators" (both are
+  printed on past official papers as reported by several sites; MAA's policy page was not readable from here).
+- **MATHCOUNTS Competition Series**, mathcounts.org/programs/competition-rules-faq,
+  mathcounts.org/programs/mathcounts-competition-series, "Rules Highlights for Competitors" PDF, 2024–25 Guide for
+  New Coaches: grades 6–8; levels school → chapter → state → national; four rounds: **Sprint 30 problems / 40 min / no
+  calculator; Target 8 problems in 4 pairs, 6 minutes per pair, calculator allowed; Team 10 problems / 20 min /
+  calculator, 4-student teams; Countdown (oral, head-to-head, up to 45 s per problem, no calculator, optional below
+  nationals)**. Individual score = Sprint correct + 2 × Target correct (max 46) — from the Rules Highlights sheet,
+  which may be older than the 2026–27 rules. Answers are short answers, not multiple choice. 2027 School Competition
+  released Nov. 3, 2026.
+- **Terms / trademarks.** Past problems of all three contests are copyrighted by their owners; patterns only (the
+  content rule), never items. Marks used only to say what our practice is *like*: "Math Kangaroo" (Math Kangaroo in
+  USA, NFP), "MATHCOUNTS" (MATHCOUNTS Foundation), "AMC" / "AMC 8" / "American Mathematics Competitions" (Mathematical
+  Association of America). Registration status of each mark was not checked; the app's notice says "are trademarks of
+  their respective owners, who are not affiliated with this app."
+
+### Design note: plan item 6 (competitive math) and plan item 7 (deeper problem solving)
+
+**Shape: one new app per child, "Puzzle Peak 2 / 4 / 8"** (`apps/contest2`, `apps/contest4`, `apps/contest8`), on the
+shared engine. Why three apps and not one with three tracks: each app records one grade-matched voice profile
+(g2 / g4 / g8), each child already has "their" row of apps, and one Firebase app id per child keeps progress apart.
+Shared puzzle code lives once in `apps/contest2/data/pzkit.js` and is borrowed by the other two (`contest2:pzkit.js`,
+the same way the reading apps borrow readkit.js). Not added to the hub; not in `firestore.rules` yet (cloud sync for
+these ids needs the allowlist updated and the rules re-published — the user's call).
+
+Each app has two parts:
+
+1. **Contest Practice** (plan item 6) — untimed skills, 3 levels each, in the style of the contests the child can
+   enter. Topics follow what these contests actually test at each level (picture/counting puzzles, logic, number
+   puzzles, patterns, measurement and calendars, geometry; for Grade 8 also counting/probability and number theory).
+   Level 1 ≈ the contest's 3-point questions, Level 2 ≈ 4-point, Level 3 ≈ 5-point (or the next paper up).
+   - **Practice contest** (new core mode `core/modes/contest.js`, reusing the SAT module runner: timer, Back/Next,
+     mark for review, question menu, submit): questions ordered 3-point → 4-point → 5-point, scored like the real
+     contest, review of every question with the worked solution, history, grown-up dashboard.
+     - Puzzle Peak 2: *Kangaroo-style, Grades 1–2 paper*: 24 questions, 75 min, 8 × 3 + 8 × 4 + 8 × 5 points, max 96,
+       5 choices, no penalty, no calculator. A "half contest" (12 questions, 38 min) for a 2nd grader's first tries.
+     - Puzzle Peak 4: *Kangaroo-style, Grades 3–4 paper*: same shape (24 / 75 / max 96), plus the half contest.
+     - Puzzle Peak 8: *Kangaroo-style, Grades 7–8 paper* (30 questions, 75 min, max 120); *AMC 8-style* (25 questions,
+       40 min, 1 point each, 5 choices); *Sprint-style* (30 typed short answers, 40 min, no calculator).
+       Target/Team/Countdown rounds are not modeled (noted in the app).
+   - Wording on screen: "Contest-style practice (unofficial)". Footer: "Math Kangaroo, MATHCOUNTS, and AMC 8 are
+     trademarks of their respective owners, who are not affiliated with this app. All problems are original."
+2. **Summit Trail** (plan item 7, our own name; *in the spirit of* deep problem-solving books, imitating none) —
+   multi-step problems where the answer is typed (no choices to guess from). Each problem has:
+   - **hints that reveal one step at a time** (a new engine feature: `q.steps = [...]`; a "Show a hint (1 of 3)"
+     button reveals the next step; earlier steps never contain the final answer — the validator checks this);
+   - a **worked solution** shown after answering (the "why", with the method named: work backward, make a table,
+     organized list, look for a pattern, draw a picture, solve a simpler problem, use symmetry);
+   - a picture where it helps. Three skills × 3 levels per app, each skill one strategy family.
+   - Notice in the app's About: "Summit Trail is original. Beast Academy and Art of Problem Solving are trademarks of
+     AoPS Incorporated, which is not affiliated with this app."
+
+**Pictures**: new core figures for the puzzles (balance scales, number pyramids, cube stacks, dice, calendar
+pages, repeating bead strings, grids with paths); existing ones (rect grids, arrays, prisms, number lines, tables)
+everywhere else. Every question and lesson has one unless it is pure words by design (validator "Pictures:" line).
+
+**Voice / wording**: g2 upbeat short sentences; g4 friendly; g8 calm coach. Numbers in problems kept small enough to
+read aloud; contest mode keeps read-aloud off unless the grown-up turns it on (as in MAP test mode).
+
+**Correctness**: every puzzle is generated with random numbers from a family; the generator computes the answer one
+way and `tools/validate.js` recomputes it a different way (brute force / enumeration where possible) via
+`meta: {kind: 'pz', args: [family, params]}`. Five options per contest item, all different, answer among them,
+wrong options from real mistakes (e.g. counting only the 1 × 1 squares, forgetting the remainder, off-by-one).
+Each level is tagged with the closest 2023 NJSLS code (contest problems often go past grade standards; the tag says
+which standard the reasoning practices).
+
+### What was built (cloud session 2026-10-27) — NOTHING here is published
+
+**Plan item 3 (more videos), scripts only — 46 new video scripts, not rendered.** Every skill in every app now has a
+`video:` key in its lessons (they show once `make_videos.py` writes the catalog):
+- Math Quest 2 +3 (`shapes2`, `graphs2`, `lineplots2`; MAP Math 2 borrows them) · MAP Math 2 +2 (`equations2`,
+  `patterns2`) and its own skills now also point at fitting borrowed videos (`place-value`, `regroup`, `fractions`, …)
+- MAP Math 4 +12 (`place-value4`, `rounding4`, `addsub4`, `fraction-ops4`, `times-as-many4`, `multi-step4`,
+  `factors4`, `patterns4`, `lines4`, `measurement4`, `area4`, `lineplots4`)
+- Algebra 1 Quest +6 (`real-numbers`, `exponent-rules`, `units`, `expressions`, `sequences`, `statistics`; MAP
+  Algebra 1 borrows them) · MAP Algebra 1 +7 (`signed-numbers`, `ratios-percents`, `sci-notation`, `quad-forms`,
+  `constraints`, `rate-of-change`, `key-features`; `eqprep`/`equivx`/`data2` point at borrowed videos)
+- SAT Prep +12 (`rw-structure`, `rw-cross-text`, `rw-evidence`, `rw-inference`, `rw-synthesis`,
+  `math-inequalities`, `math-exponential`, `math-ratios`, `math-data`, `math-probability`, `math-angles`,
+  `math-circles`; all passages original)
+- MAP Reading 2 +3 (`characters2`, `purpose2`, `wordplay2`) · Reading 4 +3 (`evidence4`, `visuals4`, `roots4`) ·
+  Reading 8 +1 (`paragraphs8`)
+- New `tools/check_videos.js [app…]`: checks scripts without rendering (every fig expression runs in fig.js alone,
+  as fig_png.py runs it; quiz answers among options; practice skill exists; lesson video keys resolve; notes vs
+  beats). It found a **real bug in published videos**: in `image` scenes the last note(s) never appeared when a scene
+  had as many notes as beats (93 scenes in 8 apps; e.g. the SAT "Never leave a blank" scene showed none of its 3
+  notes). `tools/make_videos.py` now shows such notes one by one after the last beat starts. **Re-rendering the old
+  videos is optional** — they play fine, they just miss those notes. It also caught that `Fig.table` cells with `^`
+  call MathText, which the video renderer does not load (would have crashed a render); new scripts avoid it.
+- All pictures of the new scripts were rendered with Chromium in the cloud and looked at (contact sheets); 6 fixes
+  made (quiz pictures that gave the answer away, a "40$" label, a squeezed table).
+
+**Plan items 6 + 7: three new apps "Puzzle Peak 2 / 4 / 8"** (`apps/contest2`, `contest4`, `contest8`; see the design
+note above). Each: contest-style skills (5-choice, 3 levels = 3/4/5-point style) + Summit Trail (typed answers,
+hints that open one step at a time, worked solution) + practice contests; 24 levels, 24 lessons with pictures,
+3 video scripts each (`pp-contest*` how the contest works + 2 strategy videos).
+- `apps/contest2/data/pzkit.js` (borrowed by 4 and 8): 23 original puzzle families (squares, rectangles, cubes,
+  beads, calendars, balances, number pyramids, digits, digit sums, page digits, heads-and-legs, ages, handshakes,
+  coin ways, grid paths, work backward, painted cube, last digits, factor counts, dice probability, averages,
+  consecutive numbers, polygon angles), difficulty 0–8; per-family "Watch first" lessons; `PZAPP`/`CONTEST` glue.
+- Core (shared engine) changes: `q.steps` step-by-step hints in practice (never in test mode; class `.hint-steps`),
+  `core/modes/contest.js` (practice contests on the SAT module runner: timer, mark, menu; scoring, review with
+  solutions, history, dashboard), `features.contest` in build.py, `practiceTitle` for the home heading, new figures
+  `Fig.balance / pyramid / beads / cubeStack / gridPath / calendar / dice / regular`. enumerate_speech.js and
+  voicecheck.js now include hint steps.
+- Validator: `pz` kind — every family re-solved by brute force (not the generator's method); contest apps need 5
+  choices, a worked solution, and ≥ 2 hint steps on typed puzzles; no hint step may state the answer.
+  New `tools/contesttest.js <app> [n]`: builds n contests per format through the real mode code.
+- Fruit in balance puzzles are named in words (emoji only in pictures) so the narrator can read every line.
+- Standards: only codes already used (and verified) elsewhere in this repo; nj.gov could not be opened from the cloud.
+  "Closest code" levels to re-check on nj.gov: Puzzle Peak 8 counting levels (7.EE.B.4), probability levels
+  (7.RP.A.2 · S.CP.A.4 — the 2023 grade 7 probability code was not verifiable), Puzzle Peak 2 pattern levels (2.OA.C.4,
+  2.NBT.A.2).
+
+### Tested in the cloud (2026-10-27)
+- `validate.js` passes for all 12 apps' content that changed (9 existing + contest2/4/8, 10,140 items each new app,
+  U.intWhere fallback check included); planted-bug test 8/8 caught in the puzzle kit (wrong answer per family,
+  hint giving the answer away, 4 options, wrong weekday …).
+- `contesttest.js` 3 apps × all 7 formats × 100–200 contests: lengths, 3 → 4 → 5 order, no repeats, typed-only Sprint,
+  even topics, scores (all right = 96 / 120 / 25 / 30; wrong answers cost nothing).
+- `check_videos.js` all apps OK; `sattest` OK; `maptest` OK for all 6 MAP apps (regression; only their lesson video keys changed).
+- **Chromium (Playwright) in the cloud**, built with a stub icon step (the real icons need Apple Color Emoji): full
+  play-through of every level of contest2/4/8 (24 levels each, 0 failures, 0 page errors), hints reveal 1-2-3 then the
+  button goes, a full practice contest submitted and scored (48/96, 60/120 with half right), review with solutions;
+  phone width 390 px, light and dark. Regression play-through after the core changes: Math Quest 2 (48 levels), MAP
+  Math 4 (51), SAT Prep (72): 0 failures, 0 page errors.
+- Voice lines that need recording (enumerate_speech, 120 runs): Puzzle Peak 2 ≈ 2,390 lines (~90 min), Puzzle Peak 4
+  ≈ 2,690 (~127 min), Puzzle Peak 8 ≈ 2,660 (~128 min). Existing apps: no new lines (only video keys changed);
+  voicecheck still reports two rare PRE-EXISTING gaps (MAP Math 2 `lineplot.1` demo "There are 20/21 X marks.",
+  Algebra 1 `seq.1` demo "a30 = -208") — record them on the next voice run.
+
+### Still to do on the Mac (not tested in cloud)
+1. Voices: `tools/voice_all.sh contest2 4` (and contest4, contest8); re-run voicecheck for those and the two gaps above.
+2. Videos: `make_videos.py` for mathquest2 (3 new), mapmath2 (2), mapmath4 (12), algebra1 (6), mapalg1 (7),
+   satprep (12), mapread2 (3), mapread4 (3), mapread8 (1), contest2/4/8 (3 each) — e.g.
+   `tools/.venv/bin/python tools/make_videos.py mapmath4 place-value4 rounding4 …` (naming ids renders only those but
+   rewrites the catalog from all scripts, so render each app's full new list before building). Optionally re-render
+   the old videos to show their missing notes. Watch them end to end.
+3. Build with real icons (`tools/build.py`), browser play-through of every changed app (playthrough.js), real
+   phone/tablet check of hints and the contest timer.
+4. Ask before publishing: the 9 existing apps get the new videos + lesson links (updates); Puzzle Peak 2/4/8 are NEW
+   apps — they need the family's OK, Firebase web-app registration (one at a time, steps in "Firebase"), `contest2`,
+   `contest4`, `contest8` added to the `firestore.rules` allowlist and the rules re-published (`rules_test.mjs`), then a
+   hub row entry (not added yet).
+5. Plan item 4 decided (keep as is, see "User decisions"); confirm "five choices A–E" for Math Kangaroo / AMC 8 on the official pages.
+
+### User decisions (2026-10-27, after the cloud session)
+- **Plan item 4: keep the MAP goal-area groups for Grades 2 and 4 exactly as they are** (NWEA names; no renaming). Closed.
+- **Existing 9 apps:** publish the new videos + lesson links once the Mac session has voiced/rendered them and the
+  play-through passes (no further ask needed for these updates).
+- **Puzzle Peak 2/4/8:** publish (and add to the hub) after the Mac tests pass. Firebase: the user will provide the
+  three web-app configs (or register them while signed in on the Mac — Claude cannot type passwords); the rules
+  allowlist update for contest2/contest4/contest8 is approved (publish rules, verify with rules_test.mjs).
+- **Voices:** the grade-matched voices (g2/g4/g8) are fine — keep them.
+- **Firebase web apps registered by the user (2026-10-27):** appIds are in apps/contest2|4|8/config.js (assumed
+  registration order 2, 4, 8 — the configs were pasted unlabeled; check the nicknames in Project settings → Your apps).
+  firestore.rules already lists contest2/4/8 in the repo; the Mac must PUBLISH the rules and run rules_test.mjs.
+
+### Finished on the Mac with the user (2026-10-28, guided from the cloud session)
+- Voices recorded for contest2/4/8 (voicecheck: every line recorded). The Mac session fixed Puzzle Peak's story-puzzle
+  name pairs and bead color orders to a small fixed set (fewer voice lines) — validated after the change.
+- All new videos rendered (check_videos: "not rendered yet: none" in every app); Puzzle Peak's 9 rendered by the user.
+- Firestore rules with contest2/4/8 published from the console; `node tools/rules_test.mjs after` 14/14 PASS.
+- Hub: Puzzle Peak 2/4/8 rows + a Math Kangaroo / AMC 8 / MATHCOUNTS trademark line (the Mac session's hub edit).
+- Bug found by the browser play-through and fixed: the empty "make a line plot" picture (Math Quest 2 / MAP Math 2,
+  live since 2026-10-26) had height -Infinity. `Fig.linePlot` now handles an empty plot; validate.js fails any picture
+  containing NaN / Infinity / undefined (planted-bug check: caught 17×).
+- Tests on the Mac: validate all 12 apps ✓, contesttest ✓, voicecheck ✓, browser play-through contest2/4/8,
+  mathquest2, satprep: 0 failures, no console errors after the fix.
+- Then merged into main and published with tools/deploy.sh (user-approved).
 
 ## PENDING — next steps, in order
 

@@ -109,4 +109,20 @@ VIDEOS = [
             {'type': 'outro', 'title': 'You are ready', 'sub': 'Read closely and prove your answers.', 'beats': [B('You are ready. Read closely, prove your answers, and do your best.')]},
         ],
     },
+    # ---- added 2026-10-27 (plan item 3): the skill that had no video ----
+    {
+        'id': 'paragraphs8', 'title': 'What a Sentence Is Doing', 'subject': 'info', 'label': 'Sentences & paragraphs',
+        'desc': 'The job of a sentence, how openings, turns, and endings shape a text, and analogy, qualification, and juxtaposition.', 'practice': ['info', 'paragraphs8', 0],
+        'scenes': [
+            {'type': 'title', 'emoji': '🧱', 'title': 'Sentences and Paragraphs', 'sub': 'Function, not just content', 'beats': [B('Structure questions ask what a sentence or paragraph does in the text, not only what it says.')]},
+            {'type': 'image', 'heading': 'Sentence jobs', 'figs': ["Fig.table([['Job', 'Sounds like'], ['claim', 'Cities should…'], ['evidence', 'A 2022 study found…'], ['contrast', 'However…'], ['correct a belief', 'Many think X. In fact…']])"], 'notes': ['Name the job in one word', 'Look at the words around it', 'Then match the choice'],
+             'beats': [B('Every sentence has a job: a claim, evidence, an example, a contrast, or a correction of a common belief.'), B('Name the job in one word before you look at the choices.'), B('The sentences around it are your best clue.'), B('"Many people think honeybees sleep all winter. In fact, they shiver to stay warm." The second sentence corrects a belief.')]},
+            {'type': 'image', 'heading': 'Openings, turns, endings', 'figs': ["Fig.picture(['🚪', '↪️', '🔭'], 'set up · shift · widen')"], 'notes': ['Opening: sets up', 'Turn: “Then…”, “However…”', 'Ending: connects to a bigger idea'],
+             'beats': [B('Paragraphs have jobs too.'), B('Openings set up the topic, the setting, or the problem.'), B('Turns shift direction. Words like then and however often mark them.'), B('Endings often connect the details to a bigger idea.')]},
+            {'type': 'image', 'heading': 'Three advanced moves', 'figs': ["Fig.table([['Move', 'What it does'], ['analogy', 'explains the new with the familiar'], ['qualification', 'limits a claim (often, in some cases)'], ['juxtaposition', 'sets two ideas side by side']])"], 'notes': ['Analogy: a forest works like a city', 'Qualification: “in most cases”', 'Juxtaposition: two things side by side'],
+             'beats': [B('Grade 8 texts use three advanced moves.'), B('An analogy explains something new with something familiar: a forest works like a city, with roads and neighborhoods.'), B('A qualification limits a claim, with words like often, most, or in some cases.'), B('Juxtaposition sets two ideas side by side so the contrast stands out.')]},
+            quiz('"The plan cut traffic, at least on weekdays." What does "at least on weekdays" do?', ['It qualifies the claim', 'It gives an analogy', 'It changes the topic'], 'It qualifies the claim', 'Quick check. The plan cut traffic, at least on weekdays. What does "at least on weekdays" do?', 'It qualifies the claim. It limits when the claim is true.', fig="Fig.picture(['🚗', '📅'])"),
+            outro('Practice sentences and paragraphs in MAP Reading 8.'),
+        ],
+    },
 ]

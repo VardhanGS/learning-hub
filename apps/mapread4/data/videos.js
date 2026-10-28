@@ -115,5 +115,50 @@ const VIDEOS = [
   "src": "videos/map-tips-r4.mp4",
   "poster": "videos/map-tips-r4.jpg",
   "secs": 50
+ },
+ {
+  "id": "evidence4",
+  "title": "Reasons and Evidence",
+  "subject": "info",
+  "label": "Reasons & evidence",
+  "desc": "Firsthand and secondhand accounts, claims with reasons and evidence, and two authors who disagree.",
+  "practice": [
+   "info",
+   "evidence4",
+   0
+  ],
+  "src": "videos/evidence4.mp4",
+  "poster": "videos/evidence4.jpg",
+  "secs": 83
+ },
+ {
+  "id": "visuals4",
+  "title": "Charts, Graphs, and Timelines",
+  "subject": "info",
+  "label": "Charts & timelines",
+  "desc": "Read the title, labels, and key, and use visuals together with the words.",
+  "practice": [
+   "info",
+   "visuals4",
+   0
+  ],
+  "src": "videos/visuals4.mp4",
+  "poster": "videos/visuals4.jpg",
+  "secs": 67
+ },
+ {
+  "id": "roots4",
+  "title": "Roots, Prefixes, and Suffixes",
+  "subject": "vocab",
+  "label": "Roots & affixes",
+  "desc": "Word parts carry meaning: prefixes, suffixes, and Greek and Latin roots.",
+  "practice": [
+   "vocab",
+   "roots4",
+   0
+  ],
+  "src": "videos/roots4.mp4",
+  "poster": "videos/roots4.jpg",
+  "secs": 73
  }
 ];

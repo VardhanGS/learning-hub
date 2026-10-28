@@ -66,6 +66,7 @@ for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
       Voice.build.question(q).forEach(note);
       if (q.passage) Voice.build.passage(q.passage).forEach(note);
       Voice.build.demoEnd(q).forEach(note);
+      (q.steps || []).forEach(note); // step-by-step hints (Puzzle Peak)
     }
     stale = seen.size === before ? stale + 1 : 0;
   }

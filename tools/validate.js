@@ -191,6 +191,48 @@ const TEXT = {
     return par.every((p, i) => i === 0 || p !== par[i - 1]) ? 'The numbers go back and forth between odd and even.' : '?';
   },
 };
+// ---- Puzzle Peak: every puzzle family solved again here, by brute force where possible (not the generator's method) ----
+const PZDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const PZCOL = { r: 'red', g: 'green', b: 'blue', y: 'yellow', p: 'purple' };
+const choose = (n, k) => { let r = 1; for (let i = 1; i <= k; i++) r = (r * (n - k + i)) / i; return r; };
+const PZSOLVE = {
+  squares: ([a, b, only]) => { let t = 0; for (let k = 1; k <= Math.min(a, b); k++) if (!only || k === only) for (let x = 0; x + k <= b; x++) for (let y = 0; y + k <= a; y++) t++; return t; },
+  rects: ([a, b]) => { let t = 0; for (let x1 = 0; x1 <= b; x1++) for (let x2 = x1 + 1; x2 <= b; x2++) for (let y1 = 0; y1 <= a; y1++) for (let y2 = y1 + 1; y2 <= a; y2++) t++; return t; },
+  stairs: ([hs]) => { let t = 0; hs.forEach((h) => { for (let i = 0; i < h; i++) t++; }); return t; },
+  box: ([L, W, H]) => { let t = 0; for (let i = 0; i < L; i++) for (let j = 0; j < W; j++) for (let k = 0; k < H; k++) t++; return t; },
+  bead: ([pat, N]) => { const s = []; while (s.length < N) s.push(...pat); return PZCOL[s[N - 1]]; },
+  beadCount: ([pat, N, col]) => { const s = []; while (s.length < N) s.push(...pat); return s.slice(0, N).filter((x) => x === col).length; },
+  dayOf: ([first, n]) => { let w = first; for (let i = 1; i < n; i++) w = (w + 1) % 7; return PZDAYS[w]; },
+  dayN: ([first, n]) => { let w = first; for (let i = 1; i < n; i++) w = (w + 1) % 7; return PZDAYS[w]; },
+  bal1: ([k, W]) => { for (let x = 1; x <= 200; x++) if (k * x === W) return x; return '?'; },
+  bal2: ([k1, W1, m, n]) => { for (let x = 1; x <= 100; x++) if (k1 * x === W1) for (let y = 1; y <= 400; y++) if (m * y === n * x) return y; return '?'; },
+  bal3: ([S, T, ask]) => { for (let x = 1; x <= 100; x++) for (let y = 1; y <= 100; y++) if (x + y === S && 2 * x + y === T) return ask === 'y' ? y : x; return '?'; },
+  bal4: ([S, T, V, ask]) => { for (let x = 1; x <= 60; x++) for (let y = 1; y <= 60; y++) for (let z = 1; z <= 60; z++) if (x + y === S && y + z === T && x + z === V) return ask === 'all' ? x + y + z : x; return '?'; },
+  // the top of a pyramid is the bottom row weighted by binomial coefficients
+  pyrTop: ([row]) => row.reduce((t, v, i) => t + choose(row.length - 1, i) * v, 0),
+  pyrMiss: ([row, T]) => { const hits = []; for (let v = 0; v <= 600; v++) { let r = row.map((x) => (x === null ? v : x)); while (r.length > 1) { const nr = []; for (let i = 0; i + 1 < r.length; i++) nr.push(r[i] + r[i + 1]); r = nr; } if (r[0] === T) hits.push(v); } return hits.length === 1 ? hits[0] : '?'; },
+  // every k-digit number whose digits use each given digit at most once
+  dig: ([ds, k, kind]) => { const ok = []; for (let n = 10 ** (k - 1); n < 10 ** k; n++) { const left = [...ds]; if (String(n).split('').every((c) => { const i = left.indexOf(+c); if (i < 0) return false; left.splice(i, 1); return true; })) ok.push(n); } const mx = Math.max(...ok), mn = Math.min(...ok); return kind === 'diff' ? mx - mn : kind === 'min' ? mn : mx; },
+  digCount: ([ds, k]) => { let t = 0; for (let n = 10 ** (k - 1); n < 10 ** k; n++) { const left = [...ds]; if (String(n).split('').every((c) => { const i = left.indexOf(+c); if (i < 0) return false; left.splice(i, 1); return true; })) t++; } return t; },
+  digSum: ([k, s]) => { let t = 0; for (let n = 10 ** (k - 1); n < 10 ** k; n++) if (String(n).split('').reduce((a, c) => a + +c, 0) === s) t++; return t; },
+  pages: ([n]) => { let t = 0; for (let j = 0; 10 ** j <= n; j++) t += n - 10 ** j + 1; return t; }, // each page has a 1st digit, pages ≥ 10 a 2nd, …
+  legs: ([total, la, lb, L]) => { for (let b = 0; b <= total; b++) if ((total - b) * la + b * lb === L) return b; return '?'; },
+  age1: ([a, dif, t]) => { let b = a + dif; for (let i = 0; i < t; i++) b++; return b; },
+  ageTimes: ([x, y, k]) => { for (let t = 0; t <= 100; t++) if (x + t === k * (y + t)) return t; return '?'; },
+  hand: ([n, times]) => { let t = 0; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) t += times; return t; },
+  coins: ([C, set]) => { let t = 0; const [a, b, c2] = set; if (set.length === 2) { for (let i = 0; i * a <= C; i++) if ((C - i * a) % b === 0) t++; } else { for (let i = 0; i * a <= C; i++) for (let j = 0; i * a + j * b <= C; j++) if ((C - i * a - j * b) % c2 === 0) t++; } return t; },
+  paths: ([w, h]) => { let t = 0; const go = (x, y) => { if (x === w && y === h) { t++; return; } if (x < w) go(x + 1, y); if (y < h) go(x, y + 1); }; go(0, 0); return t; },
+  back: ([ops, v]) => { const hits = []; for (let s0 = 0; s0 <= 3000; s0++) { let x = s0; for (const [o, k] of ops) x = o === 'add' ? x + k : o === 'sub' ? x - k : o === 'mul' ? x * k : x / 2; if (x === v) hits.push(s0); } return hits.length === 1 ? hits[0] : '?'; },
+  paint: ([n, k]) => { let t = 0; for (let x = 0; x < n; x++) for (let y = 0; y < n; y++) for (let z = 0; z < n; z++) if ([x, y, z].filter((c) => c === 0 || c === n - 1).length === k) t++; return t; },
+  last: ([a, n]) => { let d = 1; for (let i = 0; i < n; i++) d = (d * a) % 10; return d; },
+  divs: ([N]) => { let t = 0; for (let i = 1; i <= N; i++) if (N % i === 0) t++; return t; },
+  dice: ([s, mode]) => { let k = 0; for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) if (mode === 'ge' ? a + b >= s : a + b === s) k++; const v = N.make(k, 36); return v.d === 1 ? String(v.n) : `${v.n}/${v.d}`; },
+  avg: ([k, m, m2]) => { for (let sc = 0; sc <= 100; sc++) if (k * m + sc === (k + 1) * m2) return sc; return '?'; },
+  consec: ([k, S]) => { for (let a = 0; a <= S; a++) { let t = 0; for (let i = 0; i < k; i++) t += a + i; if (t === S) return a + k - 1; } return '?'; },
+  poly: ([n, which]) => (which === 'sum' ? 180 * n - 360 : 180 - 360 / n), // outside angles add to 360
+};
+// An answer must not be given away by a hint step: "= 12", "is 12", "gives 12" …
+const reveals = (step, a) => new RegExp(`(=|\\bis|\\bare|\\bmakes|\\bgives|\\bequals)\\s*${String(a).replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}(?![\\d/])`).test(plain(step));
 // An equation like "13 − 6 = 7": is it true, and which numbers does it use?
 function equation(e) {
   const m = plain(e).match(/^(\d+) ([+−-]) (\d+) = (\d+)$/);
@@ -241,6 +283,8 @@ function checkItem(where, q, levelStd) {
   // counted only when the right answer is VISIBLY longest: at least 20% and 8 characters longer than every wrong choice
   if (q.t === 'mc' && q.opts.length >= 3 && !q.meta) { lenStats.n++; const al = plain(q.a).length, nxt = Math.max(...q.opts.filter((o) => o !== q.a).map((o) => plain(o).length)); if (al >= nxt * 1.2 && al - nxt >= 8) lenStats.longest++; }
   if (!q.q || typeof q.q !== 'string') fail(where, q, 'missing prompt');
+  // a picture with a broken number (NaN, Infinity, undefined) draws blank or broken in the browser
+  [q.fig, q.passage && q.passage.fig, ...(q.cells || [])].forEach((f) => { if (typeof f === 'string' && f.includes('<svg') && /NaN|Infinity|undefined/.test(f)) fail(where, q, 'a picture has a broken number (NaN/Infinity/undefined)'); });
   if (!levelStd) fail(where, q, 'level has no standard code');
   if (!MathText.spoken(q.q)) fail(where, q, 'prompt has nothing to say aloud');
   const math = ['num', 'line', 'shade', 'multi', 'clock', 'coins', 'hot', 'pop', 'expr', 'plot'].includes(q.t) || (q.t === 'mc' && q.meta);
@@ -253,6 +297,14 @@ function checkItem(where, q, levelStd) {
     if (!q.goal) fail(where, q, 'no content domain');
     if (q.passage) { const wc = q.passage.text.replace(/Text [12]\n/g, '').split(/\s+/).filter(Boolean).length; if (wc < 25 || wc > 150) fail(where, q, `passage has ${wc} words (25–150)`); }
     if (!['mc', 'num'].includes(q.t)) fail(where, q, `format ${q.t} is not used on the SAT`);
+  }
+  // Puzzle Peak: contest questions have 5 choices (A–E, as on the contests); hint steps never give the answer away
+  if (ctx.APP.features && ctx.APP.features.contest) {
+    if (q.t === 'mc' && q.opts.length !== 5) fail(where, q, `contest multiple choice needs 5 options (has ${q.opts.length})`);
+    if (!q.why) fail(where, q, 'no worked solution (why)');
+    if (q.t === 'num' && (!q.steps || q.steps.length < 2)) fail(where, q, 'typed puzzle without step-by-step hints');
+    (q.steps || []).forEach((st, i) => { if (reveals(st, q.a)) fail(where, q, `hint step ${i + 1} gives the answer away: "${st}"`); });
+    if (q.hint && reveals(q.hint, q.a)) fail(where, q, 'the hint gives the answer away');
   }
   if (q.t === 'mc' || q.t === 'multi') {
     if (!Array.isArray(q.opts) || q.opts.length < 2) fail(where, q, 'fewer than 2 options');
@@ -550,6 +602,13 @@ function checkItem(where, q, levelStd) {
       if (want !== got) fail(where, q, 'plotted points differ from the answer');
     } else if (kind === 'sidesIs') {
       q.opts.forEach((o) => { if ((SIDES[o] === args[0]) !== q.a.includes(o)) fail(where, q, `${o} has ${SIDES[o]} sides but is marked the other way`); });
+    } else if (kind === 'pz') {
+      const [fam, params] = args;
+      if (!PZSOLVE[fam]) { fail(where, q, `no solver for puzzle family ${fam}`); return; }
+      const want = String(PZSOLVE[fam](params));
+      if (want === '?') fail(where, q, `${fam}(${JSON.stringify(params)}) has no single answer`);
+      else if (want !== String(q.a)) fail(where, q, `answer ${q.a} but ${fam}(${JSON.stringify(params)}) = ${want}`);
+      if (q.t === 'mc' && !q.opts.includes(want)) fail(where, q, `recomputed answer ${want} is not among the options`);
     } else if (TEXT[kind]) {
       const m = (x) => String(x).replace(/−/g, '-'); // a typed minus and a printed minus are the same answer
       const want = TEXT[kind](args);

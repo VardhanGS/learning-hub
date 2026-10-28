@@ -45,6 +45,7 @@ for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
     Voice.build.question(q).forEach((p) => check(p, where));
     if (q.passage) Voice.build.passage(q.passage).forEach((p) => check(p, where));
     Voice.build.demoEnd(q).forEach((p) => check(p, `${where} demo`));
+    (q.steps || []).forEach((s) => check(s, `${where} hint step`)); // step-by-step hints (Puzzle Peak)
   }
 });
 

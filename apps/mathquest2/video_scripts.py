@@ -135,6 +135,55 @@ VIDEOS = [
             outro('Solve word problems in Math Quest!'),
         ],
     },
+
+    # ---- added 2026-10-27 (plan item 3): skills that had no video ----
+    {
+        'id': 'shapes2', 'title': 'Sides and Corners', 'subject': 'geo', 'label': 'Geometry',
+        'desc': 'Name shapes by counting sides and corners, and meet the quadrilateral family.', 'practice': ['geo', 'shapes', 0],
+        'scenes': [
+            {'type': 'title', 'emoji': '🔷', 'title': 'Sides and Corners', 'sub': 'How to name a shape', 'beats': [B('Every flat shape has a secret code: its sides and its corners.')]},
+            {'type': 'image', 'heading': 'Count the sides', 'figs': ["Fig.shapeRow(['triangle', 'square', 'pentagon', 'hexagon'])"], 'notes': ['3 sides: triangle', '4 sides: quadrilateral', '5 sides: pentagon', '6 sides: hexagon'],
+             'beats': [B('To name a shape, count its straight sides.'), B('3 sides make a triangle.'), B('4 sides make a quadrilateral. A square is one kind.'), B('5 sides make a pentagon.'), B('6 sides make a hexagon.')]},
+            {'type': 'image', 'heading': 'Corners match sides', 'figs': ["Fig.shape('pentagon')"], 'notes': ['5 sides', '5 corners (vertices)', 'Same number!'],
+             'beats': [B('Now count the corners. A corner is where two sides meet.'), B('This pentagon has 5 sides.'), B('And it has 5 corners. Grown-ups call corners vertices.'), B('A flat shape always has the same number of corners as sides!')]},
+            {'type': 'image', 'heading': 'Turn it around', 'figs': ["Fig.shape('square')", "Fig.shape('square', 45)"], 'show': [0, 1, 1], 'notes': ['Still 4 equal sides', 'Still a square!'],
+             'beats': [B('Here is a square.'), B('Now we turn it. It looks like a diamond, but it still has 4 equal sides.'), B('So it is still a square! Turning a shape does not change its name.')]},
+            {'type': 'image', 'heading': 'The 4-sided family', 'figs': ["Fig.shapeRow(['square', 'rectangle', 'rhombus', 'trapezoid'])"], 'notes': ['rectangle: 4 square corners', 'rhombus: 4 equal sides', 'square: both!'],
+             'beats': [B('All of these have 4 sides. They are all quadrilaterals.'), B('A rectangle has 4 square corners.'), B('A rhombus has 4 sides that are all the same length.'), B('A square has square corners and equal sides, so it is a rectangle and a rhombus too!')]},
+            quiz('A shape has 6 sides. What is it?', ['pentagon', 'hexagon', 'triangle'], 'hexagon', 'Your turn! A shape has 6 sides. What is it?', 'A hexagon! 6 sides and 6 corners.', fig="Fig.shape('hexagon')"),
+            outro('Name shapes in Math Quest!'),
+        ],
+    },
+    {
+        'id': 'graphs2', 'title': 'Reading Bar and Picture Graphs', 'subject': 'data', 'label': 'Data',
+        'desc': 'Read a bar to its number, count pictures with a key, and answer how many more.', 'practice': ['data', 'graphs', 0],
+        'scenes': [
+            {'type': 'title', 'emoji': '📊', 'title': 'Graphs', 'sub': 'Pictures that count', 'beats': [B('A graph is a picture that shows how many. Let us learn to read one.')]},
+            {'type': 'image', 'heading': 'A bar graph', 'figs': ["Fig.barGraph('Favorite fruit', [['Apple', 7], ['Grape', 4], ['Pear', 5]])"], 'notes': ['Read the title', 'Top of the bar', 'Look across: 7'],
+             'beats': [B('This is a bar graph. Each bar shows how many.'), B('First, read the title: Favorite fruit.'), B('Find the top of the Apple bar.'), B('Look straight across to the numbers. It is 7. Seven kids like apples best.')]},
+            {'type': 'image', 'heading': 'How many more?', 'figs': ["Fig.compareBars(7, 4, 'Apple', 'Grape')"], 'notes': ['How many more: subtract', '7 − 4 = 3', 'In all: add, 7 + 4 = 11'],
+             'beats': [B('How many more kids like apples than grapes?'), B('How many more means subtract.'), B('7 minus 4 is 3. Three more kids like apples.'), B('How many in all means add. 7 plus 4 is 11 kids.')]},
+            {'type': 'image', 'heading': 'A picture graph with a key', 'figs': ["Fig.picGraph('Books read', [['Mia', 6], ['Sam', 4]], '📕', 2)"], 'notes': ['Key: 📕 = 2 books', 'Count by 2s', 'Mia: 2, 4, 6'],
+             'beats': [B('In this picture graph, look for the key.'), B('The key says each book stands for 2 books.'), B('So we count by twos.'), B('Mia has 3 pictures: 2, 4, 6. She read 6 books!')]},
+            quiz('Each 📕 = 2 books. Sam has 2 pictures. How many books?', ['2', '4', '6'], '4', 'Your turn! Each book picture means 2 books. Sam has 2 pictures. How many books did he read?', '4 books! Count by twos: 2, 4.', fig="Fig.picGraph('Books read', [['Sam', 4]], '📕', 2)"),
+            outro('Read graphs in Math Quest!'),
+        ],
+    },
+    {
+        'id': 'lineplots2', 'title': 'Line Plots', 'subject': 'data', 'label': 'Data',
+        'desc': 'An X for every object: read a line plot, find the longest and shortest.', 'practice': ['data', 'lineplot', 0],
+        'scenes': [
+            {'type': 'title', 'emoji': '✖️', 'title': 'Line Plots', 'sub': 'An X for every thing we measured', 'beats': [B('We measured some crayons. A line plot shows all the lengths at once.')]},
+            {'type': 'image', 'heading': 'One X for each crayon', 'figs': ["Fig.linePlot('Crayon lengths', 2, 6, [3, 4, 4, 4, 5, 6], 1, 'inches')"], 'notes': ['Each X = 1 crayon', '3 X marks above 4', 'Three crayons are 4 inches'],
+             'beats': [B('A line plot is a number line with X marks.'), B('Each X stands for one crayon.'), B('Look above the 4. There are 3 X marks.'), B('So three crayons are 4 inches long.')]},
+            {'type': 'image', 'heading': 'Longest and shortest', 'figs': ["Fig.linePlot('Crayon lengths', 2, 6, [3, 4, 4, 4, 5, 6], 1, 'inches')"], 'notes': ['Farthest right: 6 inches', 'Farthest left: 3 inches', '6 − 3 = 3 inches longer'],
+             'beats': [B('Which crayon is the longest?'), B('Find the X farthest to the right. It is above the 6.'), B('The X farthest to the left is the shortest. It is above the 3.'), B('6 minus 3 is 3. The longest crayon is 3 inches longer.')]},
+            {'type': 'image', 'heading': 'Count every X', 'figs': ["Fig.linePlot('Crayon lengths', 2, 6, [3, 4, 4, 4, 5, 6], 1, 'inches')"], 'notes': ['1 + 3 + 1 + 1', '= 6 crayons'],
+             'beats': [B('How many crayons did we measure in all?'), B('Count every X: 1, 2, 3, 4, 5, 6.'), B('We measured 6 crayons.')]},
+            quiz('How many X marks are above 5?', ['1', '2', '3'], '2', 'Your turn! How many leaves are 5 inches long?', '2 leaves! There are 2 X marks above the 5.', fig="Fig.linePlot('Leaf lengths', 3, 7, [4, 5, 5, 6, 7], 1, 'inches')"),
+            outro('Make and read line plots in Math Quest!'),
+        ],
+    },
 ]
 
 # Each video uses its subject's color (the subject colors in data/*.js).

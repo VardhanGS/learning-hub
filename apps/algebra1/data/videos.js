@@ -119,5 +119,95 @@ const VIDEOS = [
   "src": "videos/parabolas.mp4",
   "poster": "videos/parabolas.jpg",
   "secs": 54
+ },
+ {
+  "id": "real-numbers",
+  "title": "Rational, Irrational, and Properties",
+  "subject": "real",
+  "label": "Real numbers",
+  "desc": "Which numbers are rational, where irrational numbers sit on the line, and the three properties.",
+  "practice": [
+   "real",
+   "realnum",
+   0
+  ],
+  "src": "videos/real-numbers.mp4",
+  "poster": "videos/real-numbers.jpg",
+  "secs": 92
+ },
+ {
+  "id": "exponent-rules",
+  "title": "Exponent Rules and Radicals",
+  "subject": "real",
+  "label": "Exponents",
+  "desc": "Add, subtract, or multiply exponents; zero and negative exponents; simplifying square roots.",
+  "practice": [
+   "real",
+   "exponents",
+   0
+  ],
+  "src": "videos/exponent-rules.mp4",
+  "poster": "videos/exponent-rules.jpg",
+  "secs": 78
+ },
+ {
+  "id": "units",
+  "title": "Unit Rates and Converting Units",
+  "subject": "real",
+  "label": "Units",
+  "desc": "Rates per one unit, converting with fractions equal to 1, and density.",
+  "practice": [
+   "real",
+   "units",
+   0
+  ],
+  "src": "videos/units.mp4",
+  "poster": "videos/units.jpg",
+  "secs": 72
+ },
+ {
+  "id": "expressions",
+  "title": "Expressions: Terms, Distributing, Combining",
+  "subject": "eei",
+  "label": "Expressions",
+  "desc": "The parts of an expression, evaluating with negatives, distributing, combining like terms, and factoring out the GCF.",
+  "practice": [
+   "eei",
+   "exprs",
+   0
+  ],
+  "src": "videos/expressions.mp4",
+  "poster": "videos/expressions.jpg",
+  "secs": 96
+ },
+ {
+  "id": "sequences",
+  "title": "Arithmetic and Geometric Sequences",
+  "subject": "func",
+  "label": "Sequences",
+  "desc": "Add the same amount or multiply by the same amount, and jump to any term with a formula.",
+  "practice": [
+   "func",
+   "seq",
+   0
+  ],
+  "src": "videos/sequences.mp4",
+  "poster": "videos/sequences.jpg",
+  "secs": 79
+ },
+ {
+  "id": "statistics",
+  "title": "Center, Spread, and Correlation",
+  "subject": "func",
+  "label": "Statistics",
+  "desc": "Mean and median, IQR and outliers, scatter plots, lines of fit, and correlation versus causation.",
+  "practice": [
+   "func",
+   "stats",
+   0
+  ],
+  "src": "videos/statistics.mp4",
+  "poster": "videos/statistics.jpg",
+  "secs": 74
  }
 ];

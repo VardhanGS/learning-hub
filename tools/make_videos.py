@@ -529,7 +529,10 @@ def r_image(img, sc, t, st, col, C):
     nn = len(C['n'])
     for k, c in enumerate(C['n']):
         bi = k + 1 + (sc.get('note_from', 1) - 1)
-        if bi < len(st): pop(img, c, 940, cy - (nn - 1) * 48 + k * 96, st[bi], t)
+        # A note with no beat of its own (more notes than beats) appears 0.8 s after the one before it, during the
+        # last beat, instead of never appearing.
+        t0 = st[bi] if bi < len(st) else st[-1] + 0.8 * (bi - len(st) + 1)
+        pop(img, c, 940, cy - (nn - 1) * 48 + k * 96, t0, t)
 
 def r_outro(img, sc, t, st, col, C):
     if 'a' not in C:

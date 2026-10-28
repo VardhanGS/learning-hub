@@ -100,5 +100,20 @@ const VIDEOS = [
   "src": "videos/map-tips-r8.mp4",
   "poster": "videos/map-tips-r8.jpg",
   "secs": 40
+ },
+ {
+  "id": "paragraphs8",
+  "title": "What a Sentence Is Doing",
+  "subject": "info",
+  "label": "Sentences & paragraphs",
+  "desc": "The job of a sentence, how openings, turns, and endings shape a text, and analogy, qualification, and juxtaposition.",
+  "practice": [
+   "info",
+   "paragraphs8",
+   0
+  ],
+  "src": "videos/paragraphs8.mp4",
+  "poster": "videos/paragraphs8.jpg",
+  "secs": 79
  }
 ];

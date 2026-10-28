@@ -10,5 +10,110 @@ const VIDEOS = [
   "src": "videos/map-tips-a1.mp4",
   "poster": "videos/map-tips-a1.jpg",
   "secs": 57
+ },
+ {
+  "id": "signed-numbers",
+  "title": "Signed Numbers Review",
+  "subject": "real",
+  "label": "Signed numbers",
+  "desc": "Adding and subtracting negatives on a number line, sign rules, and where the minus sign sits.",
+  "practice": [
+   "real",
+   "signed",
+   0
+  ],
+  "src": "videos/signed-numbers.mp4",
+  "poster": "videos/signed-numbers.jpg",
+  "secs": 84
+ },
+ {
+  "id": "ratios-percents",
+  "title": "Proportions and Percents",
+  "subject": "real",
+  "label": "Ratios & percents",
+  "desc": "Scaling proportions, percent of a number, percent change, and several percent steps in a row.",
+  "practice": [
+   "real",
+   "ratio",
+   0
+  ],
+  "src": "videos/ratios-percents.mp4",
+  "poster": "videos/ratios-percents.jpg",
+  "secs": 86
+ },
+ {
+  "id": "sci-notation",
+  "title": "Roots and Scientific Notation",
+  "subject": "real",
+  "label": "Scientific notation",
+  "desc": "Square and cube roots, writing numbers in scientific notation, and multiplying and comparing them.",
+  "practice": [
+   "real",
+   "scinot",
+   1
+  ],
+  "src": "videos/sci-notation.mp4",
+  "poster": "videos/sci-notation.jpg",
+  "secs": 78
+ },
+ {
+  "id": "quad-forms",
+  "title": "Square Roots and Completing the Square",
+  "subject": "eei",
+  "label": "Quadratic forms",
+  "desc": "Solve by taking square roots, complete the square, and find the vertex of a thrown ball.",
+  "practice": [
+   "eei",
+   "quadmore",
+   0
+  ],
+  "src": "videos/quad-forms.mp4",
+  "poster": "videos/quad-forms.jpg",
+  "secs": 90
+ },
+ {
+  "id": "constraints",
+  "title": "Modeling with Constraints",
+  "subject": "eei",
+  "label": "Modeling",
+  "desc": "At most and at least, two-equation stories, and points that satisfy every inequality.",
+  "practice": [
+   "eei",
+   "modelx",
+   0
+  ],
+  "src": "videos/constraints.mp4",
+  "poster": "videos/constraints.jpg",
+  "secs": 93
+ },
+ {
+  "id": "rate-of-change",
+  "title": "Rate of Change",
+  "subject": "func",
+  "label": "Rate of change",
+  "desc": "Average rate of change from a table, rate and start in a linear model, and rate of change on a curve.",
+  "practice": [
+   "func",
+   "rates",
+   0
+  ],
+  "src": "videos/rate-of-change.mp4",
+  "poster": "videos/rate-of-change.jpg",
+  "secs": 83
+ },
+ {
+  "id": "key-features",
+  "title": "Key Features and Comparing Functions",
+  "subject": "func",
+  "label": "Key features",
+  "desc": "Increasing and decreasing, comparing a formula with a table, and exponential versus linear growth.",
+  "practice": [
+   "func",
+   "features",
+   0
+  ],
+  "src": "videos/key-features.mp4",
+  "poster": "videos/key-features.jpg",
+  "secs": 77
  }
 ];
