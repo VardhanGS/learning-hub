@@ -464,6 +464,27 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   play-through regression mathquest2, satprep, contest2, mapmath2: 0 failures. NOT tested: printing from Safari on
   the iPad/iPhone (window.print from an installed home-screen app) — check once on a real device.
 
+## Grade 2: two-digit subtraction and multiplication (2026-10-28, published from the cloud)
+
+- User asked: "add multiplication and 2 digit subtraction to 2nd grade … publish. I will do recording once mac is back."
+- `apps/mathquest2/data/times.js` (new, loaded after geometry.js):
+  - skill `sub2` "Subtract two-digit numbers" in Adding & Subtracting (3rd skill): take away tens and ones (2.NBT.B.5),
+    trade a ten + stories + check by adding (2.NBT.B.5/B.9, 2.OA.A.1), subtract across zeros (3.NBT.A.2, stretch).
+  - new subject `times` "Multiplication": `mgroups` (equal groups, arrays and adding again, times sentences) and
+    `mfacts` (×2/5/10, ×3/4 and turn-around facts, all facts to 10×10 incl. missing factor). Levels past 2.OA.C.4 are
+    tagged with their Grade 3 standard as a stretch.
+  - 9 lessons in lessons.js; they reuse the existing `regroup` and `multiply` videos (no new videos needed).
+  - validate.js: new TEXT kinds `repAdd`, `checkSub`.
+- Tested: validate mathquest2 (10k and 40k items) and mapmath2 pass; 5/5 planted bugs caught; Chromium play-through
+  mathquest2 57 levels / 456 questions and mapmath2 42 levels, 0 failures; screenshots of the subject screen, a sub2 quiz
+  and a times-table worksheet print looked right. NOT tested: a real iPad/iPhone; the new lines' voice.
+- How it was published (no Apple emoji font in the cloud): built dist with placeholder icons, then copied ONLY the files
+  that really changed into gh-pages (mathquest2: config.js, index.html, sw.js, data/lessons.js, data/times.js; mapmath2:
+  sw.js, data/lessons.js), so live icons and other apps stayed as they were. Main was fast-forwarded to the branch.
+  The next Mac `tools/deploy.sh` rebuilds everything normally.
+- TODO on the Mac: record voices — `tools/voice_all.sh mathquest2 4`, then `node tools/voicecheck.js mathquest2` (and mapmath2), then
+  deploy. Until then the new questions use the device voice.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
