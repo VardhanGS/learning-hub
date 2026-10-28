@@ -5,5 +5,17 @@
  "rw-transitions": 37,
  "math-linear": 44,
  "math-quadratics": 41,
- "math-geometry": 55
+ "math-geometry": 55,
+ "rw-structure": 77,
+ "rw-cross-text": 57,
+ "rw-evidence": 68,
+ "rw-inference": 54,
+ "rw-synthesis": 50,
+ "math-inequalities": 80,
+ "math-exponential": 74,
+ "math-ratios": 62,
+ "math-data": 79,
+ "math-probability": 59,
+ "math-angles": 67,
+ "math-circles": 80
 }

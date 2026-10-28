@@ -250,7 +250,7 @@
         </section>
 
         ${MODES.map((m) => (m.homeTop ? m.homeTop() : '')).join('')}
-        <h2 class="sec">${MODES.some((m) => m.homeTop) ? 'Goal Area Practice' : 'Choose a subject'}</h2>
+        <h2 class="sec">${MODES.some((m) => m.homeTop) ? (MODES.find((m) => m.practiceTitle) || { practiceTitle: 'Goal Area Practice' }).practiceTitle : 'Choose a subject'}</h2>
         <section class="subjects">
           ${SUBJ().map((s) => {
             const m = mastery(s);
@@ -695,11 +695,22 @@
             ${q.fig ? `<div class="fig">${q.fig}</div>` : ''}
             ${q.say && q.t !== 'spell' ? `<div class="say-row"><button class="btn say" data-act="sayWord">🔊 Hear the word</button><button class="btn small ghost" data-act="sayWordSlow">🐢 Slow</button></div>` : ''}
             ${renderBody(q, st)}
+            ${stepsHTML(q, st)}
             ${feedback(st)}
             <div class="actions">${actionBtn(q, st)}</div>
           </section>
         </div>
       </div>`;
+  }
+
+  // Hints that reveal one step at a time (q.steps, e.g. Puzzle Peak's Summit Trail). Practice only: never in test mode.
+  // After the question is done every step is shown, as the start of the worked solution (q.why follows in feedback).
+  function stepsHTML(q, st) {
+    if (!q.steps || !q.steps.length || Q.mode === 'test') return '';
+    const n = st.done ? q.steps.length : Math.min(st.stepsShown || 0, q.steps.length);
+    const more = !st.done && n < q.steps.length;
+    if (!n && !more) return '';
+    return `<div class="hint-steps">${n ? `<ol class="step-list">${q.steps.slice(0, n).map((x) => `<li>${fmt(x)}</li>`).join('')}</ol>` : ''}${more ? `<button class="btn small ghost" data-act="showStep">💡 ${n ? 'Next hint' : 'Show a hint'} (${n + 1} of ${q.steps.length})</button>` : ''}</div>`;
   }
 
   function feedback(st) {
@@ -1920,6 +1931,7 @@
     check: () => check(),
     next: () => { SFX.play('whoosh'); nextQ(); },
     readQ: () => readQuestion(cur()),
+    showStep: () => { const q = cur(); if (!q.steps || Q.st.done) return; Q.st.stepsShown = Math.min((Q.st.stepsShown || 0) + 1, q.steps.length); SFX.play('tap'); render(); if (settings.autoRead) speak(q.steps[Q.st.stepsShown - 1]); },
     sayWord: () => Voice.say(cur().say),
     sayWordSlow: () => Voice.say(cur().say, { kind: 'slow' }),
     sayText: (ds) => speak(ds.v),

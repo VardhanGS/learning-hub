@@ -2,7 +2,7 @@
 // Every app on vardhangs.github.io shares one Cache Storage, so this worker only ever deletes caches whose
 // names start with its own app id.
 const APP_ID = "mapread2";
-const CACHE = "mapread2-ba75ee4fa2";
+const CACHE = "mapread2-2da560acd7";
 const ASSETS = [
   "./",
   "./index.html",

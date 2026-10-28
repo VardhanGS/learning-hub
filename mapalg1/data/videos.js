@@ -12,6 +12,111 @@ const VIDEOS = [
   "secs": 57
  },
  {
+  "id": "signed-numbers",
+  "title": "Signed Numbers Review",
+  "subject": "real",
+  "label": "Signed numbers",
+  "desc": "Adding and subtracting negatives on a number line, sign rules, and where the minus sign sits.",
+  "practice": [
+   "real",
+   "signed",
+   0
+  ],
+  "src": "videos/signed-numbers.mp4",
+  "poster": "videos/signed-numbers.jpg",
+  "secs": 84
+ },
+ {
+  "id": "ratios-percents",
+  "title": "Proportions and Percents",
+  "subject": "real",
+  "label": "Ratios & percents",
+  "desc": "Scaling proportions, percent of a number, percent change, and several percent steps in a row.",
+  "practice": [
+   "real",
+   "ratio",
+   0
+  ],
+  "src": "videos/ratios-percents.mp4",
+  "poster": "videos/ratios-percents.jpg",
+  "secs": 86
+ },
+ {
+  "id": "sci-notation",
+  "title": "Roots and Scientific Notation",
+  "subject": "real",
+  "label": "Scientific notation",
+  "desc": "Square and cube roots, writing numbers in scientific notation, and multiplying and comparing them.",
+  "practice": [
+   "real",
+   "scinot",
+   1
+  ],
+  "src": "videos/sci-notation.mp4",
+  "poster": "videos/sci-notation.jpg",
+  "secs": 78
+ },
+ {
+  "id": "quad-forms",
+  "title": "Square Roots and Completing the Square",
+  "subject": "eei",
+  "label": "Quadratic forms",
+  "desc": "Solve by taking square roots, complete the square, and find the vertex of a thrown ball.",
+  "practice": [
+   "eei",
+   "quadmore",
+   0
+  ],
+  "src": "videos/quad-forms.mp4",
+  "poster": "videos/quad-forms.jpg",
+  "secs": 90
+ },
+ {
+  "id": "constraints",
+  "title": "Modeling with Constraints",
+  "subject": "eei",
+  "label": "Modeling",
+  "desc": "At most and at least, two-equation stories, and points that satisfy every inequality.",
+  "practice": [
+   "eei",
+   "modelx",
+   0
+  ],
+  "src": "videos/constraints.mp4",
+  "poster": "videos/constraints.jpg",
+  "secs": 93
+ },
+ {
+  "id": "rate-of-change",
+  "title": "Rate of Change",
+  "subject": "func",
+  "label": "Rate of change",
+  "desc": "Average rate of change from a table, rate and start in a linear model, and rate of change on a curve.",
+  "practice": [
+   "func",
+   "rates",
+   0
+  ],
+  "src": "videos/rate-of-change.mp4",
+  "poster": "videos/rate-of-change.jpg",
+  "secs": 83
+ },
+ {
+  "id": "key-features",
+  "title": "Key Features and Comparing Functions",
+  "subject": "func",
+  "label": "Key features",
+  "desc": "Increasing and decreasing, comparing a formula with a table, and exponential versus linear growth.",
+  "practice": [
+   "func",
+   "features",
+   0
+  ],
+  "src": "videos/key-features.mp4",
+  "poster": "videos/key-features.jpg",
+  "secs": 77
+ },
+ {
   "id": "equations",
   "title": "Solving Linear Equations",
   "subject": "eei",
@@ -130,5 +235,95 @@ const VIDEOS = [
   "src": "videos/parabolas.mp4",
   "poster": "videos/parabolas.jpg",
   "secs": 54
+ },
+ {
+  "id": "real-numbers",
+  "title": "Rational, Irrational, and Properties",
+  "subject": "real",
+  "label": "Real numbers",
+  "desc": "Which numbers are rational, where irrational numbers sit on the line, and the three properties.",
+  "practice": [
+   "real",
+   "realnum",
+   0
+  ],
+  "src": "videos/real-numbers.mp4",
+  "poster": "videos/real-numbers.jpg",
+  "secs": 92
+ },
+ {
+  "id": "exponent-rules",
+  "title": "Exponent Rules and Radicals",
+  "subject": "real",
+  "label": "Exponents",
+  "desc": "Add, subtract, or multiply exponents; zero and negative exponents; simplifying square roots.",
+  "practice": [
+   "real",
+   "exponents",
+   0
+  ],
+  "src": "videos/exponent-rules.mp4",
+  "poster": "videos/exponent-rules.jpg",
+  "secs": 78
+ },
+ {
+  "id": "units",
+  "title": "Unit Rates and Converting Units",
+  "subject": "real",
+  "label": "Units",
+  "desc": "Rates per one unit, converting with fractions equal to 1, and density.",
+  "practice": [
+   "real",
+   "units",
+   0
+  ],
+  "src": "videos/units.mp4",
+  "poster": "videos/units.jpg",
+  "secs": 72
+ },
+ {
+  "id": "expressions",
+  "title": "Expressions: Terms, Distributing, Combining",
+  "subject": "eei",
+  "label": "Expressions",
+  "desc": "The parts of an expression, evaluating with negatives, distributing, combining like terms, and factoring out the GCF.",
+  "practice": [
+   "eei",
+   "exprs",
+   0
+  ],
+  "src": "videos/expressions.mp4",
+  "poster": "videos/expressions.jpg",
+  "secs": 96
+ },
+ {
+  "id": "sequences",
+  "title": "Arithmetic and Geometric Sequences",
+  "subject": "func",
+  "label": "Sequences",
+  "desc": "Add the same amount or multiply by the same amount, and jump to any term with a formula.",
+  "practice": [
+   "func",
+   "seq",
+   0
+  ],
+  "src": "videos/sequences.mp4",
+  "poster": "videos/sequences.jpg",
+  "secs": 79
+ },
+ {
+  "id": "statistics",
+  "title": "Center, Spread, and Correlation",
+  "subject": "func",
+  "label": "Statistics",
+  "desc": "Mean and median, IQR and outliers, scatter plots, lines of fit, and correlation versus causation.",
+  "practice": [
+   "func",
+   "stats",
+   0
+  ],
+  "src": "videos/statistics.mp4",
+  "poster": "videos/statistics.jpg",
+  "secs": 74
  }
 ];

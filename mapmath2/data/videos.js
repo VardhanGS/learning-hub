@@ -12,6 +12,36 @@ const VIDEOS = [
   "secs": 61
  },
  {
+  "id": "equations2",
+  "title": "The Equal Sign",
+  "subject": "algebra",
+  "label": "Equations",
+  "desc": "The equal sign means \"the same as\": true or false, and finding the missing number.",
+  "practice": [
+   "algebra",
+   "meq",
+   1
+  ],
+  "src": "videos/equations2.mp4",
+  "poster": "videos/equations2.jpg",
+  "secs": 72
+ },
+ {
+  "id": "patterns2",
+  "title": "Patterns and Rules",
+  "subject": "algebra",
+  "label": "Patterns",
+  "desc": "Find the rule in a growing pattern and in an In and Out table.",
+  "practice": [
+   "algebra",
+   "mpat",
+   0
+  ],
+  "src": "videos/patterns2.mp4",
+  "poster": "videos/patterns2.jpg",
+  "secs": 77
+ },
+ {
   "id": "regroup",
   "title": "Regrouping: 10 Ones Make a Ten",
   "subject": "add",
@@ -129,6 +159,51 @@ const VIDEOS = [
   ],
   "src": "videos/word-problems.mp4",
   "poster": "videos/word-problems.jpg",
+  "secs": 57
+ },
+ {
+  "id": "shapes2",
+  "title": "Sides and Corners",
+  "subject": "geo",
+  "label": "Geometry",
+  "desc": "Name shapes by counting sides and corners, and meet the quadrilateral family.",
+  "practice": [
+   "geo",
+   "shapes",
+   0
+  ],
+  "src": "videos/shapes2.mp4",
+  "poster": "videos/shapes2.jpg",
+  "secs": 77
+ },
+ {
+  "id": "graphs2",
+  "title": "Reading Bar and Picture Graphs",
+  "subject": "data",
+  "label": "Data",
+  "desc": "Read a bar to its number, count pictures with a key, and answer how many more.",
+  "practice": [
+   "data",
+   "graphs",
+   0
+  ],
+  "src": "videos/graphs2.mp4",
+  "poster": "videos/graphs2.jpg",
+  "secs": 64
+ },
+ {
+  "id": "lineplots2",
+  "title": "Line Plots",
+  "subject": "data",
+  "label": "Data",
+  "desc": "An X for every object: read a line plot, find the longest and shortest.",
+  "practice": [
+   "data",
+   "lineplot",
+   0
+  ],
+  "src": "videos/lineplots2.mp4",
+  "poster": "videos/lineplots2.jpg",
   "secs": 57
  }
 ];
