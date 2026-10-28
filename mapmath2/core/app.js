@@ -317,6 +317,7 @@
                   </button>`;
                 }).join('')}
               </div>
+              <p class="print-row">🖨️ Print a worksheet: ${k.levels.map((L, l) => `<button class="link" data-act="printLevel" data-s="${s.id}" data-k="${k.id}" data-l="${l}">${LEVEL_NAMES[l].short}</button>`).join(' · ')}</p>
             </article>`).join('')}
         </section>`;
     },
@@ -497,6 +498,74 @@
       case 'coins': return `${coinsFor(q).map((k) => Fig.COIN[k].name).join(', ')} (${fmtCents(q.a)})`;
       default: return '';
     }
+  }
+
+  // ---------- printing (worksheets and paper tests) ----------
+  // printSheet({title, sub, notes: [text], sections: [{name, intro?, items: [{q, pts?}]}], extra?: HTML, keyTitle?})
+  // builds a print-only page (questions with pictures, A–E choices or answer blanks, then an answer key with worked
+  // solutions on a new page) and opens the browser's print dialog. Colors are forced to light for paper.
+  const LETTERS = 'ABCDEFGHIJ';
+  const onPaper = (t) => String(t).replace(/Tap (two tiles|the tiles|a number and a symbol)( in order, greatest place first)? to (make|fill)/g, (m, x, ord, v) => (v === 'fill' ? `Write the right ${x === 'a number and a symbol' ? 'number and symbol' : 'numbers'} in the blanks to fill` : 'Write two of the numbers in the blanks to make')).replace(/Tap the tiles in order, greatest place first/g, 'Write the numbers in order, greatest place first').replace(/\bTap\b/g, 'Circle').replace(/\btap\b/g, 'circle').replace(/\bTapping\b/g, 'Circling'); // screen verbs → paper verbs
+  const ul = (h) => String(h).replace(/⟦([^⟧]*)⟧/g, '<u>$1</u>');
+  const blank = (q) => `<p class="pq-ans">Answer: ${q.pre ? esc(q.pre) : ''}<span class="pq-line"></span>${q.unit ? ` ${esc(q.unit)}` : ''}</p>`;
+  function printBody(q) {
+    const st = freshSt();
+    switch (q.t) {
+      case 'mc': return `<ol class="pq-opts ${q.opts.some((o) => MathText.plain(String(o)).replace(/[⟪⟫]/g, '').length > 22) ? 'long' : ''}" type="A">${q.opts.map((o) => `<li>${ul(fmt(o))}</li>`).join('')}</ol>`;
+      case 'multi': return `<p class="pq-how">Choose all that apply.</p><ul class="pq-boxes">${q.opts.map((o) => `<li>${ul(fmt(o))}</li>`).join('')}</ul>`;
+      case 'num': case 'expr': case 'type': case 'spell': return blank(q);
+      case 'hot': return `<p class="pq-how">${q.multi ? 'Circle all that apply.' : 'Circle your answer.'}</p><div class="pq-cells">${q.cells.map((c) => `<span class="pq-cell">${String(c).startsWith('<svg') ? c : ul(fmt(c))}</span>`).join('')}</div>`;
+      case 'pop': return `<p class="pq-big">${ul(fmt(q.template)).replace(/□/g, '<span class="pq-line short"></span>')}</p><p class="pq-how">Use these: ${q.tiles.map((t) => `<b class="pq-tile">${fmt(t)}</b>`).join(' ')}</p>`;
+      case 'sort': return `<p class="pq-how">Write each one in the right column: ${q.items.map((it) => `<b class="pq-tile">${fmt(it.w)}</b>`).join(' ')}</p><table class="pq-sort"><tr>${q.bins.map((b) => `<th>${fmt(b)}</th>`).join('')}</tr><tr>${q.bins.map(() => '<td></td>').join('')}</tr></table>`;
+      case 'order': return `<p class="pq-how">Number them in order (1, 2, 3, …).</p><ul class="pq-boxes">${U.shuffle(q.parts).map((p) => `<li>${fmt(p)}</li>`).join('')}</ul>`;
+      case 'build': return `<p class="pq-how">Use these: ${q.tiles.map((t) => `<b class="pq-tile">${esc(t)}</b>`).join(' ')}</p>${blank(q)}`;
+      case 'tap': return `<p class="pq-big">${q.words.map(esc).join(' ')}</p><p class="pq-how">Circle the right word(s).</p>`;
+      case 'line': return `<p class="pq-how">Mark the point on the number line.</p><div class="pq-pic">${renderLine(q, st)}</div>`;
+      case 'shade': return `<p class="pq-how">Shade the parts.</p><div class="pq-pic">${renderShade(q, st)}</div>`;
+      case 'clock': return `<p class="pq-how">Draw the hands on the clock.</p><div class="pq-pic">${Fig.clock(12, 0)}</div>`;
+      case 'plot': return `<p class="pq-how">Plot on the grid.</p><div class="pq-pic">${renderPlot(q, st)}</div>`;
+      case 'coins': return `<p class="pq-how">Draw or list the coins.</p>${blank({})}`;
+      default: return blank(q);
+    }
+  }
+  function keyText(q) {
+    if (q.t === 'mc') { const i = q.opts.indexOf(q.a); return `<b>${i >= 0 ? LETTERS[i] : ''}</b> · ${ul(fmt(q.a))}`; }
+    return ul(fmt(answerText(q)));
+  }
+  function printHTML(o) {
+    let n = 0, lastPassage = null;
+    const items = [], body = o.sections.map((sec) => `${sec.name ? `<h2 class="pq-sec">${esc(sec.name)}</h2>` : ''}${sec.intro ? `<p class="pq-intro">${esc(sec.intro)}</p>` : ''}${sec.items.map(({ q, pts }) => {
+      n++; items.push({ n, q, pts });
+      const p = q.passage, showP = p && p.text !== lastPassage;
+      if (p) lastPassage = p.text;
+      return `${showP ? `<div class="pq-passage">${p.title ? `<h3>${esc(p.title)}</h3>` : ''}${p.fig ? `<div class="pq-pic">${p.fig}</div>` : ''}${p.text.split('\n\n').map((t, i) => `<p>${p.numbered ? `<b>${i + 1}</b> ` : ''}${ul(esc(t)).replace(/\n/g, '<br>')}</p>`).join('')}</div>` : ''}
+        <div class="pq"><p class="pq-q"><b class="pq-n">${n}.</b> ${ul(fmt(onPaper(q.q))).replace(/\n/g, '<br>')}${pts ? ` <span class="pq-pts">(${pts} point${pts === 1 ? '' : 's'})</span>` : ''}</p>${q.fig ? `<div class="pq-pic">${q.fig}</div>` : ''}${printBody(q)}</div>`;
+    }).join('')}`).join('');
+    const max = items.reduce((t, it) => t + (it.pts || 0), 0);
+    return `<div class="pq-page">
+      <header class="pq-head"><h1>${esc(o.title)}</h1>${o.sub ? `<p>${esc(o.sub)}</p>` : ''}<p class="pq-name">Name: <span class="pq-line"></span> Date: <span class="pq-line short"></span>${max ? ` Score: <span class="pq-line short"></span> / ${max}` : ''}</p>
+        ${(o.notes || []).length ? `<ul class="pq-notes">${o.notes.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}</header>
+      ${body}${o.extra || ''}
+      <section class="pq-key"><h1>${esc(o.keyTitle || 'Answer key')}</h1><p class="pq-intro">${esc(o.title)} · for grown-ups</p>
+        <ol class="pq-keylist">${items.map(({ n: k, q, pts }) => `<li value="${k}"><span>${keyText(q)}${pts ? ` <small>(${pts} pt)</small>` : ''}</span>${q.why ? `<small class="pq-why">${ul(fmt(q.why)).replace(/\n/g, '<br>')}</small>` : ''}</li>`).join('')}</ol>
+      </section>
+      <p class="pq-foot">${esc(APP.name)}${APP.disclaimer ? ` · ${esc(APP.disclaimer)}` : ''}</p></div>`;
+  }
+  function printSheet(o) {
+    let el = document.getElementById('printArea');
+    if (!el) { el = document.createElement('div'); el.id = 'printArea'; document.body.appendChild(el); }
+    el.innerHTML = printHTML(o);
+    document.body.classList.add('printing');
+    const done = () => { document.body.classList.remove('printing'); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    setTimeout(() => { try { window.print(); } catch (e) { done(); } }, 150); // let pictures and math lay out first
+  }
+  // A worksheet of one practice level: about 12 different questions, with the "Watch first" rule at the top.
+  function printLevel(sid, kid, l) {
+    const k = skillOf(sid, kid), L = k.levels[l], seen = new Set(), qs = [];
+    for (let r = 0; r < 6 && qs.length < 12; r++) for (const q of L.gen({})) { const key = U.qkey(q); if (!seen.has(key) && qs.length < 12) { seen.add(key); qs.push(q); } }
+    const les = lessonOf(kid, l);
+    printSheet({ title: `${k.name} · ${LEVEL_NAMES[l].long}`, sub: `${L.title} · ${L.std}`, notes: les ? [`Remember: ${les.rule}`, ...(les.ex ? [`Example: ${les.ex}`] : [])] : [], sections: [{ items: qs.map((q) => ({ q })) }] });
   }
 
   function isCorrect(q, st) {
@@ -1931,6 +2000,7 @@
     check: () => check(),
     next: () => { SFX.play('whoosh'); nextQ(); },
     readQ: () => readQuestion(cur()),
+    printLevel: (ds) => printLevel(ds.s, ds.k, +ds.l),
     showStep: () => { const q = cur(); if (!q.steps || Q.st.done) return; Q.st.stepsShown = Math.min((Q.st.stepsShown || 0) + 1, q.steps.length); SFX.play('tap'); render(); if (settings.autoRead) speak(q.steps[Q.st.stepsShown - 1]); },
     sayWord: () => Voice.say(cur().say),
     sayWordSlow: () => Voice.say(cur().say, { kind: 'slow' }),
@@ -2258,7 +2328,7 @@
   // and returns {home(), dashboard(rows), studentView(), screens:{}, after:{}, acts:{}}.
   const API = {
     APP, FEAT, P: () => P, setP: (fn) => fn(P), save, go, render, view: () => view, setModal: (html) => { modal = html; render(); },
-    startRound, startTest, startModule, finishModule, isCorrect, answerText, actionReady, store, PFX, esc, fmt, nl, SUBJ, subj, skillOf, LEVEL_NAMES, TR, dayKey, touchDay, checkBadges, confetti, confirmModal, me,
+    startRound, startTest, startModule, finishModule, isCorrect, answerText, printSheet, printHTML, actionReady, store, PFX, esc, fmt, nl, SUBJ, subj, skillOf, LEVEL_NAMES, TR, dayKey, touchDay, checkBadges, confetti, confirmModal, me,
     Q: () => Q, sync: () => { if (me() && me().cloud) queuePush(); }, withData, settings: () => settings, saveSettings, fmtSecs: (n) => fmtSecs(n),
   };
   (window.HubModes || []).forEach((make) => {
@@ -2278,7 +2348,7 @@
   });
 
   // ---------- boot ----------
-  if (location.hash === '#debug') window.__hub = { Q: () => Q, P: () => P, S: SUBJECTS, demoSteps, isCorrect, freshSt, prep, renderBody, answerFor, ACT, go, view: () => view, startRound, plotOk, startModule, finishModule, goQ, actionReady, answerText, Q_: () => Q };
+  if (location.hash === '#debug') window.__hub = { printHTML, printLevel, Q: () => Q, P: () => P, S: SUBJECTS, demoSteps, isCorrect, freshSt, prep, renderBody, answerFor, ACT, go, view: () => view, startRound, plotOk, startModule, finishModule, goQ, actionReady, answerText, Q_: () => Q };
   if (activeId && profiles.some((p) => p.id === activeId)) loadProfile(activeId);
   else if (profiles.length) loadProfile(profiles[0].id);
   render();

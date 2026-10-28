@@ -47,9 +47,25 @@
       <div class="seg">${['fall', 'winter', 'spring'].map((t) => `<button class="${term === t ? 'on' : ''}" data-act="mapTerm" data-t="${t}">${MapCore.TERM_NAME[t]}</button>`).join('')}</div>
       <label class="toggle"><input type="checkbox" data-set="testAudio" ${audio ? 'checked' : ''}><span>${esc(M.audioNote || 'Grown-ups: allow read-aloud during the test (only if the school gives your child text-to-speech; MAP Growth 2–5 has no read-aloud otherwise)')}</span></label>
       <button class="btn primary big" data-act="mapStart">Begin the test</button>
+      <button class="btn small" data-act="mapPrint">🖨️ Print a paper version (with an answer key)</button>
       <button class="btn ghost" data-act="nav" data-to="home">Not now</button>
       <p class="fine">${esc(APP.disclaimer)}</p>
     </section></div>`;
+  }
+
+  // Paper version: the real test adapts, paper cannot, so this is a fixed set that climbs from easier to harder
+  // (about 1.3 norm SDs below to 1.3 above the grade's mean for the chosen season), balanced across goal areas.
+  function printTest() {
+    const norm = M.norms[term], pool = MapCore.buildPool(MAPBANK.levels, 3, U.qkey), used = new Set(), picked = [], n = M.items;
+    for (let i = 0; i < n; i++) {
+      const theta = norm.mean + norm.sd * (-1.3 + (2.6 * i) / Math.max(1, n - 1));
+      const it = MapCore.pickNext(pool, used, picked, theta, GOALS.map((g) => g.id), MAPBANK.MIN_FRESH);
+      if (!it) break;
+      used.add(it.key); picked.push({ goal: it.goal, fresh: it.fresh, where: it.where, q: it.q });
+    }
+    api.printSheet({ title: `MAP-style practice · ${M.test} · paper version`, sub: `${picked.length} questions · ${MapCore.TERM_NAME[term]} · no time limit`,
+      notes: ['Questions go from easier to harder. Everyone gets some hard ones!', 'Circle your answer, or write it on the line.', 'The real MAP test is on a computer and changes as you go; this paper set does not, and it has no score band.'],
+      sections: [{ items: picked.map((x) => ({ q: x.q })) }] });
   }
 
   function begin() {
@@ -206,6 +222,7 @@
       mapIntro: () => api.go('mapIntro'),
       mapTerm: (ds) => { term = ds.t; api.render(); },
       mapStart: () => begin(),
+      mapPrint: () => printTest(),
     },
   };
 });

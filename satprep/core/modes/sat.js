@@ -44,9 +44,21 @@
         <button class="btn primary big" data-act="satStart" data-kind="full">Full test · about 2 h 14 min</button>
         <div class="row"><button class="btn" data-act="satStart" data-kind="rw">Reading and Writing only · 64 min</button><button class="btn" data-act="satStart" data-kind="math">Math only · 70 min</button></div>
       </div>
+      <span class="lbl">🖨️ Print a paper test (with an answer key)</span>
+      <div class="row"><button class="btn small" data-act="satPrint" data-kind="rw">Reading and Writing</button><button class="btn small" data-act="satPrint" data-kind="math">Math (+ reference sheet)</button></div>
+      <p class="fine">Paper tests cannot adapt, so both modules are a mix of easier and harder questions.</p>
       <button class="btn ghost" data-act="nav" data-to="home">Not now</button>
       <p class="fine">${esc(APP.disclaimer)}</p>
     </section></div>`;
+  }
+
+  // ---------- paper test: two modules of one section (no adapting on paper), with the answer key ----------
+  function printTest(sec) {
+    const C = SECTIONS[sec], used = new Set();
+    const mods = [1, 2].map((m) => ({ name: `${C.name} · Module ${m} · ${C.n} questions · ${C.secs / 60} minutes`, items: SatCore.buildModule(getPool(), used, C.spec, 'm1', { grouped: C.grouped, pretest: 2 }).map((it) => ({ q: it.q })) }));
+    api.printSheet({ title: `SAT-style practice test · ${C.name}`, sub: `Two modules, ${C.secs / 60} minutes each${C.calc ? ' · a calculator is allowed' : ''}`,
+      notes: ['Circle the letter of your answer, or write a typed-answer question\'s answer on its line.', 'Answer every question: there is no penalty for guessing.'],
+      sections: mods, extra: C.calc && S.reference ? `<div class="pq-ref">${S.reference}</div>` : '' });
   }
 
   // ---------- the flow: module 1 → module 2 (→ break → next section) → report ----------
@@ -231,6 +243,7 @@
     acts: {
       satIntro: () => api.go('satIntro'),
       satStart: (ds) => begin(ds.kind),
+      satPrint: (ds) => printTest(ds.kind),
       satNext: () => next(),
       satDrill: (ds) => startDrill(ds.g),
       satRevMode: (ds) => { reviewOnlyWrong = ds.w === '1'; api.render(); },
