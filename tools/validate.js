@@ -76,6 +76,13 @@ const COMPUTE = {
   quot: ([a, b]) => R(Math.floor(a / b)),
   ceilDiv: ([a, b]) => R(Math.ceil(a / b)),
   pairs: ([n]) => { let k = 0; for (let i = 1; i * i <= n; i++) if (n % i === 0) k++; return R(k); },
+  // ---- Math Quest 2: Problem Solving (solve.js) ----
+  // number riddle: exactly one 3-digit number fits every clue
+  riddle: ([clues]) => { const T = { h: (v, n) => Math.floor(n / 100) === v, t: (v, n) => Math.floor(n / 10) % 10 === v, o: (v, n) => n % 10 === v, tMore: (v, n) => Math.floor(n / 10) % 10 - (n % 10) === v, sum: (v, n) => String(n).split('').reduce((x, c) => x + +c, 0) === v, even: (v, n) => n % 2 === 0, odd: (v, n) => n % 2 === 1, oDouble: (v, n) => n % 10 === 2 * Math.floor(n / 100) }; const f = []; for (let n = 100; n <= 999; n++) if (clues.every(([k, v]) => T[k](v, n))) f.push(n); return f.length === 1 ? R(f[0]) : null; },
+  legs2: ([heads, legs]) => { for (let d = 0; d <= heads; d++) if (4 * d + 2 * (heads - d) === legs) return R(d); return null; },
+  sumDiff: ([S, D]) => ((S + D) % 2 ? null : R((S + D) / 2)),
+  coinWays: ([amt, coins]) => { const go = (left, i) => (i === coins.length - 1 ? (left % coins[i] === 0 ? 1 : 0) : [...Array(Math.floor(left / coins[i]) + 1)].reduce((t, _, k) => t + go(left - k * coins[i], i + 1), 0)); return R(go(amt, 0)); },
+  estTens: ([a, b]) => R(Math.floor(a / 10 + 0.5) * 10 + Math.floor(b / 10 + 0.5) * 10),
   // ---- Algebra 1 Honors (a1-honors.js) ----
   parK: ([dx, y2, m]) => R(y2 - m * dx),
   dist: ([x1, y1, x2, y2]) => { const d = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2); return Number.isInteger(d) ? R(d) : null; },
@@ -152,6 +159,10 @@ const TEXT = {
   repAdd: ([g, n]) => Array(g).fill(n).join(' + '),
   checkSub: ([a, b]) => `${a - b} + ${b} = ${a}`,
   hmText: ([mins]) => `${Math.floor(mins / 60)} h ${mins % 60} min`,
+  // ---- Math Quest 2: Problem Solving (solve.js) ----
+  storyEq2: ([a, b, c, kind]) => (kind === 'gainLose' ? `${a} + ${b} − ${c} = n` : `${a} − ${b} − ${c} = n`),
+  ruleAddSub: ([seq]) => { const d = seq[1] - seq[0]; return seq.every((v, i) => !i || v - seq[i - 1] === d) ? (d > 0 ? `add ${d}` : `subtract ${-d}`) : '?'; },
+  reasonable: ([a, b, claim]) => (Math.abs(claim - (a + b)) <= 10 ? 'Yes. It is close to the estimate.' : 'No. It is far from the estimate.'),
   // ---- Algebra 1 Honors (a1-honors.js) ----
   absIneqA: ([a, b, c, op]) => { const lo = (-c - b) / a, hi = (c - b) / a; return op === '≤' ? `${lo} ≤ x ≤ ${hi}` : `x < ${lo} or x > ${hi}`; },
   compound2: ([lo, opL, a, b, opR, hi]) => { const xl = (lo - b) / a, xh = (hi - b) / a; return a > 0 ? `${xl} ${opL} x ${opR} ${xh}` : `${xh} ${opR} x ${opL} ${xl}`; },

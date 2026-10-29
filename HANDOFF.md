@@ -569,6 +569,19 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   icons, voices, and content untouched. Play-through of all 14 apps: 0 failures. Before the next Mac deploy:
   `git pull`, then `git fetch origin gh-pages && git branch -f gh-pages origin/gh-pages`, then tools/deploy.sh.
 
+## Math Quest 2: Problem Solving subject (2026-10-29)
+
+- User: "add problem solving for 2-3 grade as well". New subject **Problem Solving** in Math Quest 2 (`data/solve.js`,
+  lessons in `data/lessons-solve.js`), 5 skills × 3 levels (level 3 = Grade 3): Bar models (part-whole, compare,
+  equal parts) · Two-step stories (within 100, which equation fits, multiply then add/subtract) · Patterns & rules
+  (next number, find the rule, rule machines) · Think it through (number riddles checked unique by brute force,
+  guess and check, organized lists) · Does it make sense? (estimate, is it reasonable, check with the opposite).
+  Most questions have step-by-step hints. MAP Math 2 does not load solve.js (unchanged).
+- validate.js kinds: storyEq2, ruleAddSub, reasonable, riddle, legs2, sumDiff, coinWays, estTens.
+- Tested: validate mathquest2 40k + mapmath2; 5/5 real planted bugs caught; play-through 72 levels / 576 questions,
+  0 failures; screenshots. Published from the cloud (only Math Quest 2's changed files). Voice: new lines use the
+  device voice until recorded on the Mac: `tools/voice_all.sh mathquest2 4`, voicecheck, commit voices, deploy.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
