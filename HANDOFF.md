@@ -565,6 +565,9 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
 - Tested in Chromium: welcome/join card, PIN setup, wrong/right PIN, unlock from a locked level, editor toggles,
   unlock-all, settings door, dashboard remote unlock with a mocked class (the cloud can't reach Firestore);
   validate all 14 apps. NOT tested: real Firestore round trip and a real device.
+- PUBLISHED from the cloud (gh-pages 89f656c): only core/ files, each app's sw.js, and the hub page were copied; live
+  icons, voices, and content untouched. Play-through of all 14 apps: 0 failures. Before the next Mac deploy:
+  `git pull`, then `git fetch origin gh-pages && git branch -f gh-pages origin/gh-pages`, then tools/deploy.sh.
 
 ## PENDING — next steps, in order
 
