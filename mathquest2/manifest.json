@@ -1,7 +1,7 @@
 {
   "name": "Math Quest 2",
   "short_name": "Math Quest",
-  "description": "Add & Subtract \u00b7 Place Value \u00b7 Measurement \u00b7 Data \u00b7 Geometry",
+  "description": "Add & Subtract \u00b7 Place Value \u00b7 Measurement \u00b7 Data \u00b7 Geometry \u00b7 Multiplication \u00b7 Problem Solving",
   "id": "./?app=mathquest2",
   "start_url": "./index.html",
   "scope": "./",

@@ -3,7 +3,7 @@ window.APP = {
   id: 'mathquest2',
   name: 'Math Quest 2',
   short: 'Math Quest',
-  tagline: 'Add & Subtract · Place Value · Measurement · Data · Geometry',
+  tagline: 'Add & Subtract · Place Value · Measurement · Data · Geometry · Multiplication · Problem Solving',
   icon: '🔢',
   iconLabel: '',
   theme: { primary: '#1f8f4e', bg: '#f4fbf7' },
@@ -21,6 +21,6 @@ window.APP = {
   voice: 'g2', // grade-matched narrator (tools/sweet_voice.py PROFILES)
   speech: { frac: 'ordinal' },
   features: { studio: false, katex: true },
-  data: ['common.js', 'add.js', 'place.js', 'measure.js', 'data.js', 'geometry.js', 'times.js', 'lessons.js'],
+  data: ['common.js', 'add.js', 'place.js', 'measure.js', 'data.js', 'geometry.js', 'times.js', 'solve.js', 'lessons.js', 'lessons-solve.js'],
   about: 'Math Quest 2 covers the Grade 2 New Jersey Student Learning Standards for Mathematics (2023), with a Grade 3 Challenge level in every skill. The code on each level is the standard it practices.',
 };
