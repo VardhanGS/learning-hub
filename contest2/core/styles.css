@@ -925,3 +925,13 @@ sup { line-height: 0; font-size: 0.75em; vertical-align: super; }
 .pq-foot { margin-top: 16px; font-size: 9pt; color: #555; }
 .pq-ref { break-before: page; page-break-before: always; }
 .pq-ref button { display: none; }
+
+/* grown-ups page: level-by-level unlocking */
+.unlock-sub summary { cursor: pointer; font-size: 1.05rem; padding: 2px 0; }
+.unlock-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--line); }
+.unlock-row:first-of-type { margin-top: 8px; }
+.unlock-cells { display: flex; gap: 6px; flex-wrap: wrap; }
+.unlock-cell { border: 1.5px solid var(--line); border-radius: 10px; padding: 6px 10px; background: var(--surface); color: var(--ink); font: inherit; font-size: 0.85rem; cursor: pointer; }
+.unlock-cell.on { border-color: var(--c2); background: color-mix(in srgb, var(--c2) 16%, var(--surface)); font-weight: 700; }
+.unlock-cell.earned { opacity: 0.55; cursor: default; }
+.grownup-door { border-style: dashed; }

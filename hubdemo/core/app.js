@@ -28,7 +28,7 @@
   let activeId = store.get(PFX + 'active', null);
   let P = null;
 
-  const blankData = () => ({ xp: 0, best: {}, plays: {}, daily: {}, streak: { last: null, count: 0 }, badges: {}, writings: [], draft: null, missed: [], fixed: 0, quests: 0, perfects: 0, watched: {}, words: {} });
+  const blankData = () => ({ xp: 0, best: {}, unlocks: {}, plays: {}, daily: {}, streak: { last: null, count: 0 }, badges: {}, writings: [], draft: null, missed: [], fixed: 0, quests: 0, perfects: 0, watched: {}, words: {} });
   // Skills that moved to another subject (or were renamed, APP.progressMoves 'oldSkill.level' → 'newSkill.level') keep
   // their stars: results are copied to the new key. Old keys are never deleted, so nothing is lost.
   function carryProgress(d) {
@@ -84,7 +84,11 @@
   const key = (sid, kid, l) => `${sid}.${kid}.${l}`;
   const best = (sid, kid, l) => P.best[key(sid, kid, l)];
   const starsFor = (pct) => (pct == null ? 0 : pct >= 90 ? 3 : pct >= 70 ? 2 : pct >= 50 ? 1 : 0);
-  const unlocked = (sid, kid, l) => l === 0 || settings.unlockAll || (best(sid, kid, l - 1) || 0) >= 70;
+  // A level opens when the one before it is passed (70%+), or when a grown-up unlocked it for this player (P.unlocks,
+  // keyed 'skill.level' or '*' for everything; {on, at} so the latest change wins when devices sync), or for every
+  // player on this device (settings.unlockAll).
+  const grownUnlocked = (d, kid, l) => { const u = (d && d.unlocks) || {}; return !!((u['*'] && u['*'].on) || (u[`${kid}.${l}`] && u[`${kid}.${l}`].on)); };
+  const unlocked = (sid, kid, l) => l === 0 || settings.unlockAll || grownUnlocked(P, kid, l) || (best(sid, kid, l - 1) || 0) >= 70;
   const passed = (sid, kid, l) => (best(sid, kid, l) || 0) >= 70;
 
   function mastery(s) {
@@ -188,7 +192,7 @@
   function render() {
     window.HUB_QUIET = !!(Q && Q.mode === 'test' && view.name === 'quiz');
     const noUser = !profiles.length || !P;
-    const open = ['classCreate', 'classPick', 'dashboard', 'studentView'].includes(view.name);
+    const open = ['classCreate', 'classPick', 'dashboard', 'studentView', 'grownups', 'unlockEdit'].includes(view.name);
     if (view.name === 'welcome' || (noUser && !open)) { app.innerHTML = screenWelcome() + modalHTML(); AFTER.welcome(); return; }
     if (noUser) { app.innerHTML = `<main class="main">${SCREENS[view.name]()}</main>` + modalHTML(); AFTER[view.name] && AFTER[view.name](); return; }
     const focus = ['quiz', 'results', 'example'].includes(view.name);
@@ -237,6 +241,11 @@
         ${profiles.length ? '<button class="btn ghost" data-act="nav" data-to="players">Back to players</button>' : ''}
       </section>
       <p class="fine">${Cloud.available ? 'Class players sync to every device. Device-only players are saved just here.' : 'Progress is saved on this device. Grown-ups can add more players later.'}</p>
+      <section class="card stack grownup-door">
+        <h2>👪 Grown-ups</h2>
+        <p class="fine">Parents and teachers: create a class code, open dashboards, and unlock levels on the grown-ups page.</p>
+        <button class="btn" data-act="nav" data-to="grownups">🔒 Open the grown-ups page</button>
+      </section>
       ${disclaimer()}
     </main>`;
   }
@@ -348,6 +357,8 @@
     results() { return screenResults(); },
     progress() { return screenProgress(); },
     settings() { return screenSettings(); },
+    grownups() { return screenGrownups(); },
+    unlockEdit() { return screenUnlockEdit(); },
     players() { return screenPlayers(); },
     studio() { return screenStudio(); },
     example() { return screenExample(); },
@@ -1509,12 +1520,8 @@
       </section>
       <section class="card stack">
         <h2>For grown-ups</h2>
-        <label class="toggle"><input type="checkbox" id="setUnlock" data-set="unlockAll" ${settings.unlockAll ? 'checked' : ''}><span>Unlock all levels (skip ahead to ${esc(TR().ready)} work)</span></label>
-        <p class="fine">Normally a level unlocks after scoring 70% or more on the level before it.</p>
-        <button class="btn" data-act="nav" data-to="players">Manage players</button>
-        ${classes.map((c) => `<button class="btn" data-act="openDashboard" data-c="${c.id}">🏫 ${esc(c.name)} dashboard</button>`).join('')}
-        ${Cloud.available ? '<button class="btn ghost" data-act="nav" data-to="classCreate">Create a class</button>' : ''}
-        <button class="btn danger" data-act="askReset">Reset ${esc(me().name)}'s progress</button>
+        <p class="fine">Create a class code, open class dashboards, unlock levels, and manage or reset players. Protected by a grown-up PIN.</p>
+        <button class="btn" data-act="nav" data-to="grownups">🔒 Open the grown-ups page</button>
       </section>
       <p class="fine center">${esc(APP.about || '')}</p>
       ${disclaimer()}`;
@@ -1546,7 +1553,8 @@
         ${locals.length && classes.length ? '<p class="fine">To move a device-only player into a class, sign in to the class, tap "I\'m new here", and choose them under "Bring progress".</p>' : ''}
       </section>
       ${Cloud.available ? `<section class="card stack"><h2>Classes</h2><p class="muted">Join a class so a student's progress follows them to any device, or create one as a parent or teacher.</p>
-        <div class="row"><button class="btn" data-act="nav" data-to="welcome">Join a class</button><button class="btn" data-act="nav" data-to="classCreate">Create a class</button></div></section>` : ''}`;
+        <div class="row"><button class="btn" data-act="nav" data-to="welcome">Join a class</button></div></section>` : ''}
+      <p class="center"><button class="btn ghost" data-act="nav" data-to="grownups">🔒 Grown-ups page</button></p>`;
   }
 
   // ---------- writing studio ----------
@@ -1830,7 +1838,6 @@
       <p class="pin-err" id="joinErr" role="alert">${esc(view.joinErr || '')}</p>
       <button class="btn primary big" data-act="joinClass">Join class</button>
       ${classes.length ? `<div class="joined">${classes.map((c) => `<button class="chip" data-act="openClass" data-c="${c.id}">🏫 ${esc(c.name)}</button>`).join('')}</div>` : ''}
-      <button class="btn ghost" data-act="nav" data-to="classCreate">Grown-ups: create a class</button>
     </section>`;
   }
 
@@ -1857,9 +1864,94 @@
       <input id="adminPin2" class="input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password">
       <p class="pin-err" role="alert">${esc(view.err || '')}</p>
       <button class="btn primary big" data-act="createClass" ${view.busy ? 'disabled' : ''}>${view.busy ? 'Creating…' : 'Create class'}</button>
-      <button class="btn ghost" data-act="nav" data-to="${profiles.length ? 'players' : 'welcome'}">Back</button>
+      <button class="btn ghost" data-act="nav" data-to="grownups">Back</button>
     </section></div>`;
   }
+
+  // ---------- grown-ups page ----------
+  // One place for grown-ups, behind a device grown-up PIN (salted SHA-256 in hub_grownup, shared by every app on this
+  // site): create a class code, class dashboards, unlock levels for a player, manage and reset players.
+  let grownOK = false; // PIN typed in this session
+  const grownRec = () => store.get('hub_grownup', null);
+  const grownHash = async (salt, p) => { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${salt}:grownup:${p}`)); return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join(''); };
+  // Run fn after the grown-up PIN (asks for it once per session; sends grown-ups without a PIN to set one up).
+  function withGrownup(fn, why) {
+    if (grownOK) return fn();
+    const rec = grownRec();
+    if (!rec) { modal = `<h2>👪 A grown-up PIN is needed</h2><p>Set a grown-up PIN on the grown-ups page first. It keeps unlocking and other grown-up settings away from little fingers.</p><div class="row end"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn primary" data-act="nav" data-to="grownups">Set a PIN</button></div>`; render(); return; }
+    askPin({ title: 'Grown-up PIN', sub: why, len: 4, max: 6, check: async (p) => (await grownHash(rec.salt, p)) === rec.hash, ok: () => { grownOK = true; fn(); } });
+  }
+  function screenGrownups() {
+    const rec = grownRec(), back = profiles.length && P ? 'settings' : 'welcome';
+    if (!grownOK) {
+      if (!rec) return `<div class="narrow"><section class="card stack">
+        <h2>👪 Grown-ups page</h2>
+        <p>Choose a grown-up PIN for this device. You'll type it to open this page, to unlock levels, and to reset progress. It works in every Learning Hub app on this device.</p>
+        <label class="lbl" for="gPin">Grown-up PIN (4–6 digits)</label>
+        <input id="gPin" class="input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password">
+        <label class="lbl" for="gPin2">Type the PIN again</label>
+        <input id="gPin2" class="input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password">
+        <p class="pin-err" role="alert">${esc(view.err || '')}</p>
+        <button class="btn primary big" data-act="setGrownPin">Save the PIN</button>
+        <button class="btn ghost" data-act="nav" data-to="${back}">Back</button>
+      </section></div>`;
+      return `<div class="narrow"><section class="card stack">
+        <h2>👪 Grown-ups page</h2>
+        <p class="muted">Class codes, dashboards, unlocking levels, and players.</p>
+        <button class="btn primary big" data-act="grownLogin">Type the grown-up PIN</button>
+        ${classes.length && Cloud.available ? '<button class="btn ghost" data-act="grownForgot">Forgot the PIN? Use your class grown-up PIN</button>' : '<p class="fine">Forgot the PIN? Clearing this website\'s data in the browser settings removes it (and the players saved only on this device).</p>'}
+        <button class="btn ghost" data-act="nav" data-to="${back}">Back</button>
+      </section></div>`;
+    }
+    const subs = P ? SUBJ() : [];
+    const allOn = !!(P && P.unlocks && P.unlocks['*'] && P.unlocks['*'].on);
+    return `<div class="narrow">
+      <div class="paper-title"><h1>👪 Grown-ups</h1><p>${esc(APP.name)}</p></div>
+      ${P ? `<section class="card stack">
+        <h2>🔓 Unlock levels for ${esc(me().avatar)} ${esc(me().name)}</h2>
+        <p class="fine">Normally a level opens after scoring 70% or more on the level before it. Unlock any level here; earned levels stay open. Unlocks follow ${esc(me().name)} to other devices when they are in a class.</p>
+        <label class="toggle"><input type="checkbox" data-act="toggleUnlockAll" ${allOn ? 'checked' : ''}><span>Unlock every level in ${esc(APP.name)} for ${esc(me().name)}</span></label>
+        <button class="btn" data-act="nav" data-to="unlockEdit">Choose levels to unlock →</button>
+      </section>` : ''}
+      ${Cloud.available ? `<section class="card stack">
+        <h2>🏫 Classes</h2>
+        <p class="fine">A class code lets a child's progress follow them to any device, and gives you a dashboard. Each class has its own grown-up PIN for its dashboard.</p>
+        <button class="btn primary" data-act="nav" data-to="classCreate">＋ Create a class code</button>
+        ${classes.map((c) => `<div class="row-between"><span>🏫 <b>${esc(c.name)}</b> <small class="muted">${Cloud.prettyCode(c.id)}</small></span><button class="btn small" data-act="openDashboard" data-c="${c.id}">Dashboard</button></div>`).join('')}
+        <p class="fine">From a class dashboard you can also unlock levels for any student (⋯ next to their name).</p>
+      </section>` : ''}
+      <section class="card stack">
+        <h2>👤 Players</h2>
+        <button class="btn" data-act="nav" data-to="players">Manage players</button>
+        ${P ? `<button class="btn danger" data-act="askReset">Reset ${esc(me().name)}'s progress</button>` : ''}
+      </section>
+      <section class="card stack">
+        <h2>📱 This device</h2>
+        <label class="toggle"><input type="checkbox" id="setUnlock" data-set="unlockAll" ${settings.unlockAll ? 'checked' : ''}><span>Unlock all levels for every player on this device</span></label>
+        <div class="row"><button class="btn small" data-act="changeGrownPin">Change the grown-up PIN</button><button class="btn small ghost" data-act="grownLock">Lock this page</button></div>
+      </section>
+      <button class="btn ghost" data-act="nav" data-to="${back}">Back</button>
+    </div>`;
+  }
+  // Level-by-level unlocking: for this player (view.remote unset), or for a class student from the dashboard
+  // (view.remote = {c, sid, name}, editing view.ud, saved with saveRemoteUnlocks).
+  function screenUnlockEdit() {
+    if (!view.remote && !grownOK) return screenGrownups();
+    const data = view.remote ? view.ud : P, who = view.remote ? view.remote.name : me().name;
+    if (!data) return '<p class="muted card">Loading…</p>';
+    const body = withData(data, () => SUBJ().map((s) => `<details class="card unlock-sub" ${view.openSub === s.id ? 'open' : ''}>
+        <summary><span class="dot s-${s.color}"></span> <b>${esc(s.name)}</b></summary>
+        ${s.skills.map((k) => `<div class="unlock-row"><span class="unlock-name">${esc(k.name)}</span><span class="unlock-cells">${k.levels.map((L, l) => {
+          const earned = l === 0 || passed(s.id, k.id, l - 1), on = grownUnlocked(data, k.id, l);
+          return `<button class="unlock-cell ${earned ? 'earned' : on ? 'on' : ''}" ${earned ? 'disabled' : ''} data-act="toggleUnlock" data-k="${k.id}.${l}" data-s="${s.id}" title="${esc(L.title)}">${earned ? '✓' : on ? '🔓' : '🔒'} ${esc(LEVEL_NAMES[l].short)}</button>`;
+        }).join('')}</span></div>`).join('')}
+      </details>`).join(''));
+    return `<section class="sub-head s-mix"><button class="back" data-act="${view.remote ? 'backToDash' : 'nav'}" data-to="grownups" aria-label="Back">←</button><span class="sub-ic">🔓</span><div><h1>Unlock levels</h1><p>${esc(who)} · ${esc(APP.name)}</p></div></section>
+      <p class="fine">✓ = earned (or a first level). Tap 🔒 to unlock a level; tap 🔓 to lock it again. Locking never removes scores.</p>
+      ${body}
+      ${view.remote ? `<p class="pin-err" role="alert">${esc(view.err || '')}</p><div class="row"><button class="btn primary big" data-act="saveRemoteUnlocks" ${view.busy ? 'disabled' : ''}>${view.busy ? 'Saving…' : `Save for ${esc(who)}`}</button><button class="btn ghost" data-act="backToDash">Cancel</button></div>` : '<p class="fine">Changes are saved right away.</p>'}`;
+  }
+  const setUnlock = (d, key, on) => { d.unlocks = d.unlocks || {}; d.unlocks[key] = { on, at: Date.now() }; };
 
   function screenClassPick() {
     const c = classes.find((x) => x.id === view.c) || { id: view.c, name: 'Class' };
@@ -2000,7 +2092,7 @@
     videoBack: () => { if (view.back === 'example' && Q && Q.demo) go('example'); else go('videos'); },
     closeModal: () => { modal = null; render(); },
     openSubject: (ds) => (ds.s ? go('subject', { s: ds.s }) : go('home')),
-    start: (ds) => { const l = +ds.l; if (!unlocked(ds.s, ds.k, l)) { modal = `<h2>🔒 Locked level</h2><p>Score 70% or more on <b>${LEVEL_NAMES[l - 1].long}</b> to unlock this level.</p><div class="row end"><button class="btn primary" data-act="start" data-s="${ds.s}" data-k="${ds.k}" data-l="${l - 1}">Play ${LEVEL_NAMES[l - 1].long}</button></div>`; render(); return; } startRound({ mode: 'skill', s: ds.s, k: ds.k, l }); },
+    start: (ds) => { const l = +ds.l; if (!unlocked(ds.s, ds.k, l)) { modal = `<h2>🔒 Locked level</h2><p>Score 70% or more on <b>${LEVEL_NAMES[l - 1].long}</b> to unlock this level.</p><div class="row end"><button class="btn ghost" data-act="grownUnlockHere" data-s="${ds.s}" data-k="${ds.k}" data-l="${l}">👪 Grown-up: unlock it</button><button class="btn primary" data-act="start" data-s="${ds.s}" data-k="${ds.k}" data-l="${l - 1}">Play ${LEVEL_NAMES[l - 1].long}</button></div>`; render(); return; } startRound({ mode: 'skill', s: ds.s, k: ds.k, l }); },
     mix: () => startRound({ mode: 'mix' }),
     review: () => { if (P.missed.length) startRound({ mode: 'review' }); },
     again: () => startRound({ mode: Q.mode, s: Q.s, k: Q.k, l: Q.l, noExample: true }),
@@ -2094,7 +2186,7 @@
       if (ds.id === activeId) { if (profiles.length) loadProfile(profiles[0].id); else { P = null; activeId = null; store.del(PFX + 'active'); } }
       go(profiles.length ? 'players' : 'home');
     },
-    askReset: () => confirmModal(`Reset ${me().name}'s progress?`, 'Scores, XP, badges, and writing for this player will be erased. This cannot be undone.', 'resetMe', 'Reset progress'),
+    askReset: () => withGrownup(() => confirmModal(`Reset ${me().name}'s progress?`, 'Scores, XP, badges, and writing for this player will be erased. This cannot be undone.', 'resetMe', 'Reset progress'), 'Resets progress.'),
     resetMe: () => { P = blankData(); P.resetAt = Date.now(); save(); go('home'); },
     goal: (ds) => { settings.dailyGoal = +ds.n; saveSettings(); render(); },
 
@@ -2224,12 +2316,62 @@
       askPin({ title: 'Grown-up PIN', sub: `Opens the dashboard for ${c.name}.`, len: 4, max: 6, check: async (p) => (await Cloud.adminHash(cid, p)) === c.adminHash, ok: () => { adminOK.add(cid); open(); } });
     },
     refreshDash: () => { view.students = null; view.err = ''; render(); },
+    // ---- grown-ups page ----
+    setGrownPin: async () => {
+      const p1 = val('gPin'), p2 = val('gPin2');
+      if (!/^\d{4,6}$/.test(p1)) { view.err = 'The PIN must be 4 to 6 digits.'; render(); return; }
+      if (p1 !== p2) { view.err = 'The two PINs do not match.'; render(); return; }
+      const salt = Math.random().toString(36).slice(2, 10);
+      store.set('hub_grownup', { salt, hash: await grownHash(salt, p1) });
+      grownOK = true; view.err = ''; SFX.play('unlock'); go('grownups');
+    },
+    grownLogin: () => withGrownup(() => go('grownups'), `Opens the grown-ups page.`),
+    grownLock: () => { grownOK = false; go(profiles.length && P ? 'settings' : 'welcome'); },
+    changeGrownPin: () => { store.del('hub_grownup'); grownOK = false; go('grownups'); },
+    grownForgot: () => {
+      modal = `<h2>Forgot the grown-up PIN?</h2><p>Type the grown-up PIN of one of your classes. Then you can choose a new device PIN.</p><div class="stack">${classes.map((c) => `<button class="btn" data-act="grownForgotClass" data-c="${c.id}">🏫 ${esc(c.name)}</button>`).join('')}</div><div class="row end"><button class="btn ghost" data-act="closeModal">Cancel</button></div>`;
+      render();
+    },
+    grownForgotClass: async (ds) => {
+      let c;
+      try { c = await Cloud.getClass(ds.c); } catch { modal = '<h2>Offline</h2><p>This needs the internet. Check the connection and try again.</p><div class="row end"><button class="btn primary" data-act="closeModal">OK</button></div>'; render(); return; }
+      if (!c) return;
+      askPin({ title: 'Class grown-up PIN', sub: c.name, len: 4, max: 6, check: async (p) => (await Cloud.adminHash(ds.c, p)) === c.adminHash, ok: () => { store.del('hub_grownup'); grownOK = false; go('grownups'); } });
+    },
+    toggleUnlockAll: () => { const on = !(P.unlocks && P.unlocks['*'] && P.unlocks['*'].on); setUnlock(P, '*', on); save(); render(); },
+    toggleUnlock: (ds) => {
+      const d = view.remote ? view.ud : P, [k, l] = ds.k.split('.');
+      setUnlock(d, ds.k, !grownUnlocked(d, k, +l) ? true : false);
+      if (!view.remote) save();
+      view.openSub = ds.s; render();
+    },
+    grownUnlockHere: (ds) => withGrownup(() => { setUnlock(P, `${ds.k}.${ds.l}`, true); save(); modal = null; ACT.start(ds); }, 'Unlocks this level.'),
+    unlockStudent: async (ds) => {
+      const st = view.students.find((x) => x.id === ds.sid);
+      modal = null;
+      go('unlockEdit', { c: view.c, students: view.students, remote: { c: view.c, sid: ds.sid, name: st.name }, ud: JSON.parse(JSON.stringify(Object.assign(blankData(), (st.prog && st.prog.data) || {}))) });
+    },
+    saveRemoteUnlocks: async () => {
+      const { c, sid } = view.remote;
+      view.busy = true; view.err = ''; render();
+      try {
+        // fetch the newest progress first, so nothing the student did since the dashboard loaded is overwritten
+        const fresh = await Cloud.getProgress(c, sid), base = Object.assign(blankData(), (fresh && fresh.data) || {});
+        base.unlocks = { ...(base.unlocks || {}) };
+        Object.entries(view.ud.unlocks || {}).forEach(([k, v]) => { if (!base.unlocks[k] || (v.at || 0) > (base.unlocks[k].at || 0)) base.unlocks[k] = v; });
+        await Cloud.saveProgress(c, sid, base);
+        const local = profiles.find((p) => p.cloud && p.cloud.sid === sid);
+        if (local && local.id === activeId) { P.unlocks = { ...base.unlocks }; store.set(PFX + 'p_' + activeId, P); }
+        go('dashboard', { c, students: null });
+      } catch { view.busy = false; view.err = 'Could not save. Check the internet and try again.'; render(); }
+    },
     openStudent: (ds) => go('studentView', { c: view.c, sid: ds.sid, students: view.students }),
     backToDash: () => go('dashboard', { c: view.c, students: view.students }),
     askStudentMenu: (ds) => {
       const st = view.students.find((x) => x.id === ds.sid);
       modal = `<h2>${esc(st.avatar || '')} ${esc(st.name)}</h2>
         <div class="stack">
+          <button class="btn" data-act="unlockStudent" data-sid="${ds.sid}">🔓 Unlock levels for ${esc(st.name)}</button>
           <button class="btn" data-act="askResetStudentApp" data-sid="${ds.sid}">Erase ${esc(st.name)}'s ${esc(APP.name)} progress</button>
           <button class="btn danger" data-act="askRemoveStudent" data-sid="${ds.sid}">Remove ${esc(st.name)} from the class (every app)</button>
         </div>
@@ -2377,6 +2519,7 @@
   if (location.hash === '#debug') window.__hub = { printHTML, printLevel, Q: () => Q, P: () => P, S: SUBJECTS, demoSteps, isCorrect, freshSt, prep, renderBody, answerFor, ACT, go, view: () => view, startRound, plotOk, startModule, finishModule, goQ, actionReady, answerText, Q_: () => Q };
   if (activeId && profiles.some((p) => p.id === activeId)) loadProfile(activeId);
   else if (profiles.length) loadProfile(profiles[0].id);
+  if (location.hash === '#grownups') { view = { name: 'grownups' }; history.replaceState(null, '', location.pathname); }
   render();
   // Screenshot mode for testing: #shot=<subject>.<skill>.<level>.<type>[.answer|.wrong|.demo] opens that level on a
   // question of that type (used by tools/shots.sh with headless Chrome; never linked from the app).

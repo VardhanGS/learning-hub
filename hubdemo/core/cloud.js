@@ -7,7 +7,7 @@ const Cloud = (() => {
   const CFG = typeof APP !== 'undefined' && APP.firebase && APP.firebase.apiKey ? APP.firebase : null;
   const APP_ID = typeof APP !== 'undefined' ? APP.id : 'app';
   // Every app that may keep progress under a student (must match the allowlist in firestore.rules).
-  const ALL_APPS = ['mathquest2', 'mapmath2', 'mapmath4', 'algebra1', 'mapalg1', 'mapread2', 'mapread4', 'mapread8', 'satprep', 'hubdemo'];
+  const ALL_APPS = ['mathquest2', 'mathquest4', 'mapmath2', 'mapmath4', 'algebra1', 'mapalg1', 'mapread2', 'mapread4', 'mapread8', 'satprep', 'hubdemo', 'contest2', 'contest4', 'contest8'];
   const available = !!(CFG && typeof window !== 'undefined' && !window.HUB_NO_CLOUD && typeof fetch !== 'undefined' && window.crypto && crypto.subtle);
   const DOCS = CFG ? `https://firestore.googleapis.com/v1/projects/${CFG.projectId}/databases/(default)/documents` : '';
   const ls = {
@@ -137,6 +137,8 @@ const Cloud = (() => {
     m.badges = { ...a.badges, ...b.badges };
     Object.keys(m.badges).forEach((k) => { if (a.badges?.[k] && b.badges?.[k]) m.badges[k] = a.badges[k] < b.badges[k] ? a.badges[k] : b.badges[k]; });
     m.watched = { ...b.watched, ...a.watched };
+    // grown-up unlocks: the latest change to each level wins
+    m.unlocks = { ...(b.unlocks || {}) }; Object.entries(a.unlocks || {}).forEach(([k, v]) => { if (!m.unlocks[k] || (v && (v.at || 0) >= (m.unlocks[k].at || 0))) m.unlocks[k] = v; });
     m.gone = [...new Set([...(a.gone || []), ...(b.gone || [])])].slice(-400);
     const gone = new Set(m.gone);
     m.missed = unionById(a.missed, b.missed, gone, 40);
