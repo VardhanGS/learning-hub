@@ -545,6 +545,27 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   ~1,100 device-voice lines → 1). Recorded with `tools/voice_all.sh algebra1 4 1000` (new 3rd arg = sample rounds) and
   mathquest4; voices committed (eb45647) and deployed with tools/deploy.sh. Live site checked: gh-pages matches main.
 
+## Grown-ups page and unlocking any level (2026-10-29, user request before bed)
+
+- User: "grown-ups create class in the same screen as class code doesn't make sense. I need a separate admin page for
+  creating class code. I also need parent or admin to be able to unlock any stage."
+- core/app.js: new **Grown-ups page** (`grownups` screen; also opens with `#grownups`, linked from the hub under
+  "For parents and teachers", from Settings → For grown-ups, from Players, and as its own card on the welcome screen).
+  Protected by a **device grown-up PIN** (4–6 digits, salted SHA-256 in localStorage `hub_grownup`, shared by every
+  app on the site; asked once per session; forgot → verify any class's grown-up PIN to reset it). It holds:
+  create a class code (moved off the student join card and the Players screen), class dashboards, unlock levels,
+  manage players, reset progress (now asks the PIN), and the old device-wide "unlock all levels" switch.
+- **Unlocking**: per player `P.unlocks` = { 'skill.level' | '*': {on, at} } (keyed by skill id, so it survives
+  regrouping); `unlocked()` honors it; Cloud.merge keeps the latest change per key, so unlocks sync with the class.
+  Ways to unlock: (1) Grown-ups page → "Unlock every level" or "Choose levels to unlock" (tap 🔒/🔓 per level);
+  (2) tapping a locked level → "👪 Grown-up: unlock it" (PIN) → it unlocks and starts; (3) class dashboard → ⋯ next
+  to a student → "Unlock levels for …" (class PIN; re-reads the student's progress before saving, so nothing is lost).
+- cloud.js ALL_APPS now includes mathquest4 and contest2/4/8 (removing a student also deletes those apps' progress).
+- No firestore.rules change needed (unlocks live inside the progress JSON).
+- Tested in Chromium: welcome/join card, PIN setup, wrong/right PIN, unlock from a locked level, editor toggles,
+  unlock-all, settings door, dashboard remote unlock with a mocked class (the cloud can't reach Firestore);
+  validate all 14 apps. NOT tested: real Firestore round trip and a real device.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
