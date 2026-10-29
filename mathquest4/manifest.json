@@ -1,0 +1,29 @@
+{
+  "name": "Math Quest 4",
+  "short_name": "Math Quest",
+  "description": "Place Value \u00b7 Multiply & Divide \u00b7 Fractions \u00b7 Measurement \u00b7 Geometry",
+  "id": "./?app=mathquest4",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f5fd",
+  "theme_color": "#6a3fb5",
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
