@@ -579,7 +579,7 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   Most questions have step-by-step hints. MAP Math 2 does not load solve.js (unchanged).
 - validate.js kinds: storyEq2, ruleAddSub, reasonable, riddle, legs2, sumDiff, coinWays, estTens.
 - Tested: validate mathquest2 40k + mapmath2; 5/5 real planted bugs caught; play-through 72 levels / 576 questions,
-  0 failures; screenshots. Published from the cloud (only Math Quest 2's changed files). Voice: new lines use the
+  0 failures; screenshots. NOT published yet (the cloud publish needs the user's OK). Voice: new lines use the
   device voice until recorded on the Mac: `tools/voice_all.sh mathquest2 4`, voicecheck, commit voices, deploy.
 
 ## PENDING — next steps, in order
