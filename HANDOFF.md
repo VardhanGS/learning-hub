@@ -482,8 +482,8 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   that really changed into gh-pages (mathquest2: config.js, index.html, sw.js, data/lessons.js, data/times.js; mapmath2:
   sw.js, data/lessons.js), so live icons and other apps stayed as they were. Main was fast-forwarded to the branch.
   The next Mac `tools/deploy.sh` rebuilds everything normally.
-- TODO on the Mac: record voices — `tools/voice_all.sh mathquest2 4`, then `node tools/voicecheck.js mathquest2` (and mapmath2), then
-  deploy. Until then the new questions use the device voice.
+- DONE 2026-10-29 on the Mac (user, no Claude): voices recorded for sub2, mgroups, mfacts and deployed with
+  tools/deploy.sh (after `git branch -f gh-pages origin/gh-pages`, since the cloud had pushed gh-pages first).
 
 ## PENDING — next steps, in order
 
