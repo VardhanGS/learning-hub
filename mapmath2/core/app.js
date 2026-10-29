@@ -29,10 +29,32 @@
   let P = null;
 
   const blankData = () => ({ xp: 0, best: {}, plays: {}, daily: {}, streak: { last: null, count: 0 }, badges: {}, writings: [], draft: null, missed: [], fixed: 0, quests: 0, perfects: 0, watched: {}, words: {} });
+  // Skills that moved to another subject (or were renamed, APP.progressMoves 'oldSkill.level' → 'newSkill.level') keep
+  // their stars: results are copied to the new key. Old keys are never deleted, so nothing is lost.
+  function carryProgress(d) {
+    if (!d || !d.best) return d;
+    const home = {};
+    SUBJECTS.forEach((s) => s.skills.forEach((k) => { home[k.id] = home[k.id] ? null : s.id; }));
+    const moves = (typeof APP !== 'undefined' && APP.progressMoves) || {};
+    ['best', 'plays'].forEach((f) => {
+      const m = d[f];
+      if (!m) return;
+      Object.keys(m).forEach((key) => {
+        const [sid, kid, l] = key.split('.');
+        if (l == null || (subj(sid) && subj(sid).skills.some((k) => k.id === kid))) return;
+        const to = moves[`${kid}.${l}`] ? moves[`${kid}.${l}`].split('.') : [kid, l];
+        const ns = home[to[0]];
+        if (!ns) return;
+        const nk = `${ns}.${to[0]}.${to[1]}`;
+        m[nk] = Math.max(m[nk] || 0, m[key]);
+      });
+    });
+    return d;
+  }
   function loadProfile(id) {
     activeId = id;
     store.set(PFX + 'active', id);
-    P = Object.assign(blankData(), store.get(PFX + 'p_' + id, {}));
+    P = carryProgress(Object.assign(blankData(), store.get(PFX + 'p_' + id, {})));
     lastDraft = JSON.stringify(P.draft);
     applyTrack(trackOf());
   }
@@ -1364,7 +1386,7 @@
     const v = VIDS().find((x) => x.id === view.id);
     if (!v) return screenVideos();
     const more = [...VIDEOS.filter((x) => x.id !== v.id && x.subject === v.subject), ...VIDEOS.filter((x) => x.subject !== v.subject)].slice(0, 4);
-    const pr = v.practice && skillOf(v.practice[0], v.practice[1]) ? v.practice : null; // a borrowed video may point at a skill this app does not have
+    const pr = v.practice && subj(v.practice[0]) && skillOf(v.practice[0], v.practice[1]) ? v.practice : null; // a borrowed video may point at a skill this app does not have
     return `
       <section class="vpage s-${(subj(v.subject) || { color: 'mix' }).color}">
         <div class="player-top"><button class="back" data-act="videoBack" aria-label="Back">←</button><span class="kind">${esc(v.label)} · ${fmtSecs(v.secs)}</span></div>
@@ -1732,7 +1754,7 @@
       if (!s) { studentRemoved(p); return; }
       const remote = (prog && prog.data) || {};
       if (s.name && s.name !== p.name) { p.name = s.name; saveProfiles(); }
-      const merged = Object.assign(blankData(), Cloud.merge(P, Object.assign(blankData(), remote)));
+      const merged = carryProgress(Object.assign(blankData(), Cloud.merge(P, Object.assign(blankData(), remote))));
       const changed = JSON.stringify(merged) !== JSON.stringify(P);
       P = merged;
       store.set(PFX + 'p_' + activeId, P);
@@ -1756,7 +1778,7 @@
   // Evaluate the progress helpers against another student's data (for the dashboard).
   function withData(data, fn) {
     const saved = P;
-    P = Object.assign(blankData(), data);
+    P = carryProgress(Object.assign(blankData(), data));
     applyTrack(trackOf());
     try { return fn(); } finally { P = saved; applyTrack(trackOf()); }
   }
@@ -2341,10 +2363,14 @@
 
   // Videos borrowed from another app (APP.videosFrom) point at that app's subjects; re-file each under the subject
   // that holds its practice skill here, so it shows up in the right group and its Practice button works.
+  // A video whose skill moved (APP.progressMoves) follows it.
   (typeof VIDEOS !== 'undefined' ? VIDEOS : []).forEach((v) => {
-    if (!v.practice || subj(v.practice[0])) return;
-    const home = SUBJECTS.find((x) => x.skills.some((k) => k.id === v.practice[1]));
-    if (home) { v.practice = [home.id, v.practice[1], v.practice[2]]; v.subject = home.id; }
+    if (!v.practice) return;
+    if (subj(v.practice[0]) && skillOf(v.practice[0], v.practice[1])) { if (!subj(v.subject)) v.subject = v.practice[0]; return; }
+    const mv = ((typeof APP !== 'undefined' && APP.progressMoves) || {})[`${v.practice[1]}.${v.practice[2]}`];
+    const [k, l] = mv ? [mv.split('.')[0], +mv.split('.')[1]] : [v.practice[1], v.practice[2]];
+    const home = SUBJECTS.find((x) => x.skills.some((y) => y.id === k));
+    if (home) { v.practice = [home.id, k, l]; v.subject = home.id; }
   });
 
   // ---------- boot ----------

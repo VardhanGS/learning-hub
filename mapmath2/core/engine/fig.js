@@ -609,7 +609,8 @@ const Fig = (() => {
     b += `<clipPath id="${cid}"><rect x="${pad}" y="${pad}" width="${w - 2 * pad}" height="${H - 2 * pad}"/></clipPath><g clip-path="url(#${cid})">`;
     fns.forEach((f, i) => {
       if (f.kind === 'v') { b += `<line x1="${X(f.x)}" y1="${Y(yl)}" x2="${X(f.x)}" y2="${Y(yh)}" class="gr-fn ${COLORS[i % 3]}"${lw ? ` style="stroke-width:${lw}"` : ''}/>`; return; }
-      const val = (x) => (f.kind === 'lin' ? f.m * x + f.b : f.kind === 'quad' ? f.a * (x - f.h) ** 2 + f.k : f.a * f.b ** x);
+      // kinds: lin (m, b), quad (a, h, k), exp (a, b), abs (a, h, k), fn (f: any function; dom: [lo, hi] to draw one piece)
+      const val = (x) => (f.dom && (x < f.dom[0] - 1e-9 || x > f.dom[1] + 1e-9) ? NaN : f.kind === 'lin' ? f.m * x + f.b : f.kind === 'quad' ? f.a * (x - f.h) ** 2 + f.k : f.kind === 'abs' ? f.a * Math.abs(x - f.h) + f.k : f.kind === 'fn' ? f.f(x) : f.a * f.b ** x);
       let d = '', on = false;
       for (let k = 0; k <= 120; k++) {
         const x = xl + (k / 120) * (xh - xl), y = val(x);
@@ -621,7 +622,7 @@ const Fig = (() => {
       if (f.label) b += `<text x="${X(xh) - 4}" y="${Y(Math.max(yl, Math.min(yh, val(xh)))) - 6}" class="fg-text" font-size="12" text-anchor="end">${f.label}</text>`;
     });
     b += '</g>';
-    pts.forEach(([x, y, l]) => { b += `<circle cx="${X(x)}" cy="${Y(y)}" r="4.5" class="tf-a"/>${l ? `<text x="${X(x) + 7}" y="${Y(y) - 7}" class="fg-text" font-size="12">${l}</text>` : ''}`; });
+    pts.forEach(([x, y, l, open]) => { b += `<circle cx="${X(x)}" cy="${Y(y)}" r="4.5" class="${open ? 'gr-open' : 'tf-a'}"/>${l ? `<text x="${X(x) + 7}" y="${Y(y) - 7}" class="fg-text" font-size="12">${l}</text>` : ''}`; });
     return `<svg viewBox="0 0 ${w} ${H}" width="${w}" role="img" aria-label="A coordinate graph${fns.length ? ` with ${fns.length} graph${fns.length > 1 ? 's' : ''}` : ''}${pts.length ? ` and ${pts.length} point${pts.length > 1 ? 's' : ''}` : ''}">${b}<rect x="${pad}" y="${pad}" width="${w - 2 * pad}" height="${H - 2 * pad}" class="fg-stroke" style="fill:none;stroke-width:1"/></svg>`;
   }
   // Box plot of a five-number summary [min, Q1, median, Q3, max] above a number line from lo to hi (tick every step).

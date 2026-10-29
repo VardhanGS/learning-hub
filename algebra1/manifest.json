@@ -1,7 +1,7 @@
 {
   "name": "Algebra 1 Quest",
   "short_name": "Algebra 1",
-  "description": "Equations \u00b7 Functions \u00b7 Graphs \u00b7 Quadratics \u00b7 Statistics",
+  "description": "Equations \u00b7 Linear functions \u00b7 Systems \u00b7 Piecewise \u00b7 Exponentials \u00b7 Polynomials \u00b7 Quadratics \u00b7 Statistics",
   "id": "./?app=algebra1",
   "start_url": "./index.html",
   "scope": "./",
