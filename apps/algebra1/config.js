@@ -20,7 +20,7 @@ window.APP = {
     },
   },
   voice: 'g8', // grade-matched narrator (tools/sweet_voice.py PROFILES)
-  speech: { frac: 'over' },
+  speech: { frac: 'over', split: true }, // split: decimals, negatives, and fractions are read from short pieces ("0.6" → 0 point 6), so random numbers always have a recorded voice
   features: { studio: false, katex: true },
   data: ['a1-common.js', 'a1-real.js', 'a1-eei.js', 'a1-func.js', 'mapalg1:map-items.js', 'a1-topics.js', 'a1-honors.js', 'a1-subjects.js', 'lessons-a1.js', 'mapalg1:map-lessons.js', 'lessons-topics.js', 'lessons-honors.js'],
   videosFrom: 'mapalg1', // MAP Algebra 1's lessons on rates, key features, quadratic forms, etc. (not its test tips)
