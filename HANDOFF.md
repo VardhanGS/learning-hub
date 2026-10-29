@@ -541,7 +541,9 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   gh-pages into apps/mathquest2/voice + data/voice-clips.js and committed. On the Mac, `git pull` will complain that
   local files would be overwritten (they are the same files): run `git stash push --include-untracked`, `git pull`,
   then `git stash drop`.
-- TODO on the Mac: `tools/voice_all.sh algebra1 4` (and mathquest4), voicecheck, deploy.
+- DONE 2026-10-29 on the Mac (user): Algebra 1 now uses `speech.split` (decimals/negatives/fractions read in pieces;
+  ~1,100 device-voice lines → 1). Recorded with `tools/voice_all.sh algebra1 4 1000` (new 3rd arg = sample rounds) and
+  mathquest4; voices committed (eb45647) and deployed with tools/deploy.sh. Live site checked: gh-pages matches main.
 
 ## PENDING — next steps, in order
 
