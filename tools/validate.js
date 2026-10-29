@@ -110,6 +110,7 @@ const TEXT = {
   mulStory: ([g, n]) => `${g} × ${n}`,
   repAdd: ([g, n]) => Array(g).fill(n).join(' + '),
   checkSub: ([a, b]) => `${a - b} + ${b} = ${a}`,
+  hmText: ([mins]) => `${Math.floor(mins / 60)} h ${mins % 60} min`,
   estFact: ([i]) => ['7 inches', '7 feet', '1 inch', '40 feet', '9 centimeters', '10 meters'][i],
   centsText: (list) => `${list.reduce((t, k) => t + COINV[k], 0)}¢`,
   dataQ: () => 'How many votes were there in all?',
@@ -237,10 +238,11 @@ const PZSOLVE = {
 const reveals = (step, a) => new RegExp(`(=|\\bis|\\bare|\\bmakes|\\bgives|\\bequals)\\s*${String(a).replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}(?![\\d/])`).test(plain(step));
 // An equation like "13 − 6 = 7": is it true, and which numbers does it use?
 function equation(e) {
-  const m = plain(e).match(/^(\d+) ([+−-]) (\d+) = (\d+)$/);
+  const m = plain(e).match(/^(\d+) ([+−×÷-]) (\d+) = (\d+)$/);
   if (!m) return null;
-  const a = +m[1], b = +m[3], c = +m[4], plus = m[2] === '+';
-  return { ok: plus ? a + b === c : a - b === c, nums: [a, b, c].sort((x, y) => x - y).join(',') };
+  const a = +m[1], b = +m[3], c = +m[4], op = m[2];
+  const ok = op === '+' ? a + b === c : op === '×' ? a * b === c : op === '÷' ? b !== 0 && a === b * c : a - b === c;
+  return { ok, nums: [a, b, c].sort((x, y) => x - y).join(',') };
 }
 function lineIndex(q, a) {
   const den = q.den || 1, step = q.step || 1, v = N.parse(String(a));

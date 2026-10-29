@@ -485,6 +485,33 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
 - DONE 2026-10-29 on the Mac (user, no Claude): voices recorded for sub2, mgroups, mfacts and deployed with
   tools/deploy.sh (after `git branch -f gh-pages origin/gh-pages`, since the cloud had pushed gh-pages first).
 
+## Math Quest 4 (2026-10-29, published from the cloud)
+
+- User asked "add Math Quest 4"; chose: a Grade 4 learning app like Math Quest 2 (grouped by topic, no MAP test) that
+  reuses MAP Math 4's questions and videos and adds new skills; publish and add to the hub. MAP Math 4 is unchanged.
+- `apps/mathquest4/`: config borrows `mathquest2:common.js` and MAP Math 4's common4/number4/algebra4/geometry4/lessons4
+  (`videosFrom: 'mapmath4'`); `skills4.js` (5 new skills, 15 levels, hints that open one step at a time);
+  `subjects4.js` groups all 22 skills into 6 topics (Place Value, Multiply & Divide, Problem Solving, Fractions &
+  Decimals, Measurement & Data, Geometry); `lessons-new4.js`; `video_scripts.py` with no videos of its own.
+- New skills (level 3 is always a real Grade 5 standard, since the track calls it "Grade 5 Challenge"):
+  Fact review (3.OA facts → tens/hundreds → 5.NBT.A.2 thousands) · Multiply step by step (carrying → up to 4×1 and 2×2
+  → 3×2, 5.NBT.B.5) · Divide step by step (trade tens → zeros and remainders → two-digit divisors, 5.NBT.B.6) ·
+  Number lines (fractions → mixed numbers and decimals → thousandths and rounding, 5.NBT.A.3/A.4) · Money & time
+  stories (elapsed time → change, how many, unit stories → multi-step conversions, 5.M.A.1).
+- validate.js: `equation()` now checks × and ÷ too (fact-family options must all be true facts); new TEXT kind `hmText`.
+- Firebase: no app registered yet (`appId: ''`), so progress stays on the device. `firestore.rules` already lists
+  `mathquest4`, but the published rules do NOT yet. To turn on sync: register a web app "Math Quest 4" in the
+  ela-quest project, put its appId in config.js, and publish firestore.rules (run tools/rules_test.mjs first).
+- Tested in the cloud: validate mathquest4 at 10k and 40k items, plus mathquest2, mapmath2, mapmath4; 10/10 planted
+  bugs caught; check_videos OK; Chromium play-through mathquest4 66 levels / 527 questions, mapmath4 51 / 407,
+  mathquest2 57 / 456, 0 failures, no page errors; screenshots of the home and subject screens, a question from each
+  new skill with hints open, a worksheet PDF, and the hub. NOT tested: a real iPad/iPhone; voice.
+- Published by copying dist/mathquest4/ and dist/index.html into gh-pages. Its icon was drawn in the cloud with Noto
+  Color Emoji (no Apple emoji there); the next Mac `tools/deploy.sh` redraws it with Apple's.
+- TODO on the Mac: `git pull`, `tools/voice_all.sh mathquest4 4`, `node tools/voicecheck.js mathquest4`, then
+  `tools/deploy.sh` (if it is rejected, first `git fetch origin gh-pages && git branch -f gh-pages origin/gh-pages`).
+  Videos: none new needed (MAP Math 4's 18 are borrowed).
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude

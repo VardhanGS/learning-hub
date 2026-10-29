@@ -21,7 +21,7 @@ service cloud.firestore {
         match /apps/{appId} {
           allow read, delete: if request.auth != null;
           allow create, update: if request.auth != null
-            && appId in ['mathquest2', 'mapmath2', 'mapmath4', 'algebra1', 'mapalg1',
+            && appId in ['mathquest2', 'mathquest4', 'mapmath2', 'mapmath4', 'algebra1', 'mapalg1',
                          'mapread2', 'mapread4', 'mapread8', 'satprep', 'hubdemo',
                          'contest2', 'contest4', 'contest8']
             && exists(/databases/$(db)/documents/classes/$(classId)/students/$(studentId))
