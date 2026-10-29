@@ -724,6 +724,7 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 
 /* ten-frames, bar models, groups, place-value charts */
 .tf-a { fill: color-mix(in srgb, var(--c3) 75%, var(--surface)); stroke: var(--ink); stroke-width: 1.5; }
+.gr-open { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
 .tf-b { fill: color-mix(in srgb, var(--c1) 70%, var(--surface)); stroke: var(--ink); stroke-width: 1.5; }
 .tf-x { stroke: var(--bad); stroke-width: 3.5; stroke-linecap: round; }
 .bm-whole { fill: color-mix(in srgb, var(--gold) 40%, var(--surface)); stroke: var(--ink); stroke-width: 2; }

@@ -202,8 +202,8 @@ const VIDEOS = [
   "label": "Statistics",
   "desc": "Mean and median, IQR and outliers, scatter plots, lines of fit, and correlation versus causation.",
   "practice": [
-   "func",
    "stats",
+   "data11",
    0
   ],
   "src": "videos/statistics.mp4",

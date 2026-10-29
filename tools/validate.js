@@ -32,6 +32,16 @@ const { SUBJECTS, N, MathText, LESSONS, MAPBANK, Alg } = ctx;
 const R = (n, d = 1) => N.make(n, d);
 const plain = (s) => MathText.plain(String(s).replace(/[⟪⟫]/g, '')).trim();
 const WORD = { 2: 'half', 3: 'third', 4: 'fourth', 6: 'sixth', 8: 'eighth' };
+// Piecewise piece [lo, hi, loIncluded, hiIncluded, m, b] (null = no end) holds x?
+const inPiece = ([lo, hi, loIn, hiIn], x) => (lo == null || x > lo || (x === lo && loIn)) && (hi == null || x < hi || (x === hi && hiIn));
+// "mx + b" written like A1.lin: 3x - 2, -x, 5
+const linText = (m, b) => { const t = m === 0 ? '' : `${m === -1 ? '-' : m === 1 ? '' : m}x`; return !t ? String(b) : b === 0 ? t : `${t} ${b < 0 ? '-' : '+'} ${Math.abs(b)}`; };
+// Shape of a histogram from its bar heights (equal-width bins): compare the mean bin with the median bin.
+function skewOf(bars) {
+  const n = bars.reduce((t, v) => t + v, 0), mean = bars.reduce((t, v, i) => t + v * i, 0) / n;
+  let c = 0, med = 0; for (let i = 0; i < bars.length; i++) { c += bars[i]; if (c >= n / 2) { med = i + (c - n / 2 > 0 ? 0 : 0.5); break; } }
+  return mean - med > 0.3 ? 'skewed right' : med - mean > 0.3 ? 'skewed left' : 'symmetric';
+}
 const COMPUTE = {
   add: ([a, b]) => R(a + b),
   sub: ([a, b]) => R(a - b),
@@ -66,6 +76,37 @@ const COMPUTE = {
   quot: ([a, b]) => R(Math.floor(a / b)),
   ceilDiv: ([a, b]) => R(Math.ceil(a / b)),
   pairs: ([n]) => { let k = 0; for (let i = 1; i * i <= n; i++) if (n % i === 0) k++; return R(k); },
+  // ---- Algebra 1 Honors (a1-honors.js) ----
+  parK: ([dx, y2, m]) => R(y2 - m * dx),
+  dist: ([x1, y1, x2, y2]) => { const d = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2); return Number.isInteger(d) ? R(d) : null; },
+  termNum: ([a1, d, N]) => R(N - a1 + d, d),
+  seqA1: ([i, ai, j, aj]) => { const d = (aj - ai) / (j - i); return R(ai - (i - 1) * d); },
+  sysK: ([a1, b1, b2]) => R(a1 * b2, b1),
+  sys3: ([rows, ask]) => { const M = rows.map((r) => r.slice()); for (let c = 0; c < 3; c++) { const p = M.findIndex((r, i) => i >= c && r[c] !== 0); [M[c], M[p]] = [M[p], M[c]]; for (let i = 0; i < 3; i++) if (i !== c) { const f = M[i][c] / M[c][c]; for (let k = 0; k < 4; k++) M[i][k] -= f * M[c][k]; } } const v = M[{ x: 0, y: 1, z: 2 }[ask]]; return N.parse(String(+(v[3] / v[{ x: 0, y: 1, z: 2 }[ask]]).toFixed(9))); },
+  pieceSolve: ([ps, y]) => { const xs = ps.map((p) => (y - p[5]) / p[4]).filter((x, i) => inPiece(ps[i], x)); return xs.length === 1 && Number.isInteger(xs[0]) ? R(xs[0]) : null; },
+  ratPow: ([b, p, q]) => { const r = Math.round(b ** (1 / q)); if (r ** q !== b) return null; return p > 0 ? R(r ** p) : R(1, r ** -p); },
+  expEq: ([B, p, a1, c1, q, a2, c2]) => R(q * c2 - p * c1, p * a1 - q * a2),
+  halfLife: ([A0, h, t]) => R(A0, 2 ** (t / h)),
+  growthPct: ([b]) => R(Math.round(Math.abs(b - 1) * 100)),
+  fenceMax: ([P]) => R(P * P, 8),
+  revPrice: ([Q0, k]) => R(Q0, 2 * k),
+  oneSolB: ([a, c]) => { const v = Math.sqrt(4 * a * c); return Number.isInteger(v) ? R(v) : null; },
+  rootSum: ([a, b]) => R(-b, a),
+  rootProd: ([a, c]) => R(c, a),
+  zScore: ([x, m, s]) => R(x - m, s),
+  transStat: ([m, s, a, b, which]) => R(which === 'mean' ? a * m + b : Math.abs(a) * s),
+  condProb: ([[a, b, c], ask]) => R(a, ask === 'row' ? a + b : a + c),
+  // ---- Algebra 1, 11-topic skills (a1-topics.js) ----
+  intercept: ([A, B, C, which]) => (which === 'x' ? R(C, A) : R(C, B)),
+  residual: ([m, b, x, y]) => N.parse(String(+(y - (m * x + b)).toFixed(6))),
+  absAt: ([a, h, k, x]) => R(a * Math.abs(x - h) + k),
+  pieceAt: ([ps, x]) => { const p = ps.find((q) => inPiece(q, x)); return p ? R(p[4] * x + p[5]) : null; },
+  stepCost: ([f, p, t]) => R(f + p * Math.max(0, Math.ceil(t) - 1)),
+  floorAt: ([x]) => R(Math.floor(x)),
+  quadMax: ([a, b, c]) => R(4 * a * c - b * b, 4 * a),
+  sqrtAt: ([a, h, k, x]) => { const r = Math.sqrt(x - h); return Number.isInteger(r) ? R(a * r + k) : null; },
+  cbrtAt: ([a, h, k, x]) => { const r = Math.round(Math.cbrt(x - h)); return r ** 3 === x - h ? R(a * r + k) : null; },
+  stdev: ([xs]) => { const m = xs.reduce((t, x) => t + x, 0) / xs.length, v = xs.reduce((t, x) => t + (x - m) ** 2, 0) / xs.length, s = Math.sqrt(v); return Number.isInteger(s) ? R(s) : null; },
 };
 // Exact fraction arithmetic for fexpr: [n, d] op [n, d].
 function frac([a, b], op, [c, d]) {
@@ -111,6 +152,29 @@ const TEXT = {
   repAdd: ([g, n]) => Array(g).fill(n).join(' + '),
   checkSub: ([a, b]) => `${a - b} + ${b} = ${a}`,
   hmText: ([mins]) => `${Math.floor(mins / 60)} h ${mins % 60} min`,
+  // ---- Algebra 1 Honors (a1-honors.js) ----
+  absIneqA: ([a, b, c, op]) => { const lo = (-c - b) / a, hi = (c - b) / a; return op === '≤' ? `${lo} ≤ x ≤ ${hi}` : `x < ${lo} or x > ${hi}`; },
+  compound2: ([lo, opL, a, b, opR, hi]) => { const xl = (lo - b) / a, xh = (hi - b) / a; return a > 0 ? `${xl} ${opL} x ${opR} ${xh}` : `${xh} ${opR} x ${opL} ${xl}`; },
+  midpoint: ([x1, y1, x2, y2]) => `(${(x1 + x2) / 2}, ${(y1 + y2) / 2})`,
+  absPiece: ([a, b, right]) => (right ? linText(a, b) : linText(-a, -b)),
+  absCount: ([a, k, c]) => { const t = (c - k) / a; return t > 0 ? '2' : t === 0 ? '1' : '0'; },
+  parityFn: ([co]) => (co.every((c, i) => i % 2 === 0 || c === 0) ? 'even' : co.every((c, i) => i % 2 === 1 || c === 0) ? 'odd' : 'neither'),
+  // ---- Algebra 1, 11-topic skills (a1-topics.js) ----
+  absEqSol: ([q, c]) => (c < 0 ? 'no solution' : c === 0 ? `x = ${-q}` : `x = ${-c - q} or x = ${c - q}`),
+  absIneqOut: ([c, r]) => `x < ${c - r} or x > ${c + r}`,
+  onLine: ([, x1, y1]) => `(${x1}, ${y1})`,
+  corrWord: ([r]) => `${Math.abs(r) >= 0.8 ? 'strong' : Math.abs(r) >= 0.5 ? 'moderate' : 'weak'} ${r > 0 ? 'positive' : 'negative'}`,
+  absVertex: ([h, k]) => `(${h}, ${k})`,
+  shiftText: ([h, k]) => `${Math.abs(h)} ${h > 0 ? 'right' : 'left'}, ${Math.abs(k)} ${k > 0 ? 'up' : 'down'}`,
+  absRange: ([a, k]) => `y ${a > 0 ? '≥' : '≤'} ${k}`,
+  pieceRule: ([ps, x]) => { const p = ps.find((q) => inPiece(q, x)); const [m, b] = [p[4], p[5]]; return linText(m, b); },
+  modelType: ([ys]) => { const d = ys.slice(1).map((y, i) => y - ys[i]), d2 = d.slice(1).map((v, i) => v - d[i]), r = ys.slice(1).map((y, i) => y / ys[i]); return d.every((v) => v === d[0]) ? 'linear' : d2.every((v) => v === d2[0]) ? 'quadratic' : r.every((v) => Math.abs(v - r[0]) < 1e-9) ? 'exponential' : '?'; },
+  lqPts: ([b, c, m, k]) => { const A = 1, B = b - m, C = c - k, D = B * B - 4 * A * C, s = Math.sqrt(D), xs = [(-B - s) / 2, (-B + s) / 2]; return xs.map((x) => `(${x}, ${m * x + k})`).join(' and '); },
+  lqCount: ([b, c, m, k]) => { const D = (b - m) ** 2 - 4 * (c - k); return D > 0 ? '2' : D === 0 ? '1' : '0'; },
+  sqrtDom: ([h]) => `x ≥ ${h}`,
+  tPoint: ([p, q, a, h, k]) => `(${p + h}, ${a * q + k})`,
+  skew: ([bars]) => skewOf(bars),
+  skewCenter: ([bars]) => ({ 'skewed right': 'The mean is greater than the median.', 'skewed left': 'The mean is less than the median.', symmetric: 'The mean and median are about the same.' }[skewOf(bars)]),
   estFact: ([i]) => ['7 inches', '7 feet', '1 inch', '40 feet', '9 centimeters', '10 meters'][i],
   centsText: (list) => `${list.reduce((t, k) => t + COINV[k], 0)}¢`,
   dataQ: () => 'How many votes were there in all?',
@@ -591,6 +655,21 @@ function checkItem(where, q, levelStd) {
       const isRoot = (r) => Math.abs(a * r * r + b * r + c) < 1e-7, A = roots(q.a);
       if (!A || !A.every(isRoot)) fail(where, q, `${q.a} does not solve the equation`);
       q.opts.filter((o) => o !== q.a).forEach((o) => { const W = roots(o); if (W && W.every(isRoot)) fail(where, q, `wrong choice ${o} also solves it`); });
+    } else if (kind === 'algEquivY') {
+      // "y = …" choices: the answer equals the question's expression; no wrong choice does
+      const rhs = (o) => plain(o).replace(/^y\s*=\s*/, '').replace(/\s+/g, '');
+      if (!Alg.equiv(rhs(q.a), args[0])) fail(where, q, `answer ${q.a} is not equivalent to ${args[0]}`);
+      q.opts.filter((o) => o !== q.a).forEach((o) => { if (Alg.equiv(rhs(o), args[0])) fail(where, q, `wrong choice ${o} is also equivalent`); });
+    } else if (kind === 'quadThru') {
+      // a parabola with vertex (h, k) through (x1, y1): symmetric about x = h, lowest/highest at h
+      const [h, k, x1, y1] = args, e = Alg.parse(q.a), at = (x) => Alg.evalAt(e, { x });
+      if (Math.abs(at(h) - k) > 1e-9 || Math.abs(at(x1) - y1) > 1e-9) fail(where, q, `${q.a} misses the vertex or the point`);
+      if ([1, 2, 3].some((d) => Math.abs(at(h + d) - at(h - d)) > 1e-9)) fail(where, q, `${q.a} is not symmetric about x = ${h}`);
+      if (Math.abs(at(h + 1) - at(h)) < 1e-9) fail(where, q, `${q.a} is flat`);
+    } else if (kind === 'hasRoots') {
+      // x² + bx + c with zeros r and s: monic (matches (x − r)(x − s) away from the roots too)
+      const [r, s] = args, e = Alg.parse(q.a);
+      [r, s, 10, -7].forEach((x) => { if (Math.abs(Alg.evalAt(e, { x }) - (x - r) * (x - s)) > 1e-9) fail(where, q, `${q.a} is not x² + bx + c with zeros ${r} and ${s}`); });
     } else if (kind === 'evalAt') {
       const v = Alg.evalAt(Alg.parse(args[0]), args[1]), got = N.parse(plain(String(q.a)));
       if (!got || Math.abs(got.n / got.d - v) > 1e-9) fail(where, q, `answer ${q.a} but ${args[0]} at ${JSON.stringify(args[1])} = ${v}`);

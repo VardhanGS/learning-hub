@@ -77,6 +77,7 @@ def build(app_id):
             if not os.path.exists(p): return []
             t = open(p).read(); return json.loads(t[t.index('['):t.rindex(']') + 1])
         merged = cat(os.path.join(src, 'data', 'videos.js')) + cat(os.path.join(other, 'data', 'videos.js'))
+        merged = [v for v in merged if v['id'] not in cfg.get('videosSkip', [])]  # e.g. another app's test tips
         with open(os.path.join(out, 'data', 'videos.js'), 'w') as f:
             f.write('// Built by tools/build.py: this app\'s videos plus the ones it borrows.\nconst VIDEOS = ' + json.dumps(merged, indent=1, ensure_ascii=False) + ';\n')
     if not os.path.exists(os.path.join(out, 'data', 'voice-clips.js')):

@@ -223,7 +223,7 @@ VIDEOS = [
     },
     {
         'id': 'statistics', 'title': 'Center, Spread, and Correlation', 'subject': 'func', 'label': 'Statistics',
-        'desc': 'Mean and median, IQR and outliers, scatter plots, lines of fit, and correlation versus causation.', 'practice': ['func', 'stats', 0],
+        'desc': 'Mean and median, IQR and outliers, scatter plots, lines of fit, and correlation versus causation.', 'practice': ['stats', 'data11', 0],
         'scenes': [
             {'type': 'title', 'emoji': '📊', 'title': 'Statistics', 'sub': 'What data can and cannot tell you', 'beats': [B('Statistics turns a pile of numbers into a few honest summaries.')]},
             {'type': 'image', 'heading': 'Mean and median', 'figs': ["Fig.table([['In order', '3', '4', '8', '9'], ['Middle?', '', '✓', '✓', '']], 'Median = (4 + 8) / 2 = 6')"], 'notes': ['Mean: 24 ÷ 4 = 6', 'Median: middle of the ordered list', 'Two middles: average them'],

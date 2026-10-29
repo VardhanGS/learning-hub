@@ -4,7 +4,7 @@ window.APP = {
   id: 'algebra1',
   name: 'Algebra 1 Quest',
   short: 'Algebra 1',
-  tagline: 'Equations · Functions · Graphs · Quadratics · Statistics',
+  tagline: 'Equations · Linear functions · Systems · Piecewise · Exponentials · Polynomials · Quadratics · Statistics',
   icon: '✖️',
   iconLabel: '',
   theme: { primary: '#5b3fb5', bg: '#f6f4fd' },
@@ -22,6 +22,10 @@ window.APP = {
   voice: 'g8', // grade-matched narrator (tools/sweet_voice.py PROFILES)
   speech: { frac: 'over' },
   features: { studio: false, katex: true },
-  data: ['a1-common.js', 'a1-real.js', 'a1-eei.js', 'a1-func.js', 'a1-subjects.js', 'lessons-a1.js'],
+  data: ['a1-common.js', 'a1-real.js', 'a1-eei.js', 'a1-func.js', 'mapalg1:map-items.js', 'a1-topics.js', 'a1-honors.js', 'a1-subjects.js', 'lessons-a1.js', 'mapalg1:map-lessons.js', 'lessons-topics.js', 'lessons-honors.js'],
+  videosFrom: 'mapalg1', // MAP Algebra 1's lessons on rates, key features, quadratic forms, etc. (not its test tips)
+  videosSkip: ['map-tips-a1'],
+  // Skills split in the 11-topic reorganization (2026-10-29): old level → new level, so earned stars carry over.
+  progressMoves: { 'factor.0': 'factoring.0', 'factor.1': 'qsolve.0', 'factor.2': 'qsolve.2', 'stats.0': 'data11.0', 'stats.1': 'data11.1', 'stats.2': 'fitline.0' },
   about: 'Algebra 1 Quest covers the high school Algebra 1 course in the 2023 New Jersey Student Learning Standards for Mathematics. Every skill has a Challenge level that previews Geometry or Algebra 2. Type answers like 3x + 2 or (x − 1)(x + 4), and graph lines by tapping points. The code on each level is the standard it practices.',
 };

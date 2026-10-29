@@ -512,6 +512,37 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   `tools/deploy.sh` (if it is rejected, first `git fetch origin gh-pages && git branch -f gh-pages origin/gh-pages`).
   Videos: none new needed (MAP Math 4's 18 are borrowed).
 
+## Algebra 1 Quest: 11-topic order + Honors (2026-10-29, published from the cloud)
+
+- User asked: split Algebra 1 into the course's 11 topics (Solving Equations and Inequalities · Linear Equations ·
+  Linear Functions · Systems · Piecewise Functions · Exponents and Exponential Functions · Polynomials and Factoring ·
+  Quadratic Functions · Solving Quadratic Equations · Working With Functions · Statistics), add what is missing, then
+  "write as many practice questions with all levels of complexity including honors level as possible".
+- `a1-subjects.js` now builds the 11 topics (numbered 1–11). Sources: the old a1-*.js skills (unchanged, MAP Algebra 1
+  still borrows them), MAP Algebra 1's own skills (`mapalg1:map-items.js`, e.g. eqprep, rates, modelx, scinot, equivx,
+  features, data2, quadmore levels), `a1-topics.js` (new skills: absolute value equations, forms of linear equations,
+  scatter plots & lines of fit, absolute value functions, piecewise & step functions, factoring, quadratic models,
+  solve quadratic equations, linear-quadratic systems, transforming & combining functions, data: center/spread/shape)
+  and `a1-honors.js` (one Honors skill at the end of every topic, 3 levels each). 126 levels in all (was 54).
+- Split skills: 'factor' → 'factoring' + 'qsolve', 'stats' → 'data11' + 'fitline'. `APP.progressMoves` in config.js
+  maps old levels to new; core/app.js `carryProgress()` copies stars to the new keys on load (also for skills that
+  only moved subject). Old keys are never deleted. Tested in Chromium with seeded old progress.
+- Engine changes (all apps): carryProgress; videos follow moved skills; Fig.graph kinds `abs` and `fn`, `dom` for
+  pieces, open dots (`pts` 4th item true, `.gr-open`); build.py `videosSkip`. Algebra 1 now borrows MAP Algebra 1's
+  videos (`videosFrom: 'mapalg1'`, skipping its MAP test tips).
+- Lessons: `lessons-topics.js`, `lessons-honors.js` (+ MAP Algebra 1's map-lessons.js).
+- validate.js: many new kinds (absEqSol, intercept, residual, pieceAt, stepCost, lqPts, stdev, sys3, expEq, ratPow,
+  algEquivY, quadThru, hasRoots, …).
+- Tested: validate algebra1 at 40k items, mapalg1 and all others pass; 10/10 planted bugs caught; check_videos OK;
+  Chromium play-through algebra1 126 levels / 1,008 questions, mapalg1, mathquest2, mathquest4, satprep, contest4,
+  mapread2, hubdemo: 0 failures; screenshots with KaTeX (served locally: the cloud blocks the CDN). NOT tested on a
+  real device; no voice for the new lines yet.
+- FOUND: the Mac recorded Math Quest 2's new voices and deployed them but did not commit them. They were copied from
+  gh-pages into apps/mathquest2/voice + data/voice-clips.js and committed. On the Mac, `git pull` will complain that
+  local files would be overwritten (they are the same files): run `git stash push --include-untracked`, `git pull`,
+  then `git stash drop`.
+- TODO on the Mac: `tools/voice_all.sh algebra1 4` (and mathquest4), voicecheck, deploy.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
