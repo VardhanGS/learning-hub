@@ -612,6 +612,16 @@ Design (follow it on the Mac):
   `node tools/check_videos.js science8`; render on the Mac with `tools/.venv/bin/python tools/make_videos.py science8`.
 - Hub row (8th grade), firestore.rules + core/cloud.js ALL_APPS add 'science8'; register a Firebase web app later.
 - Then: validate, playthrough, voice_all.sh science8 4 2000, commit voices, deploy.
+- DONE so far (cloud, 2026-10-30): apps/science8/config.js, data/sci-common.js (item language + lesson builder,
+  multi items carry meta sciKey; validate.js checks it), data/topics.js (subjects + Topic review skill per topic),
+  data/t1.js = Topic 1 complete (4 lessons × 3 levels × 8 questions). `node tools/validate.js science8` runs; it
+  FAILS only the answer-length check: in 26 of Topic 1's mc items the right answer is the longest choice (37%, limit
+  15%). Next step on the Mac: lengthen those items' wrong choices (or shorten answers) until the check passes —
+  list them with: node -e "const L=require('fs').readFileSync('apps/science8/data/t1.js','utf8').split('\n').filter(l=>/^\s*'mc \|/.test(l));L.forEach(l=>{const f=l.trim().slice(1,-2).split(' | ');const w=f[3].split(';').map(x=>x.split('::')[0].trim());if(f[2].length>Math.max(...w.map(x=>x.length))+3)console.log(f[1])})"
+  Then write t2.js … t8.js the same way (add each to config data before topics.js), video_scripts.py (none written
+  yet; LESSONS already point at video ids: launch-t1, living-things, classification, microbes, plants-animals), hub
+  row, rules/ALL_APPS. NOTE: tools/build.py builds every folder in apps/, so a deploy publishes /science8/ even while
+  unfinished (it is not linked from the hub until the hub row is added).
 
 ## PENDING — next steps, in order
 

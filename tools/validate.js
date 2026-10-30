@@ -666,6 +666,11 @@ function checkItem(where, q, levelStd) {
       const isRoot = (r) => Math.abs(a * r * r + b * r + c) < 1e-7, A = roots(q.a);
       if (!A || !A.every(isRoot)) fail(where, q, `${q.a} does not solve the equation`);
       q.opts.filter((o) => o !== q.a).forEach((o) => { const W = roots(o); if (W && W.every(isRoot)) fail(where, q, `wrong choice ${o} also solves it`); });
+    } else if (kind === 'sciKey') {
+      // Science Quest 8 choose-all: exactly the author's right answers are marked right, and every choice is shown
+      const [right, wrong] = args;
+      if (q.a.length !== right.length || !right.every((r) => q.a.includes(r))) fail(where, q, 'the right answers differ from the key');
+      if (q.opts.length !== right.length + wrong.length || [...right, ...wrong].some((o) => !q.opts.includes(o))) fail(where, q, 'a choice is missing');
     } else if (kind === 'algEquivY') {
       // "y = …" choices: the answer equals the question's expression; no wrong choice does
       const rhs = (o) => plain(o).replace(/^y\s*=\s*/, '').replace(/\s+/g, '');
