@@ -614,7 +614,10 @@ Design (follow it on the Mac):
 - Then: validate, playthrough, voice_all.sh science8 4 2000, commit voices, deploy.
 - DONE so far (cloud, 2026-10-30): apps/science8/config.js, data/sci-common.js (item language + lesson builder,
   multi items carry meta sciKey; validate.js checks it), data/topics.js (subjects + Topic review skill per topic),
-  data/t1.js = Topic 1 complete (4 lessons × 3 levels × 8 questions). `node tools/validate.js science8` runs; it
+  data/t1.js = Topic 1 complete (4 lessons × 3 levels × 8 questions); data/t2.js = Topic 2 The Cell System complete
+  (6 lessons × 3 levels × 8 questions: cells, organelles, transport, division, photosynthesis, respiration; added
+  2026-10-30). Answer-length check: 26 flagged items in t1 and 25 in t2 (26% overall) — run the list command below with
+  t2.js too. `node tools/validate.js science8` runs; it
   FAILS only the answer-length check: in 26 of Topic 1's mc items the right answer is the longest choice (37%, limit
   15%). Next step on the Mac: lengthen those items' wrong choices (or shorten answers) until the check passes —
   list them with: node -e "const L=require('fs').readFileSync('apps/science8/data/t1.js','utf8').split('\n').filter(l=>/^\s*'mc \|/.test(l));L.forEach(l=>{const f=l.trim().slice(1,-2).split(' | ');const w=f[3].split(';').map(x=>x.split('::')[0].trim());if(f[2].length>Math.max(...w.map(x=>x.length))+3)console.log(f[1])})"
