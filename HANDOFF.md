@@ -582,6 +582,37 @@ hints that open one step at a time, worked solution) + practice contests; 24 lev
   0 failures; screenshots. PUBLISHED from the cloud on the user's OK (gh-pages 7d1b1b4, Math Quest 2 files only). Voice: new lines use the
   device voice until recorded on the Mac: `tools/voice_all.sh mathquest2 4`, voicecheck, commit voices, deploy.
 
+## Science Quest 8 (Grade 8 life science) — IN PROGRESS (started 2026-10-30, cloud; user has little credit left)
+
+User asked: "add 8th grade science with these topics. detailed videos as well" — 8 topics, 36 lessons (+ Topic Launch
+and Topic Close per topic). Topic/lesson titles (keep as the structure; write ALL content ourselves — patterns yes,
+copies no; do not name the publisher):
+1 Living Things in the Biosphere: Living Things · Classification Systems · Viruses, Bacteria, Protists, and Fungi · Plants and Animals
+2 The Cell System: Structure and Function of Cells · Cell Structures · Obtaining and Removing Materials · Cell Division · Photosynthesis · Cellular Respiration
+3 Human Body Systems: Body Organization · Systems Interacting · Supplying Energy · Managing Materials · Controlling Processes
+4 Reproduction and Growth: Patterns of Reproduction · Plant Structures for Reproduction · Animal Behaviors for Reproduction · Factors Influencing Growth
+5 Ecosystems: Living Things and the Environment · Energy Flow in Ecosystems · Cycles of Matter
+6 Populations, Communities, and Ecosystems: Interactions in Ecosystems · Dynamic and Resilient Ecosystems · Biodiversity · Ecosystem Services
+7 Genes and Heredity: Patterns of Inheritance · Chromosomes and Inheritance · Genetic Coding and Protein Synthesis · Trait Variations · Genetic Technologies
+8 Natural Selection and Change Over Time: Early Study of Evolution · Natural Selection · The Process of Evolution · Evidence in the Fossil Record · Other Evidence of Evolution
+
+Design (follow it on the Mac):
+- App `apps/science8` ("Science Quest 8", 🔬, voice g8, picturesOptional false → every item gets Fig.picture icons).
+  Track g8: Starter / Star = Grade 8, Challenge = High school Biology preview. Standards: NJSLS-Science 2020
+  (MS-LS1-1..8, MS-LS2-1..5, MS-LS3-1..2, MS-LS4-1..6).
+- One subject per topic (id t1..t8); one skill per lesson (3 levels: Key ideas / Apply it / Challenge) plus a
+  "Topic review" skill (Topic Close) that mixes the topic's levels. Topic Launch = one intro video per topic.
+- Content is written in a compact item DSL in `data/sci-common.js` (S8.items): strings
+  `mc | question | answer | wrong1 :: why ; wrong2 ; wrong3 | explanation`, `tf | statement | true/false | why`,
+  `multi | question | right1 ; right2 | wrong1 ; wrong2 | why`, `sort | question | Bin A = x ; y | Bin B = z | why`,
+  `order | question | step1 ; step2 ; step3 | why`. ≥ 8 items per level (validator needs 8 distinct per round).
+  Calculation generators where they fit (Punnett ratios, 10% energy rule, magnification, population size).
+- Videos: `apps/science8/video_scripts.py`, one per lesson + one Topic Launch per topic (44), scene types title /
+  bullets (≤ 4 items, beats = 1 + items) / image (Fig.picture/Fig.table figs + notes) / quiz / outro. Check with
+  `node tools/check_videos.js science8`; render on the Mac with `tools/.venv/bin/python tools/make_videos.py science8`.
+- Hub row (8th grade), firestore.rules + core/cloud.js ALL_APPS add 'science8'; register a Firebase web app later.
+- Then: validate, playthrough, voice_all.sh science8 4 2000, commit voices, deploy.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
