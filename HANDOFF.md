@@ -676,8 +676,13 @@ Design (follow it on the Mac):
   - nobody has listened to the voice or watched the videos end to end.
 - Voice: `tools/voice_all.sh science8 4 2000` recorded 4,708 clips in 25 bundles; voicecheck shows every line is recorded
   (412k spoken lines checked).
-- Still not done: hub row, Firebase app, rules, and Topics 3–8. Do not deploy until the user has reviewed:
-  tools/deploy.sh would publish /science8/ unlinked.
+- PUBLISHED 2026-10-31 on the user's word ("publish"), with a hub row in the 8th grade group and 'science8' in
+  cloud.js ALL_APPS.
+- Still not done:
+  - Firebase: no web app is registered (appId ''), and firestore.rules does not list science8, so progress stays on
+    the device.
+  - Topics 3–8.
+  - The Cell division lesson (written, not loaded).
 
 ## PENDING — next steps, in order
 
