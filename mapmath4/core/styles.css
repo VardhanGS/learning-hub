@@ -826,6 +826,38 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 
 .gr-fn { fill: none; stroke-width: 3; }
 .gr-c0 { stroke: var(--c1); } .gr-c1 { stroke: var(--c4); } .gr-c2 { stroke: var(--c2); }
+/* Science pictures (Fig.cell, membrane, mitosis, cycle, flow, tree, nest, stoma) */
+.sc-ink { fill: var(--ink); }
+.sc-cyto { fill: color-mix(in srgb, var(--c5) 10%, var(--surface)); stroke: var(--ink); stroke-width: 2.5; }
+.sc-out { fill: color-mix(in srgb, var(--c1) 6%, var(--surface)); stroke: var(--line); stroke-width: 1.5; }
+.sc-wall { fill: color-mix(in srgb, var(--c2) 28%, var(--surface)); stroke: var(--ink); stroke-width: 2.5; }
+.sc-nuc { fill: color-mix(in srgb, var(--c6) 22%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.sc-nucleolus { fill: color-mix(in srgb, var(--c6) 60%, var(--surface)); stroke: none; }
+.sc-mito { fill: color-mix(in srgb, var(--c3) 35%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-cristae { fill: none; stroke: color-mix(in srgb, var(--c3) 80%, var(--ink)); stroke-width: 1.4; }
+.sc-chloro, .sc-guard { fill: color-mix(in srgb, var(--c2) 50%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-guard { fill: color-mix(in srgb, var(--c2) 30%, var(--surface)); stroke-width: 2.2; }
+.sc-thyl { fill: none; stroke: color-mix(in srgb, var(--c2) 70%, var(--ink)); stroke-width: 2; }
+.sc-vac { fill: color-mix(in srgb, var(--c1) 18%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-er, .sc-golgi { fill: none; stroke: color-mix(in srgb, var(--c4) 75%, var(--ink)); stroke-width: 2.2; stroke-linecap: round; }
+.sc-lyso { fill: color-mix(in srgb, var(--c4) 35%, var(--surface)); stroke: var(--ink); stroke-width: 1.4; }
+.sc-ribo { fill: var(--ink); }
+.sc-dna { fill: none; stroke: color-mix(in srgb, var(--c6) 80%, var(--ink)); stroke-width: 2.2; stroke-linecap: round; }
+.sc-capsid { fill: color-mix(in srgb, var(--c3) 25%, var(--surface)); stroke: var(--ink); stroke-width: 2.2; }
+.sc-chrom { fill: none; stroke: color-mix(in srgb, var(--c4) 85%, var(--ink)); stroke-width: 5; stroke-linecap: round; }
+.sc-spindle { stroke: color-mix(in srgb, var(--ink) 35%, var(--surface)); stroke-width: 1.4; }
+.sc-head { fill: color-mix(in srgb, var(--c3) 45%, var(--surface)); stroke: var(--ink); stroke-width: 1; }
+.sc-dot { fill: color-mix(in srgb, var(--c1) 75%, var(--surface)); }
+.sc-water { fill: color-mix(in srgb, var(--c5) 70%, var(--surface)); }
+.sc-solute { fill: color-mix(in srgb, var(--gold) 70%, var(--surface)); stroke: var(--ink); stroke-width: 1.2; }
+.sc-tag { fill: color-mix(in srgb, var(--surface) 80%, transparent); stroke: none; }
+.sc-arrow { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.sc-lead { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+.sc-mark { fill: none; stroke: var(--bad); stroke-width: 2.5; }
+.sc-mark-t { fill: var(--bad); }
+.sc-box { fill: color-mix(in srgb, var(--c, var(--reading)) 14%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.sc-ask { fill: var(--surface); stroke: var(--bad); stroke-width: 2.5; stroke-dasharray: 7 5; }
+.sc-nest { fill: color-mix(in srgb, var(--c5) var(--k, 10%), var(--surface)); stroke: var(--ink); stroke-width: 2; }
 
 /* algebra keypad: letters in math italics, so the variable x never looks like the times key × */
 .kp-key .kv { font-family: KaTeX_Math, 'Times New Roman', serif; font-style: italic; font-weight: 600; font-size: 1.3em; }

@@ -753,7 +753,150 @@ const Fig = (() => {
     return svg(152, 152, `<polygon points="${pts.join(' ')}" class="fg-fill"/>`, `a regular polygon with ${n} sides`);
   }
 
-  return { regular, balance, pyramid, beads, cubeStack, gridPath, calendar, dice, choices, blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
+  // ===== Science pictures (Science Quest 8) =====
+  const f1 = (v) => +v.toFixed(1);
+  const arrowHead = (x1, y1, x2, y2, cls = 'sc-ink', s = 9) => { // a filled arrowhead at (x2, y2), pointing from (x1, y1)
+    const a = Math.atan2(y2 - y1, x2 - x1), p = (t) => `${f1(x2 - s * Math.cos(a + t))},${f1(y2 - s * Math.sin(a + t))}`;
+    return `<polygon points="${f1(x2)},${f1(y2)} ${p(0.45)} ${p(-0.45)}" class="${cls}"/>`;
+  };
+  const arrow = (x1, y1, x2, y2, cls = 'sc-arrow') => `<path d="M${f1(x1)} ${f1(y1)} L${f1(x2)} ${f1(y2)}" class="${cls}"/>${arrowHead(x1, y1, x2, y2, cls === 'sc-mark' ? 'sc-mark-t' : 'sc-ink')}`;
+  // words wrapped onto lines of at most n characters
+  const wrapWords = (t, n) => String(t).split(' ').reduce((L, w) => { const last = L[L.length - 1]; if (last && (last + ' ' + w).length <= n) L[L.length - 1] = last + ' ' + w; else L.push(w); return L; }, []);
+  const textLines = (lines, x, y, fs, cls = 'fg-text', anchor = 'middle') => `<text x="${f1(x)}" y="${f1(y)}" class="${cls}" font-size="${fs}" text-anchor="${anchor}">${lines.map((l, i) => (i ? `<tspan x="${f1(x)}" dy="${fs + 3}">${l}</tspan>` : l)).join('')}</text>`;
+  const rng = (seed) => () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const mito = (x, y, r = 0, s = 1) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><ellipse rx="22" ry="11" class="sc-mito"/><path d="M-15 0 l4 -6 l4 12 l4 -12 l4 12 l4 -12 l4 12 l3 -6" class="sc-cristae"/></g>`;
+  const chloro = (x, y, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r})"><ellipse rx="20" ry="11" class="sc-chloro"/><path d="M-11 -4 v8 M-4 -5 v10 M3 -5 v10 M10 -4 v8" class="sc-thyl"/></g>`;
+  const golgi = (x, y) => [0, 1, 2, 3].map((i) => `<path d="M${x - 18 + i * 2} ${y + i * 6} q${18 - i * 2} -9 ${36 - i * 4} 0" class="sc-golgi"/>`).join('');
+  const ribos = (pts) => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" class="sc-ribo"/>`).join('');
+  // Each cell: the drawing, and where each part is (the point an arrow touches).
+  const CELLS = {
+    animal: () => ({ name: 'An animal cell', W: 260, H: 220, body: `<ellipse cx="130" cy="110" rx="118" ry="92" class="sc-cyto"/>`
+      + `<path d="M58 80 q-12 20 0 40 q12 20 0 40 M68 72 q-12 24 0 48 q12 24 0 46" class="sc-er"/>${ribos([[52, 92], [62, 112], [52, 132], [64, 150], [74, 84], [74, 136]])}`
+      + `<circle cx="125" cy="105" r="33" class="sc-nuc"/><circle cx="131" cy="99" r="10" class="sc-nucleolus"/>`
+      + mito(196, 148, -20) + mito(92, 46, 25) + golgi(190, 66)
+      + `<circle cx="88" cy="172" r="9" class="sc-lyso"/><circle cx="162" cy="176" r="11" class="sc-vac"/>${ribos([[215, 100], [150, 40], [110, 160], [230, 130]])}`,
+      parts: { 'cell membrane': [244, 92], cytoplasm: [222, 112], nucleus: [146, 82], nucleolus: [131, 99], mitochondrion: [208, 144], 'endoplasmic reticulum': [56, 120], 'Golgi apparatus': [200, 66], lysosome: [94, 176], vacuole: [170, 180], ribosome: [215, 100] } }),
+    plant: () => ({ name: 'A plant cell', W: 260, H: 220, body: `<rect x="8" y="8" width="244" height="204" rx="14" class="sc-wall"/><rect x="17" y="17" width="226" height="186" rx="9" class="sc-cyto"/>`
+      + `<rect x="92" y="48" width="124" height="118" rx="38" class="sc-vac"/>`
+      + `<circle cx="54" cy="58" r="25" class="sc-nuc"/><circle cx="59" cy="53" r="8" class="sc-nucleolus"/>`
+      + chloro(48, 120, 70) + chloro(120, 186, 0) + chloro(204, 186, -10) + chloro(228, 112, 90) + chloro(140, 30, 0)
+      + mito(52, 172, -30, 0.8) + `<path d="M84 64 q10 14 0 28" class="sc-er"/>${ribos([[90, 70], [92, 84], [32, 92], [225, 34]])}`,
+      parts: { 'cell wall': [250, 60], 'cell membrane': [240, 150], cytoplasm: [76, 140], nucleus: [42, 70], nucleolus: [59, 53], vacuole: [176, 108], chloroplast: [218, 186], mitochondrion: [60, 168], 'endoplasmic reticulum': [86, 76], ribosome: [32, 92] } }),
+    bacterium: () => ({ name: 'A bacterium', W: 260, H: 180, body: `<path d="M228 92 q12 -18 22 0 q10 18 8 26" class="sc-dna" style="stroke:var(--ink)"/>`
+      + `<rect x="22" y="44" width="210" height="96" rx="48" class="sc-wall"/><rect x="31" y="53" width="192" height="78" rx="39" class="sc-cyto"/>`
+      + `<path d="M28 60 l-12 -10 M24 120 l-13 9 M120 44 l-2 -14 M160 140 l3 14" class="sc-arrow" style="stroke-width:2"/>`
+      + `<path d="M85 92 q10 -22 24 -6 q14 18 26 -4 q12 -20 26 0 q10 14 -6 22 q-20 8 -34 -2 q-12 -8 -26 4 q-14 8 -10 -14" class="sc-dna"/>`
+      + ribos([[60, 80], [70, 108], [190, 76], [196, 112], [150, 118], [120, 70], [56, 96]]),
+      parts: { 'cell wall': [130, 46], 'cell membrane': [200, 128], cytoplasm: [180, 96], DNA: [138, 86], ribosome: [196, 112], flagellum: [252, 112] } }),
+    virus: () => ({ name: 'A virus', W: 200, H: 220, body: `<polygon points="100,12 140,34 140,78 100,100 60,78 60,34" class="sc-capsid"/><path d="M84 40 q16 -10 22 6 q6 16 -12 18 q-14 2 -6 14 q8 10 20 2" class="sc-dna"/>`
+      + `<rect x="91" y="100" width="18" height="64" rx="3" class="sc-capsid"/><path d="M92 164 l-34 28 l-6 20 M108 164 l34 28 l6 20 M95 166 l-14 34 M105 166 l14 34" class="sc-arrow" style="stroke-width:2.5"/>`,
+      parts: { 'protein coat': [136, 40], 'genetic material': [100, 54], 'tail fibers': [146, 206] } }),
+  };
+  // A cell picture. opt.ask: one part gets an arrow and "?"; opt.label: name one part; opt.labels: name several (or true = all).
+  function cell(kind, opt = {}) {
+    const C = CELLS[kind](), names = opt.labels === true ? Object.keys(C.parts) : opt.labels || (opt.label ? [opt.label] : opt.ask ? [opt.ask] : []);
+    names.forEach((n) => { if (!C.parts[n]) throw new Error(`Fig.cell: no part "${n}" in ${kind}`); });
+    if (!names.length) return svg(C.W, C.H, C.body, C.name);
+    const LX = C.W + 30, slots = [...names].sort((a, b) => C.parts[a][1] - C.parts[b][1]);
+    const gap = slots.length > 1 ? (C.H - 28) / (slots.length - 1) : 0, lw = opt.ask ? 30 : Math.max(...names.map((n) => n.length)) * 9.2 + 10;
+    let body = C.body;
+    slots.forEach((n, i) => {
+      const [ax, ay] = C.parts[n], ly = names.length === 1 ? Math.min(Math.max(ay, 16), C.H - 10) : 14 + i * gap;
+      body += `<path d="M${LX - 4} ${f1(ly)} L${ax} ${ay}" class="${opt.ask ? 'sc-mark' : 'sc-lead'}"/><circle cx="${ax}" cy="${ay}" r="3.5" class="${opt.ask ? 'sc-mark-t' : 'sc-ink'}"/>`
+        + (opt.ask ? `<circle cx="${LX + 12}" cy="${f1(ly)}" r="14" class="sc-mark" style="fill:var(--surface)"/><text x="${LX + 12}" y="${f1(ly + 7)}" class="sc-mark-t" font-size="20" font-weight="700" text-anchor="middle">?</text>`
+          : `<text x="${LX}" y="${f1(ly + 5)}" class="fg-text" font-size="15">${n}</text>`);
+    });
+    return svg(LX + lw, C.H, body, opt.ask ? `${C.name} with an arrow pointing to one part, marked with a question mark` : `${C.name} with labels: ${names.join(', ')}`);
+  }
+  // Particles on both sides of a cell membrane. opt: water (dots are water), move 'in' | 'out' | '?', wall (plant cell wall), solute (big dots that cannot cross)
+  function membrane(inside, outside, opt = {}) {
+    const R = rng(inside * 37 + outside * 11 + 5), W = 300, H = 170, dots = (n, x0, x1, cls, r) => [...Array(n)].map(() => `<circle cx="${f1(x0 + R() * (x1 - x0))}" cy="${f1(22 + R() * 104)}" r="${r}" class="${cls}"/>`).join('');
+    let body = `<rect x="4" y="12" width="${W - 8}" height="124" rx="10" class="sc-out"/><rect x="4" y="12" width="146" height="124" rx="10" class="sc-cyto"/>`;
+    if (opt.wall) body += `<rect x="150" y="12" width="9" height="124" class="sc-wall"/>`;
+    body += [...Array(12)].map((_, i) => `<circle cx="146" cy="${18 + i * 10.5}" r="3.6" class="sc-head"/>`).join('');
+    const cls = opt.water ? 'sc-water' : 'sc-dot';
+    body += dots(inside, 14, 132, cls, 5) + dots(outside, 172, 286, cls, 5);
+    if (opt.solute) body += dots(opt.solute[0], 14, 132, 'sc-solute', 8) + dots(opt.solute[1], 172, 286, 'sc-solute', 8);
+    if (opt.move === 'in') body += `<rect x="104" y="60" width="96" height="28" rx="14" class="sc-tag"/>` + arrow(194, 74, 108, 74);
+    if (opt.move === 'out') body += `<rect x="104" y="60" width="96" height="28" rx="14" class="sc-tag"/>` + arrow(110, 74, 196, 74);
+    if (opt.move === '?') body += `<circle cx="150" cy="74" r="16" class="sc-mark" style="fill:var(--surface)"/><text x="150" y="81" class="sc-mark-t" font-size="20" font-weight="700" text-anchor="middle">?</text>`;
+    body += `<text x="77" y="156" class="fg-text" font-size="14" text-anchor="middle">Inside the cell</text><text x="226" y="156" class="fg-text" font-size="14" text-anchor="middle">Outside</text>`;
+    const what = opt.water ? 'water molecules' : 'particles', mv = { in: ', with an arrow into the cell', out: ', with an arrow out of the cell', '?': ', with a question mark on the membrane' }[opt.move] || '';
+    return svg(W, H + 4, body, `A cell membrane with ${inside} ${what} inside and ${outside} outside${mv}`);
+  }
+  // A stage of the cell cycle. name: false hides the stage name (for "which stage is this?").
+  function mitosis(stage, name = true) {
+    const W = 230, H = name ? 186 : 166, X = (x, y, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-7 -11 L7 11 M7 -11 L-7 11" class="sc-chrom"/></g>`;
+    const one = (x, y, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-4 -7 L0 7 L4 -7" class="sc-chrom" style="stroke-width:4"/></g>`;
+    const chromatin = (x, y) => `<path d="M${x - 16} ${y} q6 -14 12 0 t12 0 M${x - 12} ${y + 9} q5 -10 10 0 t10 0 M${x - 10} ${y - 10} q5 -8 10 0 t10 0" class="sc-dna"/>`;
+    const spindle = (ys, xl, xr, xm, xm2 = xm) => ys.map((y) => `<path d="M${xl} 80 L${xm} ${y} M${xr} 80 L${xm2} ${y}" class="sc-spindle"/>`).join('') + `<circle cx="${xl}" cy="80" r="4" class="sc-ink"/><circle cx="${xr}" cy="80" r="4" class="sc-ink"/>`;
+    const S = {
+      interphase: `<circle cx="115" cy="80" r="72" class="sc-cyto"/><circle cx="115" cy="80" r="34" class="sc-nuc"/>${chromatin(115, 80)}`,
+      prophase: `<circle cx="115" cy="80" r="72" class="sc-cyto"/><circle cx="115" cy="80" r="38" class="sc-nuc" style="stroke-dasharray:7 6"/>${X(100, 66, 20)}${X(130, 70, -30)}${X(104, 96, -10)}${X(132, 98, 40)}<circle cx="60" cy="80" r="4" class="sc-ink"/><circle cx="170" cy="80" r="4" class="sc-ink"/>`,
+      metaphase: `<circle cx="115" cy="80" r="72" class="sc-cyto"/>${spindle([44, 68, 92, 116], 50, 180, 108, 122)}${X(115, 44)}${X(115, 68)}${X(115, 92)}${X(115, 116)}<path d="M115 20 v120" class="sc-lead" style="stroke-dasharray:4 5"/>`,
+      anaphase: `<ellipse cx="115" cy="80" rx="86" ry="66" class="sc-cyto"/>${spindle([50, 70, 90, 110], 40, 190, 76, 154)}${[50, 70, 90, 110].map((y) => one(80, y, 90) + one(150, y, -90)).join('')}`,
+      telophase: `<path d="M115 22 C40 -6 2 46 18 92 C34 150 100 156 115 134 C130 156 196 150 212 92 C228 46 190 -6 115 22 Z" class="sc-cyto"/><circle cx="66" cy="80" r="30" class="sc-nuc" style="stroke-dasharray:6 5"/>${chromatin(66, 80)}<circle cx="164" cy="80" r="30" class="sc-nuc" style="stroke-dasharray:6 5"/>${chromatin(164, 80)}`,
+      cytokinesis: `<circle cx="60" cy="80" r="52" class="sc-cyto"/><circle cx="170" cy="80" r="52" class="sc-cyto"/><circle cx="60" cy="80" r="22" class="sc-nuc"/>${chromatin(60, 80)}<circle cx="170" cy="80" r="22" class="sc-nuc"/>${chromatin(170, 80)}`,
+    };
+    if (!S[stage]) throw new Error(`Fig.mitosis: no stage "${stage}"`);
+    const cap = name ? `<text x="${W / 2}" y="178" class="fg-text" font-size="16" text-anchor="middle">${stage[0].toUpperCase() + stage.slice(1)}</text>` : '';
+    return svg(W, H, S[stage] + cap, name ? `A cell in ${stage}` : 'A cell at one stage of the cell cycle');
+  }
+  // Steps around a circle with arrows (a cycle). '?' as a step draws a dashed box with a question mark.
+  function cycle(steps, center = '') {
+    const n = steps.length, W = 380, H = 310, cx = W / 2, cy = H / 2, R = 112, bw = 128, bh = 46;
+    const pos = steps.map((_, i) => { const t = -Math.PI / 2 + (2 * Math.PI * i) / n; return [cx + R * 1.12 * Math.cos(t), cy + R * Math.sin(t)]; });
+    let body = center ? textLines(wrapWords(center, 14), cx, cy - 4, 15) : '';
+    pos.forEach(([x, y], i) => { // arrow from step i to step i+1 along the circle, between the boxes
+      const t0 = -Math.PI / 2 + (2 * Math.PI * (i + 0.32)) / n, t1 = -Math.PI / 2 + (2 * Math.PI * (i + 0.68)) / n, p = (t) => [cx + R * 1.12 * Math.cos(t), cy + R * Math.sin(t)];
+      const [x0, y0] = p(t0), [x1, y1] = p(t1), [xm, ym] = p((t0 + t1) / 2);
+      body += `<path d="M${f1(x0)} ${f1(y0)} Q${f1(xm + (xm - cx) * 0.12)} ${f1(ym + (ym - cy) * 0.12)} ${f1(x1)} ${f1(y1)}" class="sc-arrow"/>` + arrowHead(xm + (xm - cx) * 0.06, ym + (ym - cy) * 0.06, x1, y1);
+    });
+    steps.forEach((s, i) => { const [x, y] = pos[i], L = wrapWords(s, 16), h = Math.max(bh, L.length * 18 + 12);
+      body += `<rect x="${f1(x - bw / 2)}" y="${f1(y - h / 2)}" width="${bw}" height="${h}" rx="12" class="${s === '?' ? 'sc-ask' : 'sc-box'}"/>` + textLines(s === '?' ? ['?'] : L, x, y - (L.length - 1) * 9 + 5, s === '?' ? 22 : 14); });
+    return svg(W, H, body, `A cycle: ${steps.map((s) => (s === '?' ? 'a missing step' : s)).join(', then ')}, and back to the start`);
+  }
+  // Boxes joined by arrows: across for up to 3 steps, otherwise down the page. '?' marks a missing step.
+  function flow(steps, title = '') {
+    const across = steps.length <= 3, bw = across ? 150 : 260, gap = 40, top = title ? 28 : 6;
+    const L = steps.map((s) => (s === '?' ? ['?'] : wrapWords(s, across ? 17 : 32))), bh = Math.max(46, ...L.map((l) => l.length * 18 + 14));
+    const W = across ? steps.length * bw + (steps.length - 1) * gap + 8 : bw + 8, H = top + (across ? bh : steps.length * bh + (steps.length - 1) * 30) + 6;
+    let body = title ? `<text x="${W / 2}" y="18" class="fg-text" font-size="15" text-anchor="middle">${title}</text>` : '';
+    steps.forEach((s, i) => {
+      const x = across ? 4 + i * (bw + gap) : 4, y = across ? top : top + i * (bh + 30);
+      body += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="12" class="${s === '?' ? 'sc-ask' : 'sc-box'}"/>` + textLines(L[i], x + bw / 2, y + bh / 2 - (L[i].length - 1) * 9 + 5, s === '?' ? 22 : 14);
+      if (i < steps.length - 1) body += across ? arrow(x + bw + 4, y + bh / 2, x + bw + gap - 4, y + bh / 2) : arrow(x + bw / 2, y + bh + 4, x + bw / 2, y + bh + 26);
+    });
+    return svg(W, H, body, (title ? title + ': ' : '') + steps.map((s) => (s === '?' ? 'a missing step' : s)).join(', then '));
+  }
+  // A cladogram: taxa along the top; traits[i] is gained after taxa[i] branches off (so taxa[i+1…] have it).
+  function tree(taxa, traits) {
+    const n = taxa.length, step = 86, W = 60 + (n - 1) * step + 70, H = 236, root = [36, H - 24], last = [40 + (n - 1) * step, 40];
+    const P = (t) => [root[0] + t * (last[0] - root[0]), root[1] + t * (last[1] - root[1])], tb = (i) => (i + 1) / n;
+    let body = `<path d="M${root[0]} ${root[1]} L${last[0]} ${last[1]}" class="sc-arrow"/>`;
+    taxa.forEach((t, i) => { const x = 40 + i * step;
+      if (i < n - 1) { const [bx, by] = P(tb(i)); body += `<path d="M${f1(bx)} ${f1(by)} L${x} 40" class="sc-arrow"/>`; }
+      body += textLines(wrapWords(t, 11), x, 28 - (wrapWords(t, 11).length - 1) * 16, 14); });
+    (traits || []).forEach((tr, i) => { const [x, y] = P((tb(i) + tb(i + 1)) / 2);
+      body += `<path d="M${f1(x - 7)} ${f1(y - 7)} L${f1(x + 7)} ${f1(y + 7)}" class="sc-mark" style="stroke-width:4"/>` + textLines(wrapWords(tr, 14), x + 14, y + 16, 13, 'fg-text', 'start'); });
+    return svg(W, H, body, `A branching tree of ${taxa.join(', ')}` + (traits && traits.length ? `; traits along the trunk: ${traits.join(', ')}` : ''));
+  }
+  // Groups inside groups: labels[0] is the biggest box.
+  function nest(labels) {
+    const n = labels.length, W = 340, H = 44 + n * 36;
+    const body = labels.map((l, i) => `<rect x="${4 + i * 14}" y="${4 + i * 34}" width="${W - 8 - i * 28}" height="${H - 8 - i * 40}" rx="12" class="sc-nest" style="--k:${8 + i * 7}%"/><text x="${16 + i * 14}" y="${26 + i * 34}" class="fg-text" font-size="15">${l === '?' ? '?' : l}</text>`).join('');
+    return svg(W, H, body, `Nested groups, from biggest to smallest: ${labels.map((l) => (l === '?' ? 'a missing group' : l)).join(', ')}`);
+  }
+  // A stoma on a leaf: two guard cells, open or closed.
+  function stoma(open) {
+    const g = open ? 16 : 3;
+    const body = `<rect x="4" y="4" width="212" height="132" rx="12" class="sc-out"/><path d="M${110 - g} 22 C${50 - g} 22 ${50 - g} 118 ${110 - g} 118 C${92 - g} 96 ${92 - g} 44 ${110 - g} 22 Z" class="sc-guard"/><path d="M${110 + g} 22 C${170 + g} 22 ${170 + g} 118 ${110 + g} 118 C${128 + g} 96 ${128 + g} 44 ${110 + g} 22 Z" class="sc-guard"/>`
+      + [[80 - g, 52], [76 - g, 74], [82 - g, 94], [140 + g, 52], [144 + g, 74], [138 + g, 94]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="6" ry="3.5" class="sc-chloro"/>`).join('')
+      + `<text x="110" y="156" class="fg-text" font-size="15" text-anchor="middle">${open ? 'Open stoma' : 'Closed stoma'}</text>`;
+    return svg(220, 164, body, `${open ? 'An open' : 'A closed'} stoma between two guard cells`);
+  }
+
+  return { cell, membrane, mitosis, cycle, flow, tree, nest, stoma, regular, balance, pyramid, beads, cubeStack, gridPath, calendar, dice, choices, blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
     tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
     table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig, graph, ineqLine, boxPlot };
 })();
