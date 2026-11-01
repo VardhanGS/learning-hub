@@ -626,6 +626,59 @@ Design (follow it on the Mac):
   row, rules/ALL_APPS. NOTE: tools/build.py builds every folder in apps/, so a deploy publishes /science8/ even while
   unfinished (it is not linked from the hub until the hub row is added).
 
+### Science Quest 8: Topics 1–2 reworked on the Mac (2026-10-31, branch `science8-t12`, NOT published)
+- Why: the user asked me to check the cloud work, then to focus on science. The review found:
+  - each level had exactly 8 questions, so every round was the same 8;
+  - 176 of 240 items had no explanation;
+  - the answer-length check failed (26%);
+  - each lesson showed the same emoji on every question;
+  - two slips: a virus-size rule that contradicted its own example, and a "sealed" jar with a "loose lid".
+- User decisions:
+  - Fix Topics 1–2 and then let the user review; Topics 3–8 wait.
+  - **40 questions per level.**
+  - Videos too.
+  - Mid-way the user said **"stop at lesson 3"** of Topic 2. Topic 2 now has Structure and function of cells,
+    Cell structures, and Obtaining and removing materials.
+  - `data/t2-division.js` (Cell division, 120 items, lint-clean) was already written. It is kept in the repo but NOT
+    loaded in config.js; ask the user before adding it.
+  - The cloud's Photosynthesis and Cellular respiration lessons (8 items per level) were dropped from Topic 2; they
+    are in git history (3590ca9:apps/science8/data/t2.js).
+- Content:
+  - One file per lesson: `t1.js` / `t2.js` declare the topic (`S8.topic`); `t1-living.js`, `t1-classify.js`,
+    `t1-microbes.js`, `t1-plants.js`, `t2-cells.js`, `t2-organelles.js`, `t2-transport.js` add lessons (`S8.add`).
+  - 7 lessons × 3 levels × 40 = **840 original items**, each with an explanation.
+  - Skill ids are unchanged (living, classify, microbes, plantsanimals, cells, organelles, transport).
+- Item language (sci-common.js):
+  - An item missing its explanation throws, so the app and the validator fail loudly.
+  - A line may end with ` @ Fig.…(…)` for its own picture.
+  - The hint is now the level's rule.
+- New science pictures in core/engine/fig.js (additions only), with CSS `.sc-*` in core/styles.css:
+  - `Fig.cell('animal'|'plant'|'bacterium'|'virus', {ask|label|labels})`
+  - `Fig.membrane(inside, outside, {water, move, wall, solute})`
+  - `Fig.mitosis(stage, showName)`
+  - `Fig.cycle(steps, center)`
+  - `Fig.flow(steps)`
+  - `Fig.tree(taxa, traits)` (cladogram)
+  - `Fig.nest(labels)`
+  - `Fig.stoma(open)`
+- Videos: `apps/science8/video_scripts.py` has 9 videos (rendered 2026-10-31, 34–77 s each; frames checked): launch-t1, living-things, classification, microbes,
+  plants-animals, launch-t2, cell-theory, cell-parts, cell-transport. check_videos: OK.
+- Tests run (2026-10-31):
+  - Validate: science8 passes at the default sample and at 40,000 items, with answer-length at 4%. All 14 other apps
+    re-validated after the fig.js change and pass.
+  - Browser play-through of science8 at 375px: 27 levels, 324 rounds, 2,592 questions, 0 failures.
+  - Screenshots: a labelled-cell question (light) and a membrane question (dark) looked right.
+  - A lint (scratch script) checked counts, duplicates, explanations, and figures.
+- NOT tested:
+  - a real iPad or iPhone;
+  - printing a science worksheet;
+  - Firestore sync (science8 has no appId; it is not in firestore.rules or cloud.js ALL_APPS);
+  - nobody has listened to the voice or watched the videos end to end.
+- Voice: `tools/voice_all.sh science8 4 2000` recorded 4,708 clips in 25 bundles; voicecheck shows every line is recorded
+  (412k spoken lines checked).
+- Still not done: hub row, Firebase app, rules, and Topics 3–8. Do not deploy until the user has reviewed:
+  tools/deploy.sh would publish /science8/ unlinked.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude

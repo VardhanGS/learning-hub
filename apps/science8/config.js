@@ -22,6 +22,6 @@ window.APP = {
   voice: 'g8',
   speech: { frac: 'over', split: true },
   features: { studio: false, katex: false },
-  data: ['sci-common.js', 't1.js', 't2.js', 'topics.js'],
+  data: ['sci-common.js', 't1.js', 't1-living.js', 't1-classify.js', 't1-microbes.js', 't1-plants.js', 't2.js', 't2-cells.js', 't2-organelles.js', 't2-transport.js', 'topics.js'],
   about: 'Science Quest 8 covers Grade 8 life science (New Jersey Student Learning Standards for Science, 2020): living things, cells, body systems, reproduction, ecosystems, heredity, and evolution. Each lesson has a Biology preview as its Challenge level. The code on each level is the standard it practices.',
 };
