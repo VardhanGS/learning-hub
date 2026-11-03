@@ -684,7 +684,7 @@ Design (follow it on the Mac):
   - The Cell division lesson (written, not loaded).
   - Topics 3–8: see below.
 
-### Science Quest 8: Topics 3–8 written (2026-11-02, on the user's "complete rest all topics in science"; committed locally on branch `science8-t3-8`, NOT pushed or published)
+### Science Quest 8: Topics 3–8 written (2026-11-02, on the user's "complete rest all topics in science"; published 2026-11-03 on the user's "publish")
 - Content: 26 new lessons × 3 levels × about 40 items = 3,111 original items, each with an explanation. One file per lesson
   (`data/t3-*.js` … `data/t8-*.js`, listed in config.js); `t3.js` … `t8.js` declare the topics, each with its Topic review from
   topics.js. Skill ids: bodyorg interact supply manage control · reppatterns plantrepro animalrepro growth · environment
@@ -712,8 +712,9 @@ Design (follow it on the Mac):
   line recorded (1.9M spoken lines checked). Three bundles were fetched and decoded in the browser. A bundle downloads only when its skill is used.
 - Videos: `video_scripts.py` has 41 videos (32 new, one launch per topic and one per lesson, 31–77 s each), check_videos OK, rendered with
   `tools/make_videos.py science8 <ids>`. Frames from 12 of the new videos were looked at; one mp4 and the video list were checked in the app.
-- Publishing size: dist/ is now about 992 MiB (science8 is 277 MB of that, 216 MB voice). That is right at the GitHub Pages 1 GB published-site limit, so
-  decide how to handle it before the next `tools/deploy.sh` (e.g. a shorter or smaller voice encode, or fewer recorded answer choices).
+- Publishing size: dist/ reached 1.040 GB, over the GitHub Pages 1 GB published-site limit, so science8's voice was repacked at 24k instead of 32k
+  (`BITRATE` in `tools/make_voice.py`; 226 MB → 164 MB, same clips and clip table). dist/ is now 0.977 GB, about 23 MB under the limit: the next
+  app or large voice or video addition needs more room first. Nobody has listened to the 24k voice.
 - NOT tested: a real iPad or iPhone; printing; cloud saves (needs the rules published); nobody has listened to the new voice or watched
   the new videos end to end; no student has tried it.
 - Decision for the user: Topic 2 still stops at 3 lessons. Its Cell division (written) and Photosynthesis and Cellular respiration

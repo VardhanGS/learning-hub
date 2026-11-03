@@ -26,6 +26,7 @@ from sweet_voice import synth, SR, VOICE_ID
 
 CACHE = os.path.join(HERE, '.voice-cache')
 PAD = 0.14  # seconds of silence around each clip inside a bundle
+BITRATE = {'science8': '24k'}  # default 32k; science8's voice is large enough to matter for the GitHub Pages 1 GB limit
 
 def trim(a, thr=0.004):
     idx = np.where(np.abs(a) > thr)[0]
@@ -80,7 +81,7 @@ def main():
         audio = np.concatenate(parts)
         wav = os.path.join(CACHE, f'_{b}.wav')
         sf.write(wav, audio, SR, subtype='PCM_16')
-        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', wav, '-ac', '1', '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', '24000', '-c:a', 'aac', '-b:a', '32k', '-movflags', '+faststart', os.path.join(OUT, f'{b}.mp4')], check=True)
+        subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', wav, '-ac', '1', '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11', '-ar', '24000', '-c:a', 'aac', '-b:a', BITRATE.get(app, '32k'), '-movflags', '+faststart', os.path.join(OUT, f'{b}.mp4')], check=True)
         os.remove(wav)
         print(f'  bundle {b}: {len(audio) / SR / 60:.1f} min', flush=True)
     for old in os.listdir(OUT):
