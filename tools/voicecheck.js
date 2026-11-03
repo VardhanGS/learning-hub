@@ -49,6 +49,12 @@ for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
   }
 });
 
+if (ctx.APP.features && ctx.APP.features.code) {
+  const { CODE_WORLDS, CODE_LINES } = vm.runInContext('({ CODE_WORLDS, CODE_LINES })', ctx);
+  Object.values(CODE_LINES).forEach((t) => check(t, 'code lines'));
+  CODE_WORLDS.forEach((w) => { check(w.intro, w.id); w.levels.forEach((l) => { levels++; [l.say, l.hint, l.prompt].forEach((t) => t && check(t, l.id)); }); });
+}
+
 console.log(`${appId}: ${Voice.clipCount()} clips; checked ${checked} spoken lines across ${levels} levels (${RUNS} rounds each)`);
 if (!missing.size) { console.log('✓ every line has a recorded voice'); process.exit(0); }
 console.log(`✗ ${missing.size} distinct line(s) would use the device voice:`);

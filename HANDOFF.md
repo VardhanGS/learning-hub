@@ -786,6 +786,16 @@ Design (follow it on the Mac):
      modules ≈22–27%; browser: play-through 1,144 q / 72 levels, full test through the real module screens (Back, mark,
      menu, submit, timer expiry), drill, review, reference sheet, light/dark at 375px.
 
+## Code Quest (block coding, Grades 2 and 4)
+
+- App `apps/codequest` ("Code Quest", 🧩, voice g2 with `voiceWords` so the narrator never says "math star"; `speech.math` false, so no number clips). Tiles in the 2nd and 4th grade rows. Original name, characters, and levels; no public sharing or chat.
+- Editor: Blockly 13.4.0 vendored at `core/code/vendor/blockly` (zelos renderer, no eval). `core/modes/code.js` keeps the editor in `#cq-editor` OUTSIDE `#app`, because shell re-renders would destroy the workspace.
+- `core/code/compile.js` + `runtime.js` need no DOM: workspace JSON → generator threads at 30 fps with a seeded RNG. `stage.js` draws; `blocks.js` defines labels (g2 pictures, g4 words). Blockly menu options are [label, value], and a wrong value silently becomes the first choice; a Phase 1 bug broke keys and notes this way, so tests now check every menu.
+- Levels: `apps/codequest/data/worlds.js` (6 worlds, 50 levels, short program form), judged by `core/code/levels.js`. Goal clips run the level's own solution. Stars: 1 solved, +1 within the block limit (solution's size), +1 no hints. Grade 4 has Worlds 1–2 open from the start. Level drafts stay on the device (`cqdraft_<id>`); stars and projects sync through `P.code` (Cloud.merge: newest project wins, deleted stay deleted, stars never drop).
+- Code Detective: `apps/codequest/data/subjects.js`, one subject per track on the quiz engine, standards CSTA 2017. Pictures are drawn there; labels must match blocks.js (tested).
+- Tests: `node tools/codetest.js` (runtime, sync, every level's solution/empty/start, planted bugs, every menu, Code Detective answers re-run on the real runtime), `node tools/validate.js codequest`, voice `tools/voice_all.sh codequest 4 2000` + `node tools/voicecheck.js codequest`.
+- Needs the user: publish the updated `firestore.rules` (adds `codequest`) in the Firebase console, or Code Quest cloud saves are refused. The file also lacks `science8` although `core/cloud.js` lists it.
+
 ## How the code is organized (key facts)
 
 - `core/app.js` (screens, quiz engine incl. num/multi/line/shade/clock/coins/hot/pop, demos, test mode, classes,

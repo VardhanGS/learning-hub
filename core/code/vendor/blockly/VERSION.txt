@@ -1,0 +1,1 @@
+Blockly 13.4.0 (npm package "blockly"), Apache-2.0. See LICENSE. Unmodified: blockly.min.js and media/.

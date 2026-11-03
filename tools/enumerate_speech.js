@@ -46,8 +46,10 @@ function add(p, whole = false) {
 
 const fixed = ['Type a number', 'Use the number keys. For a fraction like 3/4, type 3, then /, then 4.', 'Almost! Simplify it.', 'That is equal to the answer. Write it in simplest form.', 'Not quite. Try again!', 'Here is the answer:'];
 [...Voice.PRAISE, ...Object.values(Voice.LINES), ...fixed].forEach((t) => add(t, true));
-for (let n = 0; n <= 1000; n++) addOne(String(n), 'num', String(n));
-for (let n = 2000; n <= 20000; n += 1000) addOne(String(n), 'num', String(n));
+if (Voice.MATH) {
+  for (let n = 0; n <= 1000; n++) addOne(String(n), 'num', String(n));
+  for (let n = 2000; n <= 20000; n += 1000) addOne(String(n), 'num', String(n));
+}
 // Words that join pieces: big numbers ("45 thousand 678"), remainders, and split decimals and fractions.
 ['thousand', 'million', 'remainder', 'point', 'and', 'over'].forEach((w) => add(w, true));
 
@@ -74,6 +76,18 @@ for (const s of SUBJECTS) for (const k of s.skills) k.levels.forEach((L, l) => {
   const whole = withNums.length <= WHOLE_LIMIT || stale >= 120 && withNums.length <= WHOLE_LIMIT * 2;
   for (const p of seen.values()) add(p, whole);
 });
+
+// Code Quest: every level's words, the world intros, and the fixed lines.
+if (ctx.window.APP.features && ctx.window.APP.features.code) {
+  const { CODE_WORLDS, CODE_LINES } = vm.runInContext('({ CODE_WORLDS, CODE_LINES })', ctx);
+  bundle = 'code-common';
+  Object.values(CODE_LINES).forEach((t) => add(t, true));
+  CODE_WORLDS.forEach((w) => {
+    bundle = w.id;
+    add(w.intro, true);
+    w.levels.forEach((l) => [l.say, l.hint, l.prompt].forEach((t) => t && add(t, true)));
+  });
+}
 
 const out = [...lines.values()];
 fs.writeFileSync(path.join(ROOT, 'apps', appId, '.speech-lines.json'), JSON.stringify(out));

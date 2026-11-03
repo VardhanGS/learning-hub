@@ -18,6 +18,9 @@ KATEX_FONTS = ('AMS-Regular Caligraphic-Bold Caligraphic-Regular Fraktur-Bold Fr
                'Script-Regular Size1-Regular Size2-Regular Size3-Regular Size4-Regular Typewriter-Regular').split()
 
 # Core scripts in load order. data/voice-clips.js and the app's data files are slotted in by build().
+# Code Quest's editor and stage (features.code). Blockly is vendored at a pinned version so the app works offline.
+BLOCKLY = 'core/code/vendor/blockly'
+CODE_JS = [f'{BLOCKLY}/blockly.min.js', 'core/code/compile.js', 'core/code/runtime.js', 'core/code/stage.js', 'core/code/blocks.js', 'core/code/levels.js']
 CORE_JS = ['core/sound.js', 'core/speech.js', 'VOICE_CLIPS', 'core/voice.js', 'core/cloud.js', 'core/U.js', 'core/engine/fig.js', 'core/engine/alg.js']
 
 
@@ -49,7 +52,9 @@ def build(app_id):
     os.makedirs(out)
 
     feats = cfg.get('features', {})
-    modes = [f'core/modes/{m}.js' for m in (['map-core', 'map'] if feats.get('map') else []) + (['fluency'] if feats.get('fluency') else []) + (['sat-core', 'sat'] if feats.get('sat') else []) + (['contest'] if feats.get('contest') else [])]
+    modes = [f'core/modes/{m}.js' for m in (['map-core', 'map'] if feats.get('map') else []) + (['fluency'] if feats.get('fluency') else []) + (['sat-core', 'sat'] if feats.get('sat') else []) + (['contest'] if feats.get('contest') else []) + (['code'] if feats.get('code') else [])]
+    if feats.get('code'):
+        modes = CODE_JS + modes
     # 'otherApp:file.js' borrows a content file from another app (copied into this app's data/ folder)
     data = [f"data/{f.split(':')[-1]}" for f in cfg.get('data', [])]
     if os.path.exists(os.path.join(src, 'data', 'videos.js')) or cfg.get('videosFrom'):
@@ -62,6 +67,12 @@ def build(app_id):
         if s.startswith('core/'):
             copy(os.path.join(ROOT, s), os.path.join(out, s))
     copy(os.path.join(CORE, 'styles.css'), os.path.join(out, 'core', 'styles.css'))
+    code_assets = []
+    if feats.get('code'):
+        copy(os.path.join(CORE, 'code', 'code.css'), os.path.join(out, 'core', 'code', 'code.css'))
+        copytree(os.path.join(ROOT, BLOCKLY, 'media'), os.path.join(out, BLOCKLY, 'media'))
+        copy(os.path.join(ROOT, BLOCKLY, 'LICENSE'), os.path.join(out, BLOCKLY, 'LICENSE'))
+        code_assets = ['./core/code/code.css'] + [f'./{BLOCKLY}/media/{n}' for n in sorted(os.listdir(os.path.join(ROOT, BLOCKLY, 'media')))]
     copytree(os.path.join(src, 'data'), os.path.join(out, 'data'))
     for f in cfg.get('data', []):
         if ':' in f:
@@ -107,6 +118,7 @@ def build(app_id):
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap">
   {f'<link rel="stylesheet" href="{KATEX_CDN}/katex.min.css">' if katex else ''}
   <link rel="stylesheet" href="core/styles.css">
+  {'<link rel="stylesheet" href="core/code/code.css">' if feats.get('code') else ''}
 </head>
 <body>
   <div id="app"></div>
@@ -125,7 +137,7 @@ def build(app_id):
         json.dump(manifest, f, indent=2)
 
     # service worker: precache the app shell (not the voice bundles or videos, which are cached as they are used)
-    assets = ['./', './index.html', './manifest.json', './core/styles.css'] + [f'./{s}' for s in scripts] + [f'./icons/{n}' for n, _ in icons]
+    assets = ['./', './index.html', './manifest.json', './core/styles.css'] + [f'./{s}' for s in scripts] + [f'./icons/{n}' for n, _ in icons] + code_assets
     if katex:
         assets += [f'{KATEX_CDN}/katex.min.js', f'{KATEX_CDN}/katex.min.css'] + [f'{KATEX_CDN}/fonts/KaTeX_{n}.woff2' for n in KATEX_FONTS]
     h = hashlib.sha256()
