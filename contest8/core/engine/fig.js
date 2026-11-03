@@ -895,8 +895,160 @@ const Fig = (() => {
       + `<text x="110" y="156" class="fg-text" font-size="15" text-anchor="middle">${open ? 'Open stoma' : 'Closed stoma'}</text>`;
     return svg(220, 164, body, `${open ? 'An open' : 'A closed'} stoma between two guard cells`);
   }
+  // A drawing with parts: opt.ask marks one part with "?", opt.label names one, opt.labels names several (true = all).
+  function partsFig(name, W, H, body, parts, opt = {}) {
+    const names = opt.labels === true ? Object.keys(parts) : opt.labels || (opt.label ? [opt.label] : opt.ask ? [opt.ask] : []);
+    names.forEach((n) => { if (!parts[n]) throw new Error(`${name}: no part "${n}"`); });
+    if (!names.length) return svg(W, H, body, name);
+    const LX = W + 26, slots = [...names].sort((a, b) => parts[a][1] - parts[b][1]);
+    const gap = slots.length > 1 ? (H - 28) / (slots.length - 1) : 0, lw = opt.ask ? 30 : Math.max(...names.map((n) => n.length)) * 8.6 + 10;
+    slots.forEach((n, i) => {
+      const [ax, ay] = parts[n], ly = names.length === 1 ? Math.min(Math.max(ay, 16), H - 10) : 14 + i * gap;
+      body += `<path d="M${LX - 4} ${f1(ly)} L${ax} ${ay}" class="${opt.ask ? 'sc-mark' : 'sc-lead'}"/><circle cx="${ax}" cy="${ay}" r="3" class="${opt.ask ? 'sc-mark-t' : 'sc-ink'}"/>`
+        + (opt.ask ? `<circle cx="${LX + 12}" cy="${f1(ly)}" r="14" class="sc-mark" style="fill:var(--surface)"/><text x="${LX + 12}" y="${f1(ly + 7)}" class="sc-mark-t" font-size="20" font-weight="700" text-anchor="middle">?</text>`
+          : `<text x="${LX}" y="${f1(ly + 5)}" class="fg-text" font-size="14">${n}</text>`);
+    });
+    return svg(LX + lw, H, body, opt.ask ? `${name} with an arrow pointing to one part, marked with a question mark` : `${name} with labels: ${names.join(', ')}`);
+  }
+  // The human body with one system drawn inside. system: digestive, respiratory, circulatory, excretory, nervous, endocrine, skeletal, muscular.
+  const BODY = {
+    digestive: { d: `<path d="M90 50 C90 80 92 100 94 116" class="sc-tube"/><ellipse cx="74" cy="114" rx="17" ry="9" class="sc-c3"/><ellipse cx="106" cy="122" rx="15" ry="9" transform="rotate(-18 106 122)" class="sc-c2"/><path d="M68 170 V142 H112 V170" class="sc-tube" style="stroke-width:7"/><path d="M76 150 h28 q6 5 0 9 h-28 q-6 5 0 9 h28" class="sc-tube" style="stroke-width:4"/>`,
+      parts: { esophagus: [91, 82], liver: [70, 114], stomach: [108, 122], 'small intestine': [90, 159], 'large intestine': [112, 150] } },
+    respiratory: { d: `<rect x="87" y="52" width="6" height="28" rx="2" class="sc-c5"/><path d="M90 80 L76 90 M90 80 L104 90" class="sc-tube"/><ellipse cx="68" cy="102" rx="15" ry="27" class="sc-c5"/><ellipse cx="112" cy="102" rx="15" ry="27" class="sc-c5"/><path d="M78 92 L68 104 M102 92 L112 104" class="sc-lead"/><path d="M56 132 Q90 116 124 132" class="sc-tube"/>`,
+      parts: { trachea: [90, 62], lungs: [112, 100], bronchus: [100, 87], diaphragm: [90, 124] } },
+    circulatory: { d: `<path d="M84 90 L84 22 M84 90 L42 112 L32 158 M84 90 L72 300 M84 96 L72 180" class="sc-red"/><path d="M98 96 L98 22 M98 90 L138 112 L148 158 M98 96 L108 300" class="sc-blue"/><path d="M90 116 C70 100 76 82 90 92 C104 82 110 100 90 116 Z" class="sc-c4"/>`,
+      parts: { heart: [90, 100], artery: [73, 240], vein: [107, 240] } },
+    excretory: { d: `<ellipse cx="70" cy="132" rx="8" ry="13" class="sc-c4"/><ellipse cx="110" cy="132" rx="8" ry="13" class="sc-c4"/><path d="M72 144 L85 168 M108 144 L95 168" class="sc-tube" style="stroke-width:3"/><ellipse cx="90" cy="174" rx="13" ry="9" class="sc-c2"/><path d="M90 183 v12" class="sc-tube" style="stroke-width:3"/>`,
+      parts: { kidney: [110, 132], ureter: [101, 156], bladder: [90, 174], urethra: [90, 191] } },
+    nervous: { d: `<ellipse cx="90" cy="24" rx="17" ry="13" class="sc-c6"/><path d="M90 36 V172" class="sc-tube" style="stroke-width:5"/><path d="M90 70 L44 100 L30 164 M90 70 L136 100 L150 164 M90 172 L72 304 M90 172 L108 304 M90 100 L62 124 M90 100 L118 124 M90 130 L66 150 M90 130 L114 150" class="sc-lead"/>`,
+      parts: { brain: [90, 24], 'spinal cord': [90, 110], nerve: [74, 280] } },
+    endocrine: { d: `<circle cx="90" cy="34" r="4" class="sc-c6"/><path d="M82 58 q8 7 16 0 v5 q-8 5 -16 0 Z" class="sc-c2"/><ellipse cx="72" cy="124" rx="6" ry="4" class="sc-c3"/><ellipse cx="108" cy="124" rx="6" ry="4" class="sc-c3"/><ellipse cx="90" cy="134" rx="15" ry="4.5" class="sc-c4"/>`,
+      parts: { 'pituitary gland': [90, 34], 'thyroid gland': [90, 61], 'adrenal gland': [108, 124], pancreas: [94, 134] } },
+    skeletal: { d: `<circle cx="90" cy="26" r="15" class="sc-bone"/><path d="M90 42 V164" class="sc-bonel" style="stroke-width:5"/><path d="M58 66 H122 M62 82 Q90 94 118 82 M62 94 Q90 106 118 94 M64 106 Q90 118 116 106 M68 118 Q90 128 112 118" class="sc-bonel" style="stroke-width:3"/><path d="M70 164 Q90 150 110 164 L104 180 H76 Z" class="sc-bone"/><path d="M56 68 L40 116 L30 164 M124 68 L140 116 L150 164 M76 180 L72 242 L70 304 M104 180 L108 242 L110 304" class="sc-bonel"/>`,
+      parts: { skull: [90, 26], ribs: [108, 100], spine: [90, 140], pelvis: [90, 170], femur: [106, 212] } },
+    muscular: { d: `<ellipse cx="72" cy="80" rx="16" ry="11" class="sc-c4"/><ellipse cx="108" cy="80" rx="16" ry="11" class="sc-c4"/><ellipse cx="42" cy="100" rx="8" ry="20" transform="rotate(18 42 100)" class="sc-c4"/><ellipse cx="138" cy="100" rx="8" ry="20" transform="rotate(-18 138 100)" class="sc-c4"/><rect x="76" y="100" width="28" height="56" rx="8" class="sc-c4"/><ellipse cx="72" cy="222" rx="11" ry="30" class="sc-c4"/><ellipse cx="108" cy="222" rx="11" ry="30" class="sc-c4"/><ellipse cx="70" cy="280" rx="8" ry="20" class="sc-c4"/><ellipse cx="110" cy="280" rx="8" ry="20" class="sc-c4"/>`,
+      parts: { 'biceps': [138, 100], 'chest muscle': [108, 80], 'abdominal muscle': [90, 128], 'thigh muscle': [108, 222], 'calf muscle': [110, 280] } },
+  };
+  function body(system, opt = {}) {
+    if (!BODY[system]) throw new Error(`Fig.body: no system "${system}"`);
+    const skin = `<g class="sc-skin"><circle cx="90" cy="26" r="22"/><rect x="80" y="42" width="20" height="20" rx="3"/><path d="M58 58 H122 Q132 60 132 74 L118 180 H62 L48 74 Q48 60 58 58 Z"/><path d="M58 64 L38 112 L26 170 L38 174 L52 120 L66 80 Z M122 64 L142 112 L154 170 L142 174 L128 120 L114 80 Z"/><path d="M62 170 H118 L120 312 H96 L91 192 H89 L84 312 H60 Z"/></g>`;
+    return partsFig(`The human ${system} system`, 180, 320, skin + BODY[system].d, BODY[system].parts, opt);
+  }
+  // A neuron (nerve cell).
+  function neuron(opt = {}) {
+    const d = `<path d="M60 54 L30 20 M60 54 L92 18 M60 54 L20 58 M60 54 L104 56 M42 34 L24 34 M78 32 L98 36" class="sc-dendrite"/><circle cx="60" cy="54" r="22" class="sc-cyto"/><circle cx="60" cy="54" r="9" class="sc-nuc"/><path d="M60 76 V226" class="sc-dendrite" style="stroke-width:4"/>`
+      + [96, 132, 168].map((y) => `<rect x="50" y="${y}" width="20" height="28" rx="9" class="sc-c2"/>`).join('') + `<path d="M60 226 L34 252 M60 226 L60 256 M60 226 L86 252" class="sc-dendrite"/><circle cx="34" cy="252" r="4" class="sc-ink"/><circle cx="60" cy="256" r="4" class="sc-ink"/><circle cx="86" cy="252" r="4" class="sc-ink"/>`;
+    return partsFig('A neuron', 120, 266, d, { dendrite: [92, 18], 'cell body': [78, 58], nucleus: [60, 54], axon: [60, 86], 'myelin sheath': [70, 146], 'axon terminal': [86, 252] }, opt);
+  }
+  // A flower cut in half.
+  function flower(opt = {}) {
+    const d = `<path d="M110 250 V168" class="sc-stem"/><path d="M110 226 q34 -22 52 -8 q-20 22 -52 16" class="sc-c2"/><path d="M110 168 C60 150 34 96 44 44 C70 66 92 96 96 130 Z" class="sc-c6"/><path d="M110 168 C160 150 186 96 176 44 C150 66 128 96 124 130 Z" class="sc-c6"/>`
+      + `<path d="M110 172 C84 176 66 168 56 150 C76 152 92 156 106 160 Z M110 172 C136 176 154 168 164 150 C144 152 128 156 114 160 Z" class="sc-c2"/>`
+      + `<path d="M94 170 C86 150 94 134 104 130 V94 H116 V130 C126 134 134 150 126 170 Z" class="sc-c3"/><ellipse cx="110" cy="88" rx="13" ry="6" class="sc-c4"/><circle cx="102" cy="154" r="5" class="sc-vac"/><circle cx="118" cy="154" r="5" class="sc-vac"/>`
+      + `<path d="M80 150 L74 74 M140 150 L146 74" class="sc-tube" style="stroke-width:3"/><ellipse cx="74" cy="68" rx="6" ry="11" class="sc-c5"/><ellipse cx="146" cy="68" rx="6" ry="11" class="sc-c5"/>`;
+    return partsFig('A flower cut in half', 220, 256, d, { petal: [168, 74], stigma: [110, 88], anther: [146, 68], style: [110, 112], filament: [143, 112], ovary: [124, 146], ovule: [118, 154], sepal: [152, 158], stem: [110, 212] }, opt);
+  }
+  // A Punnett square. top and side: 'Bb' or ['X', 'Y']. opt.hide: true for all empty, or a list of [row, col] shown as '?'.
+  function punnett(top, side, opt = {}) {
+    const T = [...top], S = [...side], c = 76, x0 = 48, y0 = 44;
+    const geno = (a, b) => [a, b].sort().join(''), hid = (r, k) => opt.hide === true || (opt.hide || []).some(([a, b]) => a === r && b === k);
+    let b = '';
+    T.forEach((a, k) => { b += `<text x="${x0 + c * k + c / 2}" y="30" class="fg-text" font-size="22" font-weight="700" text-anchor="middle">${a}</text>`; });
+    S.forEach((a, r) => { b += `<text x="26" y="${y0 + c * r + c / 2 + 8}" class="fg-text" font-size="22" font-weight="700" text-anchor="middle">${a}</text>`; });
+    S.forEach((s, r) => T.forEach((t, k) => { const h = hid(r, k);
+      b += `<rect x="${x0 + c * k}" y="${y0 + c * r}" width="${c}" height="${c}" class="${h ? 'sc-ask' : 'sc-box'}"/><text x="${x0 + c * k + c / 2}" y="${y0 + c * r + c / 2 + 8}" class="fg-text" font-size="22" text-anchor="middle">${h ? (opt.hide === true ? '' : '?') : geno(s, t)}</text>`; }));
+    const alt = `A Punnett square for parents ${T.join('')} and ${S.join('')}` + (opt.hide ? ' with some boxes left empty' : `: ${S.flatMap((s) => T.map((t) => geno(s, t))).join(', ')}`);
+    return svg(x0 + c * T.length + 6, y0 + c * S.length + 6, b, alt);
+  }
+  // A short piece of DNA as a ladder. top strand; opt.bottom overrides the pair strand ('?' = missing); opt.names = [top name, bottom name].
+  function dna(top, opt = {}) {
+    const PAIR = { A: 'T', T: 'A', G: 'C', C: 'G', U: 'A' }, CL = { A: 'sc-c1', T: 'sc-c2', U: 'sc-c2', G: 'sc-c3', C: 'sc-c4' };
+    const B = [...(opt.bottom || [...top].map((x) => PAIR[x] || '?'))], c = 40, nm = opt.names ? 62 : 6, W = nm + c * top.length + 8;
+    const tile = (x, y, ch) => `<rect x="${x + 3}" y="${y}" width="${c - 6}" height="34" rx="6" class="${ch === '?' ? 'sc-ask' : CL[ch] || 'sc-box'}"/><text x="${x + c / 2}" y="${y + 24}" class="fg-text" font-size="19" font-weight="700" text-anchor="middle">${ch}</text>`;
+    let b = opt.names ? `<text x="4" y="31" class="fg-text" font-size="14">${opt.names[0]}</text><text x="4" y="97" class="fg-text" font-size="14">${opt.names[1]}</text>` : '';
+    [...top].forEach((ch, i) => { const x = nm + i * c; b += `<path d="M${x + c / 2} 42 V70" class="sc-lead" style="stroke-dasharray:3 4"/>` + tile(x, 8, ch) + tile(x, 72, B[i]); });
+    return svg(W, 114, b, `${opt.names ? opt.names[0] : 'A DNA strand'} ${top} paired with ${B.join('').replace(/\?/g, ' a missing base ')}`);
+  }
+  // A food web. levels: rows of names from the top down; links: [from, to] arrows, in the direction energy moves.
+  function web(levels, links) {
+    const W = 380, bw = 88, bh = 36, rowH = 80, pos = {}; let b = '';
+    levels.forEach((row, r) => row.forEach((n, i) => { pos[n] = [(W * (i + 0.5)) / row.length, 22 + r * rowH]; }));
+    links.forEach(([p, q]) => { if (!pos[p] || !pos[q]) throw new Error(`Fig.web: no "${p}" or "${q}"`);
+      const [x1, y1] = pos[p], [x2, y2] = pos[q], side = x2 > x1 ? 1 : -1, yy = y1 > y2 ? [y1 - bh / 2 - 2, y2 + bh / 2 + 3] : [y1 + bh / 2 + 2, y2 - bh / 2 - 3];
+      b += (y1 === y2 ? arrow(x1 + side * (bw / 2 + 2), y1, x2 - side * (bw / 2 + 3), y2) : arrow(x1, yy[0], x2, yy[1])).replace('class="sc-arrow"', 'class="sc-arrow" style="stroke-width:2"'); });
+    Object.entries(pos).forEach(([n, [x, y]]) => { b += `<rect x="${f1(x - bw / 2)}" y="${y - bh / 2}" width="${bw}" height="${bh}" rx="10" class="${n[0] === '?' ? 'sc-ask' : 'sc-box'}"/><text x="${f1(x)}" y="${y + 5}" class="fg-text" font-size="14" text-anchor="middle">${n[0] === '?' ? '?' : n}</text>`; });
+    return svg(W, 44 + (levels.length - 1) * rowH, b, `A food web. Arrows show energy moving: ${links.map(([p, q]) => `${p} to ${q}`).join(', ')}`);
+  }
+  // An energy pyramid: rows from the top down, each a label such as 'hawks: 10 kJ' ('?' = missing).
+  function energy(rows) {
+    const n = rows.length, W = 360, h = 48, top = 120, stepW = (W - 8 - top) / Math.max(n - 1, 1); let b = '';
+    rows.forEach((r, i) => { const w0 = top + i * stepW * 0.72, w1 = top + (i + 1) * stepW * 0.72, y = 4 + i * h, cx = W / 2;
+      b += `<path d="M${f1(cx - w0 / 2)} ${y} H${f1(cx + w0 / 2)} L${f1(cx + w1 / 2)} ${y + h - 3} H${f1(cx - w1 / 2)} Z" class="${r === '?' ? 'sc-ask' : 'sc-layer'}" style="--k:${12 + (n - i) * 8}%"/><text x="${cx}" y="${y + 29}" class="fg-text" font-size="15" text-anchor="middle">${r}</text>`; });
+    return svg(W, 8 + n * h, b, `An energy pyramid, top to bottom: ${rows.map((r) => (r === '?' ? 'a missing level' : r)).join(', ')}`);
+  }
+  // Rock layers, top (youngest) first: [name, fossils] where fossils is a string of emoji.
+  function strata(layers) {
+    const W = 330, h = 50, n = layers.length; let b = '';
+    layers.forEach(([nm, foss], i) => { const y = 6 + i * h;
+      b += `<rect x="44" y="${y}" width="${W - 50}" height="${h}" class="sc-layer" style="--k:${10 + i * 11}%"/><text x="58" y="${y + 31}" class="fg-text" font-size="15" font-weight="700">${nm}</text><text x="${W - 16}" y="${y + 34}" font-size="24" text-anchor="end">${foss}</text>`; });
+    b += `<path d="M24 ${6 + n * h - 8} V14" class="sc-arrow"/>` + arrowHead(24, 40, 24, 8) + `<text x="24" y="${6 + n * h + 18}" class="fg-text" font-size="13" text-anchor="middle">older</text>`;
+    return svg(W, n * h + 30, b, `Rock layers from the top down: ${layers.map(([nm, foss]) => `${nm}${foss ? ' with fossils ' + foss : ' with no fossils'}`).join('; ')}`);
+  }
+  // A family chart: parents and children. 'm' / 'f' unaffected, 'M' / 'F' shows the trait (squares are male, circles female).
+  function pedigree(parents, kidsIn) {
+    const kids = [...kidsIn], W = 360, c = 44, sym = (k, x, y) => { const on = k === k.toUpperCase() ? 'sc-on' : 'sc-off'; return k.toLowerCase() === 'm' ? `<rect x="${x - 16}" y="${y - 16}" width="32" height="32" class="${on}"/>` : `<circle cx="${x}" cy="${y}" r="17" class="${on}"/>`; };
+    const xs = kids.map((_, i) => (W * (i + 0.5)) / kids.length), mid = W / 2, b = `<path d="M${mid - 40} 30 H${mid + 40} M${mid} 30 V72" class="sc-lead" style="stroke-width:2"/><path d="M${f1(xs[0])} 72 H${f1(xs[xs.length - 1])}" class="sc-lead" style="stroke-width:2"/>`
+      + xs.map((x) => `<path d="M${f1(x)} 72 V90" class="sc-lead" style="stroke-width:2"/>`).join('') + sym(parents[0], mid - 56, 30) + sym(parents[1], mid + 56, 30) + kids.map((k, i) => sym(k, xs[i], 108)).join('');
+    const nm = (k) => `${k.toLowerCase() === 'm' ? 'male' : 'female'} ${k === k.toUpperCase() ? 'with the trait' : 'without it'}`;
+    return svg(W, 108 + c / 2 + 8, b, `A family chart. Parents: ${[...parents].map(nm).join(', ')}. Children: ${[...kids].map(nm).join(', ')}`);
+  }
+  // A line graph of data. series: { name: [y, …] } (up to 2) over the labels xs.
+  function trend(title, xName, yName, xs, series) {
+    const W = 340, H = 240, L = 44, R = 12, T = 44, Bt = 40, names = Object.keys(series), all = names.flatMap((n) => series[n]), top = Math.max(...all) * 1.1 || 1;
+    const X = (i) => L + (i * (W - L - R)) / Math.max(xs.length - 1, 1), Y = (v) => H - Bt - (v * (H - T - Bt)) / top;
+    let b = `<text x="${W / 2}" y="16" class="fg-text" font-size="15" font-weight="700" text-anchor="middle">${title}</text><path d="M${L} ${T - 6} V${H - Bt} H${W - R}" class="sc-lead" style="stroke-width:2"/>`;
+    xs.forEach((x, i) => { b += `<text x="${f1(X(i))}" y="${H - Bt + 16}" class="fg-text" font-size="12" text-anchor="middle">${x}</text>`; });
+    [0, 0.5, 1].forEach((t) => { const v = Math.round((top / 1.1) * t); b += `<text x="${L - 6}" y="${f1(Y(v) + 4)}" class="fg-text" font-size="12" text-anchor="end">${v}</text><path d="M${L} ${f1(Y(v))} H${W - R}" class="sc-grid"/>`; });
+    names.forEach((n, k) => { const pts = series[n].map((v, i) => `${f1(X(i))},${f1(Y(v))}`).join(' ');
+      b += `<polyline points="${pts}" class="${k ? 'sc-line2' : 'sc-line1'}"/>` + series[n].map((v, i) => `<circle cx="${f1(X(i))}" cy="${f1(Y(v))}" r="3.5" class="${k ? 'sc-mark-t' : 'sc-ink'}"/>`).join('');
+      if (names.length > 1) b += `<path d="M${L + 4 + k * 140} 30 h22" class="${k ? 'sc-line2' : 'sc-line1'}"/><text x="${L + 30 + k * 140}" y="35" class="fg-text" font-size="13">${n}</text>`; });
+    b += `<text x="${(W + L) / 2}" y="${H - 8}" class="fg-text" font-size="13" text-anchor="middle">${xName}</text><text transform="translate(12 ${(H - Bt + T) / 2}) rotate(-90)" class="fg-text" font-size="13" text-anchor="middle">${yName}</text>`;
+    return svg(W, H, b, `A line graph titled ${title}. ${names.map((n) => `${n}: ${series[n].map((v, i) => `${xs[i]}, ${v}`).join('; ')}`).join('. ')}`);
+  }
+  // Pairs of matching chromosomes with gene letters: [['B', 'b'], ['T', 't']] is one pair with two genes; several pairs if nested in opt.pairs.
+  function chroms(genes) {
+    const h = 54 + genes.length * 38, rod = (x, i) => `<rect x="${x}" y="8" width="30" height="${h - 16}" rx="15" class="sc-c4"/><circle cx="${x + 15}" cy="${h / 2}" r="5" class="sc-ink"/>`
+      + genes.map((g, k) => { const y = 28 + k * (h - 56) / Math.max(genes.length - 1, 1) - (genes.length === 1 ? -(h - 56) / 2 + 12 : 0), yy = k >= genes.length / 2 ? y + 4 : y - 4; return `<rect x="${x - 2}" y="${f1(yy - 12)}" width="34" height="24" rx="4" class="sc-c5"/><text x="${x + 15}" y="${f1(yy + 6)}" class="fg-text" font-size="17" font-weight="700" text-anchor="middle">${g[i]}</text>`; }).join('');
+    return svg(160, h, rod(34, 0) + rod(96, 1), `A pair of matching chromosomes carrying the gene letters ${genes.map((g) => g.join(' and ')).join(', ')}`);
+  }
+  // A person's 23 pairs of chromosomes, largest first. sex: 'XX' or 'XY'.
+  function karyo(sex, showName = true) {
+    const W = 350, cols = 8, cw = W / cols, rowH = 62; let b = '';
+    const X = (x, y, h, cls = 'sc-chrom2') => `<path d="M${x - 4} ${y} L${x + 4} ${y + h} M${x + 4} ${y} L${x - 4} ${y + h}" class="${cls}"/>`;
+    for (let i = 0; i < 23; i++) { const x = cw * (i % cols) + cw / 2, r = Math.floor(i / cols), y = 8 + r * rowH, h = i < 22 ? 36 - i : 0;
+      if (i < 22) b += X(x - 7, y + (36 - h), h) + X(x + 7, y + (36 - h), h) + `<text x="${x}" y="${y + 50}" class="fg-text" font-size="11" text-anchor="middle">${i + 1}</text>`;
+      else { b += X(x - 7, y, 32, 'sc-chrom3') + (sex === 'XY' ? `<path d="M${x + 7} ${y + 18} v16 M${x + 7} ${y + 18} l-4 -7 M${x + 7} ${y + 18} l4 -7" class="sc-chrom3"/>` : X(x + 7, y, 32, 'sc-chrom3')) + `<text x="${x}" y="${y + 50}" class="fg-text" font-size="11" text-anchor="middle">${showName ? sex : 'sex'}</text>`; } }
+    return svg(W, 3 * rowH + 8, b, `Twenty-three pairs of human chromosomes, numbered 1 to 22, with a pair of sex chromosomes${showName ? ` ${sex}` : ''}`);
+  }
+  // Forelimb bones side by side, same colors for the same bones. kinds: human, bat, whale, bird.
+  const LIMB = { human: [56, 48, [22, 32, 36, 32, 26], 44, 4], bat: [36, 60, [14, 68, 76, 70, 60], 70, 3], whale: [20, 24, [30, 50, 56, 42, 26], 30, 6], bird: [44, 54, [14, 42, 10], 24, 4] };
+  function limbs(kinds) {
+    const cw = 104, H = 264; let b = '';
+    kinds.forEach((k, n) => { if (!LIMB[k]) throw new Error(`Fig.limbs: no "${k}"`); const [a, c, d, sp, w] = LIMB[k], x = cw * n + cw / 2; let y = 10;
+      b += `<path d="M${x} ${y} V${y + a}" class="sc-bone1" style="stroke-width:${w + 3}"/>`; y += a + 4;
+      b += `<path d="M${x - 4} ${y} V${y + c} M${x + 5} ${y} V${y + c}" class="sc-bone2" style="stroke-width:${w}"/>`; y += c + 6;
+      b += [-8, 0, 8].map((dx) => `<circle cx="${x + dx}" cy="${y}" r="4" class="sc-bone3"/>`).join(''); y += 5;
+      d.forEach((L, i) => { const t = d.length > 1 ? ((i / (d.length - 1)) - 0.5) * sp * Math.PI / 180 : 0, ex = x + (i - (d.length - 1) / 2) * 5 + L * Math.sin(t), ey = y + L * Math.cos(t); b += `<path d="M${x + (i - (d.length - 1) / 2) * 5} ${y} L${f1(ex)} ${f1(ey)}" class="sc-bone4" style="stroke-width:${w - 1}"/>`; });
+      b += `<text x="${x}" y="${H - 6}" class="fg-text" font-size="15" text-anchor="middle">${k}</text>`; });
+    return svg(cw * kinds.length, H, b, `Forelimb bones of ${kinds.join(', ')}: the same bones in the same order, with different sizes and shapes`);
+  }
+  // Early embryos side by side: the same curled shape with a tail and pouches at the neck.
+  function embryos(names) {
+    const cw = 110, b = names.map((n, i) => { const x = cw * i + 12; return `<g transform="translate(${x} 8)"><path d="M46 8 C78 4 92 34 86 62 C80 92 54 108 30 104 C22 102 18 96 24 92 C42 88 50 74 44 62 C30 62 12 50 14 32 C16 16 30 8 46 8 Z" class="sc-c5"/><circle cx="30" cy="28" r="6" class="sc-ink"/><path d="M34 50 q6 2 8 -3 M44 48 q6 2 7 -4 M54 44 q6 1 6 -5" class="sc-lead" style="stroke-width:2.5"/></g><text x="${x + 44}" y="136" class="fg-text" font-size="15" text-anchor="middle">${n}</text>`; }).join('');
+    return svg(cw * names.length + 8, 146, b, `Early embryos of ${names.join(', ')}. All have a tail and pouches at the neck`);
+  }
 
-  return { cell, membrane, mitosis, cycle, flow, tree, nest, stoma, regular, balance, pyramid, beads, cubeStack, gridPath, calendar, dice, choices, blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
+  return { body, neuron, flower, punnett, dna, web, energy, strata, pedigree, trend, chroms, karyo, limbs, embryos, cell, membrane, mitosis, cycle, flow, tree, nest, stoma, regular, balance, pyramid, beads, cubeStack, gridPath, calendar, dice, choices, blocks, addBlocks, fraction, clock, hands, coins, coinSvg, COIN, ruler, barGraph, picGraph, linePlot, array, rect, shape,
     tenFrames, barModel, compareBars, bond, groups, tensGroups, placeChart, roundLine, jumps, shapeRow, picture, priceTags,
     table, angle, angleSplit, protractor, areaModel, decimalGrid, numLine, lines, symmetry, SYM_LINES, triangle, coordGrid, prism, timesBars, shareBar, fracStrips, pair, pageFig, listFig, diagramFig, graph, ineqLine, boxPlot };
 })();

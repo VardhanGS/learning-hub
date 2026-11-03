@@ -858,6 +858,35 @@ input[type="range"] { width: 100%; accent-color: var(--reading); }
 .sc-box { fill: color-mix(in srgb, var(--c, var(--reading)) 14%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
 .sc-ask { fill: var(--surface); stroke: var(--bad); stroke-width: 2.5; stroke-dasharray: 7 5; }
 .sc-nest { fill: color-mix(in srgb, var(--c5) var(--k, 10%), var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.sc-skin { fill: color-mix(in srgb, var(--c3) 12%, var(--surface)); stroke: none; }
+.sc-c1 { fill: color-mix(in srgb, var(--c1) 38%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-c2 { fill: color-mix(in srgb, var(--c2) 38%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-c3 { fill: color-mix(in srgb, var(--c3) 38%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-c4 { fill: color-mix(in srgb, var(--c4) 38%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-c5 { fill: color-mix(in srgb, var(--c5) 38%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-c6 { fill: color-mix(in srgb, var(--c6) 38%, var(--surface)); stroke: var(--ink); stroke-width: 1.6; }
+.sc-tube { fill: none; stroke: color-mix(in srgb, var(--c4) 65%, var(--ink)); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.sc-red, .sc-blue { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.sc-red { stroke: #d6404a; }
+.sc-blue { stroke: #2b6fd6; }
+.sc-bone { fill: color-mix(in srgb, var(--ink) 8%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.sc-bonel { fill: none; stroke: color-mix(in srgb, var(--ink) 55%, var(--surface)); stroke-width: 6; stroke-linecap: round; }
+.sc-dendrite { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; }
+.sc-stem { fill: none; stroke: color-mix(in srgb, var(--c2) 70%, var(--ink)); stroke-width: 7; stroke-linecap: round; }
+.sc-layer { fill: color-mix(in srgb, var(--c3) var(--k, 20%), var(--surface)); stroke: var(--ink); stroke-width: 1.8; }
+.sc-on { fill: color-mix(in srgb, var(--ink) 70%, var(--surface)); stroke: var(--ink); stroke-width: 2; }
+.sc-off { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+.sc-grid { fill: none; stroke: var(--line); stroke-width: 1; }
+.sc-line1, .sc-line2 { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.sc-line1 { stroke: var(--ink); }
+.sc-line2 { stroke: var(--bad); stroke-dasharray: 7 5; }
+.sc-chrom2 { fill: none; stroke: color-mix(in srgb, var(--c4) 75%, var(--ink)); stroke-width: 3.5; stroke-linecap: round; }
+.sc-chrom3 { fill: none; stroke: color-mix(in srgb, var(--c6) 80%, var(--ink)); stroke-width: 3.5; stroke-linecap: round; }
+.sc-bone1, .sc-bone2, .sc-bone4 { fill: none; stroke-linecap: round; }
+.sc-bone1 { stroke: #d6404a; }
+.sc-bone2 { stroke: #2b6fd6; }
+.sc-bone3 { fill: #2f9e57; }
+.sc-bone4 { stroke: #e08a1e; }
 
 /* algebra keypad: letters in math italics, so the variable x never looks like the times key × */
 .kp-key .kv { font-family: KaTeX_Math, 'Times New Roman', serif; font-style: italic; font-weight: 600; font-size: 1.3em; }
