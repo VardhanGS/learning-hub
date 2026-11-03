@@ -7,7 +7,7 @@ const Cloud = (() => {
   const CFG = typeof APP !== 'undefined' && APP.firebase && APP.firebase.apiKey ? APP.firebase : null;
   const APP_ID = typeof APP !== 'undefined' ? APP.id : 'app';
   // Every app that may keep progress under a student (must match the allowlist in firestore.rules).
-  const ALL_APPS = ['mathquest2', 'mathquest4', 'mapmath2', 'mapmath4', 'algebra1', 'mapalg1', 'mapread2', 'mapread4', 'mapread8', 'satprep', 'hubdemo', 'contest2', 'contest4', 'contest8', 'science8'];
+  const ALL_APPS = ['mathquest2', 'mathquest4', 'mapmath2', 'mapmath4', 'algebra1', 'mapalg1', 'mapread2', 'mapread4', 'mapread8', 'satprep', 'hubdemo', 'contest2', 'contest4', 'contest8', 'science8', 'codequest'];
   const available = !!(CFG && typeof window !== 'undefined' && !window.HUB_NO_CLOUD && typeof fetch !== 'undefined' && window.crypto && crypto.subtle);
   const DOCS = CFG ? `https://firestore.googleapis.com/v1/projects/${CFG.projectId}/databases/(default)/documents` : '';
   const ls = {
@@ -143,6 +143,14 @@ const Cloud = (() => {
     const gone = new Set(m.gone);
     m.missed = unionById(a.missed, b.missed, gone, 40);
     m.tests = unionById(a.tests, b.tests, gone, 200); // MAP / SAT practice test results
+    // Code Quest: the newest copy of each project wins, deleted projects stay deleted, and level stars never go down.
+    if (a.code || b.code) {
+      const ca = a.code || {}, cb = b.code || {}, byId = {};
+      [...(cb.projects || []), ...(ca.projects || [])].forEach((p) => { if (!gone.has(p.id) && (!byId[p.id] || (p.updatedAt || 0) >= (byId[p.id].updatedAt || 0))) byId[p.id] = p; });
+      const levels = { ...cb.levels };
+      Object.entries(ca.levels || {}).forEach(([k, v]) => { if (!levels[k] || (v.stars || 0) >= (levels[k].stars || 0)) levels[k] = v; });
+      m.code = { projects: Object.values(byId).sort((x, y) => (y.updatedAt || 0) - (x.updatedAt || 0)), levels };
+    }
     if (a.writings || b.writings) {
       const wid = (w) => w.id || `${w.date}|${w.title}`;
       const seenW = new Set();

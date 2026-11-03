@@ -99,7 +99,7 @@
   function readiness() {
     let n = 0, done = 0;
     SUBJ().forEach((s) => s.skills.forEach((k) => { n++; if (passed(s.id, k.id, 2)) done++; }));
-    return { n, done, pct: Math.round((done / n) * 100) };
+    return { n, done, pct: n ? Math.round((done / n) * 100) : 0 };
   }
   function nextUp() {
     const out = [];
@@ -130,7 +130,7 @@
     { id: 'movie', icon: '🎬', name: 'Movie Star', desc: 'Watch 5 video lessons.', need: () => VIDS().length >= 5, test: () => Object.keys(P.watched || {}).length >= 5 },
     { id: 'xp1000', icon: '⚡', name: '1,000 XP', desc: 'Earn 1,000 XP.', test: () => P.xp >= 1000 },
     ...SUBJECTS.map((x) => x.id).map((sid) => ({ id: 'champ_' + sid, track: subj(sid).track, icon: subj(sid).icon, name: `${subj(sid).name} Champ`, desc: `Pass every ${TRACKS[subj(sid).track].levels[2].long} level in ${subj(sid).name}.`, test: () => subj(sid).skills.every((k) => passed(sid, k.id, 2)) })),
-    ...Object.values(TRACKS).map((t) => ({ id: 'ready_' + t.id, track: t.id, icon: '🎓', name: `Ready for ${t.ready}`, desc: `Pass every ${t.levels[2].long} level.`, test: () => readiness().done === readiness().n })),
+    ...Object.values(TRACKS).map((t) => ({ id: 'ready_' + t.id, track: t.id, icon: '🎓', name: `Ready for ${t.ready}`, desc: `Pass every ${t.levels[2].long} level.`, test: () => readiness().n > 0 && readiness().done === readiness().n })),
     ...((APP.badges || []).map((b) => ({ ...b }))),
   ];
   const myBadges = () => BADGES.filter((b) => (!b.track || b.track === trackOf()) && (!b.need || b.need()));

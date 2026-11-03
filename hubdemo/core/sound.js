@@ -66,6 +66,7 @@ const SFX = (() => {
     unlock: () => { [G5, C6, E6, G6].forEach((f, i) => note(f, i * 0.09, 0.45, { type: 'triangle', vol: 0.17 })); noise(0.3, 0.4, { vol: 0.05, from: 3000, to: 8000 }); },
     badge: () => { for (let i = 0; i < 7; i++) note(1200 + i * 230 + Math.random() * 80, i * 0.05, 0.25, { vol: 0.07 }); note(C6, 0.35, 0.6, { type: 'triangle', vol: 0.15 }); },
     countdown: () => note(988, 0, 0.08, { type: 'square', vol: 0.06 }),
+    pitch: ({ f, d }) => note(f, 0, d, { type: 'triangle', vol: 0.2 }),
     typeKey: () => note(1400 + Math.random() * 300, 0, 0.025, { type: 'square', vol: 0.025 }),
     open: () => { note(G5, 0, 0.12, { type: 'triangle', vol: 0.1 }); note(C6, 0.07, 0.18, { type: 'triangle', vol: 0.1 }); },
   };

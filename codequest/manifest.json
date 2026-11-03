@@ -1,0 +1,29 @@
+{
+  "name": "Code Quest",
+  "short_name": "Code Quest",
+  "description": "Snap blocks together \u00b7 Make characters move \u00b7 Build your own games",
+  "id": "./?app=codequest",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4fe",
+  "theme_color": "#6a4fd0",
+  "icons": [
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
