@@ -134,5 +134,485 @@ const VIDEOS = [
   "src": "videos/cell-transport.mp4",
   "poster": "videos/cell-transport.jpg",
   "secs": 67
+ },
+ {
+  "id": "launch-t3",
+  "title": "Topic 3: Human Body Systems",
+  "subject": "t3",
+  "label": "Topic launch",
+  "desc": "How the body is organized and how its systems work as a team.",
+  "practice": [
+   "t3",
+   "bodyorg",
+   0
+  ],
+  "src": "videos/launch-t3.mp4",
+  "poster": "videos/launch-t3.jpg",
+  "secs": 33
+ },
+ {
+  "id": "body-organization",
+  "title": "From Cells to Systems",
+  "subject": "t3",
+  "label": "Body organization",
+  "desc": "Levels of organization, tissue types, and homeostasis.",
+  "practice": [
+   "t3",
+   "bodyorg",
+   0
+  ],
+  "src": "videos/body-organization.mp4",
+  "poster": "videos/body-organization.jpg",
+  "secs": 55
+ },
+ {
+  "id": "systems-interact",
+  "title": "Systems Working Together",
+  "subject": "t3",
+  "label": "Systems interacting",
+  "desc": "How body systems depend on each other, and how data shows it.",
+  "practice": [
+   "t3",
+   "interact",
+   0
+  ],
+  "src": "videos/systems-interact.mp4",
+  "poster": "videos/systems-interact.jpg",
+  "secs": 51
+ },
+ {
+  "id": "supplying-energy",
+  "title": "Food, Air, and Energy",
+  "subject": "t3",
+  "label": "Supplying energy",
+  "desc": "The digestive and respiratory systems, and cellular respiration.",
+  "practice": [
+   "t3",
+   "supply",
+   0
+  ],
+  "src": "videos/supplying-energy.mp4",
+  "poster": "videos/supplying-energy.jpg",
+  "secs": 50
+ },
+ {
+  "id": "managing-materials",
+  "title": "Blood and Waste",
+  "subject": "t3",
+  "label": "Managing materials",
+  "desc": "The heart, blood vessels, and kidneys.",
+  "practice": [
+   "t3",
+   "manage",
+   0
+  ],
+  "src": "videos/managing-materials.mp4",
+  "poster": "videos/managing-materials.jpg",
+  "secs": 53
+ },
+ {
+  "id": "controlling-processes",
+  "title": "Nerves and Hormones",
+  "subject": "t3",
+  "label": "Controlling processes",
+  "desc": "Neurons, the brain, reflexes, and hormones.",
+  "practice": [
+   "t3",
+   "control",
+   0
+  ],
+  "src": "videos/controlling-processes.mp4",
+  "poster": "videos/controlling-processes.jpg",
+  "secs": 48
+ },
+ {
+  "id": "launch-t4",
+  "title": "Topic 4: Reproduction and Growth",
+  "subject": "t4",
+  "label": "Topic launch",
+  "desc": "How living things reproduce, and what shapes how they grow.",
+  "practice": [
+   "t4",
+   "reppatterns",
+   0
+  ],
+  "src": "videos/launch-t4.mp4",
+  "poster": "videos/launch-t4.jpg",
+  "secs": 35
+ },
+ {
+  "id": "patterns-reproduction",
+  "title": "One Parent or Two",
+  "subject": "t4",
+  "label": "Patterns of reproduction",
+  "desc": "Asexual and sexual reproduction, and why variation matters.",
+  "practice": [
+   "t4",
+   "reppatterns",
+   0
+  ],
+  "src": "videos/patterns-reproduction.mp4",
+  "poster": "videos/patterns-reproduction.jpg",
+  "secs": 55
+ },
+ {
+  "id": "plant-reproduction",
+  "title": "Flowers, Seeds, and Fruit",
+  "subject": "t4",
+  "label": "Plant structures",
+  "desc": "Parts of a flower, pollination, and how seeds spread.",
+  "practice": [
+   "t4",
+   "plantrepro",
+   0
+  ],
+  "src": "videos/plant-reproduction.mp4",
+  "poster": "videos/plant-reproduction.jpg",
+  "secs": 47
+ },
+ {
+  "id": "animal-reproduction",
+  "title": "Animal Behaviors for Reproduction",
+  "subject": "t4",
+  "label": "Animal behaviors",
+  "desc": "Courtship, parental care, and two strategies for raising young.",
+  "practice": [
+   "t4",
+   "animalrepro",
+   0
+  ],
+  "src": "videos/animal-reproduction.mp4",
+  "poster": "videos/animal-reproduction.jpg",
+  "secs": 50
+ },
+ {
+  "id": "growth-factors",
+  "title": "Genes and Environment",
+  "subject": "t4",
+  "label": "Factors influencing growth",
+  "desc": "How genes and the environment shape growth, and how to test it.",
+  "practice": [
+   "t4",
+   "growth",
+   0
+  ],
+  "src": "videos/growth-factors.mp4",
+  "poster": "videos/growth-factors.jpg",
+  "secs": 51
+ },
+ {
+  "id": "launch-t5",
+  "title": "Topic 5: Ecosystems",
+  "subject": "t5",
+  "label": "Topic launch",
+  "desc": "How living things depend on each other and on their surroundings.",
+  "practice": [
+   "t5",
+   "environment",
+   0
+  ],
+  "src": "videos/launch-t5.mp4",
+  "poster": "videos/launch-t5.jpg",
+  "secs": 31
+ },
+ {
+  "id": "living-environment",
+  "title": "Living Things and Their Environment",
+  "subject": "t5",
+  "label": "Living things and the environment",
+  "desc": "Biotic and abiotic factors, limiting factors, and carrying capacity.",
+  "practice": [
+   "t5",
+   "environment",
+   0
+  ],
+  "src": "videos/living-environment.mp4",
+  "poster": "videos/living-environment.jpg",
+  "secs": 48
+ },
+ {
+  "id": "energy-flow",
+  "title": "Energy Flow",
+  "subject": "t5",
+  "label": "Energy flow",
+  "desc": "Food chains, food webs, and the 10 percent rule.",
+  "practice": [
+   "t5",
+   "energyflow",
+   0
+  ],
+  "src": "videos/energy-flow.mp4",
+  "poster": "videos/energy-flow.jpg",
+  "secs": 48
+ },
+ {
+  "id": "cycles-matter",
+  "title": "Cycles of Matter",
+  "subject": "t5",
+  "label": "Cycles of matter",
+  "desc": "The water, carbon, and nitrogen cycles, and how people change them.",
+  "practice": [
+   "t5",
+   "cycles",
+   0
+  ],
+  "src": "videos/cycles-matter.mp4",
+  "poster": "videos/cycles-matter.jpg",
+  "secs": 46
+ },
+ {
+  "id": "launch-t6",
+  "title": "Topic 6: Populations, Communities, and Ecosystems",
+  "subject": "t6",
+  "label": "Topic launch",
+  "desc": "How species interact, how ecosystems change, and why variety matters.",
+  "practice": [
+   "t6",
+   "interactions",
+   0
+  ],
+  "src": "videos/launch-t6.mp4",
+  "poster": "videos/launch-t6.jpg",
+  "secs": 33
+ },
+ {
+  "id": "interactions",
+  "title": "Interactions",
+  "subject": "t6",
+  "label": "Interactions",
+  "desc": "Competition, predation, and symbiosis.",
+  "practice": [
+   "t6",
+   "interactions",
+   0
+  ],
+  "src": "videos/interactions.mp4",
+  "poster": "videos/interactions.jpg",
+  "secs": 52
+ },
+ {
+  "id": "resilient-ecosystems",
+  "title": "Dynamic and Resilient Ecosystems",
+  "subject": "t6",
+  "label": "Dynamic and resilient ecosystems",
+  "desc": "Succession, disturbance, and arguing from evidence.",
+  "practice": [
+   "t6",
+   "resilience",
+   0
+  ],
+  "src": "videos/resilient-ecosystems.mp4",
+  "poster": "videos/resilient-ecosystems.jpg",
+  "secs": 53
+ },
+ {
+  "id": "biodiversity",
+  "title": "Biodiversity",
+  "subject": "t6",
+  "label": "Biodiversity",
+  "desc": "What biodiversity is, what threatens it, and how to compare solutions.",
+  "practice": [
+   "t6",
+   "biodiversity",
+   0
+  ],
+  "src": "videos/biodiversity.mp4",
+  "poster": "videos/biodiversity.jpg",
+  "secs": 52
+ },
+ {
+  "id": "ecosystem-services",
+  "title": "Ecosystem Services",
+  "subject": "t6",
+  "label": "Ecosystem services",
+  "desc": "What nature does for people, and how to weigh choices.",
+  "practice": [
+   "t6",
+   "services",
+   0
+  ],
+  "src": "videos/ecosystem-services.mp4",
+  "poster": "videos/ecosystem-services.jpg",
+  "secs": 49
+ },
+ {
+  "id": "launch-t7",
+  "title": "Topic 7: Genes and Heredity",
+  "subject": "t7",
+  "label": "Topic launch",
+  "desc": "How traits pass from parents to children, and how we study and change genes.",
+  "practice": [
+   "t7",
+   "inherit",
+   0
+  ],
+  "src": "videos/launch-t7.mp4",
+  "poster": "videos/launch-t7.jpg",
+  "secs": 33
+ },
+ {
+  "id": "patterns-inheritance",
+  "title": "Patterns of Inheritance",
+  "subject": "t7",
+  "label": "Patterns of inheritance",
+  "desc": "Alleles, dominant and recessive traits, and Punnett squares.",
+  "practice": [
+   "t7",
+   "inherit",
+   0
+  ],
+  "src": "videos/patterns-inheritance.mp4",
+  "poster": "videos/patterns-inheritance.jpg",
+  "secs": 58
+ },
+ {
+  "id": "chromosomes-inheritance",
+  "title": "Chromosomes and Inheritance",
+  "subject": "t7",
+  "label": "Chromosomes and inheritance",
+  "desc": "23 pairs, XX and XY, and traits on the X chromosome.",
+  "practice": [
+   "t7",
+   "chromosomes",
+   0
+  ],
+  "src": "videos/chromosomes-inheritance.mp4",
+  "poster": "videos/chromosomes-inheritance.jpg",
+  "secs": 48
+ },
+ {
+  "id": "genetic-coding",
+  "title": "From DNA to Protein",
+  "subject": "t7",
+  "label": "Genetic coding",
+  "desc": "DNA, mRNA, codons, proteins, and mutations.",
+  "practice": [
+   "t7",
+   "protein",
+   0
+  ],
+  "src": "videos/genetic-coding.mp4",
+  "poster": "videos/genetic-coding.jpg",
+  "secs": 53
+ },
+ {
+  "id": "trait-variations",
+  "title": "Trait Variations",
+  "subject": "t7",
+  "label": "Trait variations",
+  "desc": "Where variation comes from, and why it can help or harm.",
+  "practice": [
+   "t7",
+   "variation",
+   0
+  ],
+  "src": "videos/trait-variations.mp4",
+  "poster": "videos/trait-variations.jpg",
+  "secs": 51
+ },
+ {
+  "id": "genetic-technologies",
+  "title": "Genetic Technologies",
+  "subject": "t7",
+  "label": "Genetic technologies",
+  "desc": "Selective breeding, genetic engineering, cloning, and gene editing.",
+  "practice": [
+   "t7",
+   "gentech",
+   0
+  ],
+  "src": "videos/genetic-technologies.mp4",
+  "poster": "videos/genetic-technologies.jpg",
+  "secs": 57
+ },
+ {
+  "id": "launch-t8",
+  "title": "Topic 8: Natural Selection and Change Over Time",
+  "subject": "t8",
+  "label": "Topic launch",
+  "desc": "How species change, and how we know.",
+  "practice": [
+   "t8",
+   "earlystudy",
+   0
+  ],
+  "src": "videos/launch-t8.mp4",
+  "poster": "videos/launch-t8.jpg",
+  "secs": 33
+ },
+ {
+  "id": "early-evolution",
+  "title": "Darwin and Wallace",
+  "subject": "t8",
+  "label": "Early study of evolution",
+  "desc": "The voyage of the Beagle, finches, and how the idea developed.",
+  "practice": [
+   "t8",
+   "earlystudy",
+   0
+  ],
+  "src": "videos/early-evolution.mp4",
+  "poster": "videos/early-evolution.jpg",
+  "secs": 60
+ },
+ {
+  "id": "natural-selection",
+  "title": "Natural Selection",
+  "subject": "t8",
+  "label": "Natural selection",
+  "desc": "How helpful traits become common, with data to prove it.",
+  "practice": [
+   "t8",
+   "natselect",
+   0
+  ],
+  "src": "videos/natural-selection.mp4",
+  "poster": "videos/natural-selection.jpg",
+  "secs": 52
+ },
+ {
+  "id": "process-evolution",
+  "title": "How New Species Form",
+  "subject": "t8",
+  "label": "The process of evolution",
+  "desc": "Isolation, speciation, gene flow, and drift.",
+  "practice": [
+   "t8",
+   "evolprocess",
+   0
+  ],
+  "src": "videos/process-evolution.mp4",
+  "poster": "videos/process-evolution.jpg",
+  "secs": 57
+ },
+ {
+  "id": "fossil-record",
+  "title": "The Fossil Record",
+  "subject": "t8",
+  "label": "Evidence in the fossil record",
+  "desc": "How fossils form, how rocks are dated, and what the patterns show.",
+  "practice": [
+   "t8",
+   "fossils",
+   0
+  ],
+  "src": "videos/fossil-record.mp4",
+  "poster": "videos/fossil-record.jpg",
+  "secs": 53
+ },
+ {
+  "id": "other-evidence",
+  "title": "Bones, Embryos, and DNA",
+  "subject": "t8",
+  "label": "Other evidence of evolution",
+  "desc": "Homologous structures, embryos, vestigial parts, and DNA.",
+  "practice": [
+   "t8",
+   "otherevidence",
+   0
+  ],
+  "src": "videos/other-evidence.mp4",
+  "poster": "videos/other-evidence.jpg",
+  "secs": 47
  }
 ];

@@ -681,8 +681,44 @@ Design (follow it on the Mac):
 - Still not done:
   - Firebase: no web app is registered (appId ''), and firestore.rules does not list science8, so progress stays on
     the device.
-  - Topics 3–8.
   - The Cell division lesson (written, not loaded).
+  - Topics 3–8: see below.
+
+### Science Quest 8: Topics 3–8 written (2026-11-02, on the user's "complete rest all topics in science"; committed locally on branch `science8-t3-8`, NOT pushed or published)
+- Content: 26 new lessons × 3 levels × about 40 items = 3,111 original items, each with an explanation. One file per lesson
+  (`data/t3-*.js` … `data/t8-*.js`, listed in config.js); `t3.js` … `t8.js` declare the topics, each with its Topic review from
+  topics.js. Skill ids: bodyorg interact supply manage control · reppatterns plantrepro animalrepro growth · environment
+  energyflow cycles · interactions resilience biodiversity services · inherit chromosomes protein variation gentech ·
+  earlystudy natselect evolprocess fossils otherevidence.
+- Pictures: about 30% of items have their own drawing, the rest a topic-fitting emoji set or the lesson's. New in
+  core/engine/fig.js (additions only; CSS `.sc-*` in core/styles.css): `Fig.body(system, {ask|label|labels})`, `Fig.neuron`,
+  `Fig.flower`, `Fig.punnett(top, side, {hide})`, `Fig.dna(top, {bottom, names})`, `Fig.web(levels, links)`, `Fig.energy(rows)`,
+  `Fig.strata(layers)`, `Fig.pedigree(parents, kids)`, `Fig.trend(title, x, y, xs, series)`, `Fig.chroms(genes)`, `Fig.karyo(sex)`,
+  `Fig.limbs(kinds)`, `Fig.embryos(names)`.
+- Standards: NGSS MS-LS codes were read from nextgenscience.org pages (the NJSLS-S 2020 uses the same codes). The MS-LS1 page could
+  not be fetched, so MS-LS1-3/4/5/7/8 are from the established list, not re-read this session. HS-LS codes on Challenge levels are
+  from memory.
+- Facts: written from general biology knowledge and checked by reading for slips; figures that came from real data sets use published
+  values as far as remembered (bald eagle pairs, CO₂, world population, Mendel's and Kettlewell's counts, corn adoption, cytochrome c).
+  Nobody has checked these item by item against sources. Some graphs are made-up classroom-style examples (e.g. beetles, rabbits on an
+  island, yeast), and the marine families chart is marked approximate.
+- A scan found pictures that gave away answers (35 order questions, about 35 others such as DNA strands and labelled organs). These now
+  show `?` boxes or an unlabelled drawing. `Fig.karyo(sex, false)` hides the XX/XY label. Topics 1–2 were not scanned for this.
+- Tests run (2026-11-02): `node tools/validate.js science8` passes (10,824 items, 123 levels, answer-length 8%); all other apps re-validated
+  after the fig.js additions; play-through at 375px on the final build: 123 levels, 1,476 rounds, 11,808 questions, 0 failures; each of the 3,111
+  new items rendered at 375px with no sideways overflow; phone (light, dark) and desktop samples looked right, including neuron, Punnett,
+  DNA, food web, rock layers, limbs, pedigree, graphs, cycles.
+- Voice: `tools/voice_all.sh science8 4 2000` recorded 19,881 clips in 112 bundles (about 1 h 45 min); `node tools/voicecheck.js science8` shows every
+  line recorded (1.9M spoken lines checked). Three bundles were fetched and decoded in the browser. A bundle downloads only when its skill is used.
+- Videos: `video_scripts.py` has 41 videos (32 new, one launch per topic and one per lesson, 31–77 s each), check_videos OK, rendered with
+  `tools/make_videos.py science8 <ids>`. Frames from 12 of the new videos were looked at; one mp4 and the video list were checked in the app.
+- Publishing size: dist/ is now about 992 MiB (science8 is 277 MB of that, 216 MB voice). That is right at the GitHub Pages 1 GB published-site limit, so
+  decide how to handle it before the next `tools/deploy.sh` (e.g. a shorter or smaller voice encode, or fewer recorded answer choices).
+- NOT tested: a real iPad or iPhone; printing; cloud saves (needs the rules published); nobody has listened to the new voice or watched
+  the new videos end to end; no student has tried it.
+- Decision for the user: Topic 2 still stops at 3 lessons. Its Cell division (written) and Photosynthesis and Cellular respiration
+  (need rewriting at 40 per level) are not loaded, because the user said "stop at lesson 3"; "complete rest all topics" did not clearly
+  cancel that. Topic 3 Supplying energy and Topic 5 Energy flow touch on these ideas, so a student meets them there first.
 
 ## PENDING — next steps, in order
 
