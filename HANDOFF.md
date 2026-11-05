@@ -721,6 +721,11 @@ Design (follow it on the Mac):
   (need rewriting at 40 per level) are not loaded, because the user said "stop at lesson 3"; "complete rest all topics" did not clearly
   cancel that. Topic 3 Supplying energy and Topic 5 Energy flow touch on these ideas, so a student meets them there first.
 
+### Drawing Quest (2026-11-04, separate repo)
+- Step-by-step drawing videos for the 2nd grader: `Documents/drawing-quest` → github.com/VardhanGS/drawing-quest, served from `main` `/docs` at
+  https://vardhangs.github.io/drawing-quest/. It has its own 1 GB Pages limit; this repo only holds its hub tile. See its README. Its videos use this repo's
+  voice and Python environment. Local server: launch config `drawingquest` (port 4300).
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
