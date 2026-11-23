@@ -726,6 +726,39 @@ Design (follow it on the Mac):
   https://vardhangs.github.io/drawing-quest/. It has its own 1 GB Pages limit; this repo only holds its hub tile. See its README. Its videos use this repo's
   voice and Python environment. Local server: launch config `drawingquest` (port 4300).
 
+## MAP practice test: pause and resume (2026-11-22, published on the user's OK)
+- User asked: "track progress for MAP between multiple sessions" and picked **pause and resume a test**. Like the
+  real MAP, a test can be spread over more than one sitting.
+- How it works:
+  - **Autosave:** core/modes/map.js saves the test in progress in the player's progress (`P.mapPaused`) every time a
+    new question appears: id, term, answers, used item keys, the whole on-screen question (`cur`; every MAP
+    question is JSON-safe, checked on all 6 MAP apps), time so far (`elapsed`), `sessions`, and `slowdowns`.
+    Closing the app loses nothing.
+  - **✕ during a MAP test** opens "Take a break?" with: Keep going · Throw it away · ⏸️ Pause, finish later.
+  - **Home card:** shows "Test paused after N of 43" with ▶️ Resume my test and New test. Starting a new test
+    throws the paused one away (the intro warns first).
+  - **Resume** shows the same question the child left on, so pausing cannot skip a hard question.
+  - **Time** on breaks is not counted. The result keeps `sessions`, and the report says "over 2 sittings".
+  - **Dashboard:** the grown-ups' class dashboard has a "Paused test" column (⏸️ 6 of 43 · date). It also lists
+    students who have only a paused test.
+- Engine changes:
+  - core/app.js: `startTest(t)` accepts `t.resume = {done, slowdowns, first}`, `t.pausable`, and `t.onDiscard`;
+    there is a new action `testDiscard`. SAT and Puzzle Peak tests are unchanged: they are not pausable and keep the
+    old "Stop the practice test?" box.
+  - core/cloud.js merge: the newest copy of `mapPaused` wins. It is dropped when a test result with the same id
+    exists (finished) or its id is in `gone` (thrown away), so an old copy on another device cannot come back.
+- Tests (2026-11-22):
+  - node unit test of the merge: 5/5 cases.
+  - In the browser on MAP Math 2:
+    - answer 10, pause, reload the page, resume: same question 11, then finish all 43;
+    - the result has the paused id, 2 sessions, and the right count; mapPaused is cleared;
+    - throw away from the pause box, and replace a paused test by starting a new one: no stray result, ids in gone.
+  - In the browser on MAP Reading 4: a passage question survives pause, reload, and resume.
+  - maprun.js full test: 0 failures.
+  - node test of the dashboard columns.
+  - validate: the 6 MAP apps and SAT pass. maptest (all 6 MAP apps) and sattest pass.
+- NOT tested: a real Firestore round trip between two devices (the merge was only unit-tested), and a real iPad.
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude
