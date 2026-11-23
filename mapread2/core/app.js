@@ -455,11 +455,15 @@
   // ---- timed modules (SAT-style practice): every question of the module is open at once — Back/Next, mark for
   // review, a question menu — and answers can change until the module ends (Submit, or the timer runs out).
   // No feedback and no sounds. m = {title, qs, secs, calc, reference (HTML), onDone(result) -> screen name}
+  // A module can be paused (m.pausable): m.onSave(state) is called every few seconds and when the app is hidden,
+  // m.onPause(state) when the student pauses, m.onDiscard() when they throw the test away. m.resume = a saved state
+  // ({i, left, marks, sts, hideTimer, warned}) picks up with the same answers and the time that was left.
   let modTimer = null;
   function startModule(m) {
-    const qs = m.qs.map(prep);
-    Q = { mode: 'test', module: m, test: { title: m.title, total: qs.length }, qs, sts: qs.map(() => freshSt()), marks: new Set(), i: 0, points: 0, xp: 0, log: [], started: Date.now(), ends: Date.now() + m.secs * 1000, hideTimer: false };
-    Q.st = Q.sts[0]; calcOpen = false;
+    const qs = m.qs.map(prep), r = m.resume, left = r ? Math.max(1, Math.min(m.secs, r.left)) : m.secs;
+    Q = { mode: 'test', module: m, test: { title: m.title, total: qs.length }, qs, sts: qs.map((q, i) => (r && r.sts[i] ? { ...freshSt(), ...r.sts[i] } : freshSt())), marks: new Set(r ? r.marks : []),
+      i: r ? Math.min(r.i, qs.length - 1) : 0, points: 0, xp: 0, log: [], started: Date.now() - (m.secs - left) * 1000, ends: Date.now() + left * 1000, hideTimer: r ? !!r.hideTimer : false, warned: r ? !!r.warned : false, savedAt: Date.now() };
+    Q.st = Q.sts[Q.i]; calcOpen = false;
     clearInterval(modTimer); modTimer = setInterval(tickModule, 1000);
     go('quiz');
   }
@@ -467,8 +471,13 @@
   const fmtClock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   // the clock can be hidden, except in the last 5 minutes (as in the real app)
   const clockText = () => (Q.hideTimer && leftSecs() > 300 ? 'Show time' : fmtClock(leftSecs()));
+  // what a paused module needs to start again: answers (only the parts a test question uses), marks, place, time left
+  const moduleState = () => ({ i: Q.i, left: leftSecs(), hideTimer: Q.hideTimer, warned: !!Q.warned, marks: [...Q.marks], sts: Q.sts.map((st) => ({ chosen: st.chosen, typed: st.typed, elim: st.elim })) });
+  function saveModule() { if (Q && Q.module && Q.module.onSave && leftSecs() > 0) { Q.module.onSave(moduleState()); Q.savedAt = Date.now(); } }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveModule(); });
   function tickModule() {
     if (!Q || !Q.module) { clearInterval(modTimer); return; }
+    if (Date.now() - Q.savedAt > 10000) saveModule();
     const s = leftSecs(), el = document.getElementById('mtimer');
     if (el) { el.textContent = clockText(); el.classList.toggle('low', s <= 300); }
     if (s <= 300 && !Q.warned) { Q.warned = true; const t = document.getElementById('mtoast'); if (t) { t.hidden = false; t.textContent = '5 minutes left in this module.'; } }
@@ -2101,13 +2110,17 @@
     review: () => { if (P.missed.length) startRound({ mode: 'review' }); },
     again: () => startRound({ mode: Q.mode, s: Q.s, k: Q.k, l: Q.l, noExample: true }),
     askQuit: () => {
-      if (Q.mode === 'test' && Q.test.pausable) {
-        modal = `<h2>Take a break?</h2><p>Your answers are saved. You can finish this test later${me() && me().cloud ? ', on this device or another one in your class' : ' on this device'}. Or throw it away and start fresh another time.</p><div class="row end wrap"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn danger" data-act="testDiscard">Throw it away</button><button class="btn primary" data-act="quit">⏸️ Pause, finish later</button></div>`;
+      if (Q.mode === 'test' && (Q.test.pausable || (Q.module && Q.module.pausable))) {
+        // MAP tests sync with the class; timed modules (SAT) are saved on this device only (they are too big to sync)
+        const where = !Q.module && me() && me().cloud ? ', on this device or another one in your class' : ' on this device';
+        const clock = Q.module ? ' The clock stops while you are away.' : '';
+        modal = `<h2>Take a break?</h2><p>Your answers are saved. You can finish this test later${where}.${clock} Or throw it away and start fresh another time.</p><div class="row end wrap"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn danger" data-act="testDiscard">Throw it away</button><button class="btn primary" data-act="testPause">⏸️ Pause, finish later</button></div>`;
         render(); return;
       }
       return Q.mode === 'test' ? confirmModal('Stop the practice test?', 'This test will not be saved. You can start a new one any time.', 'quit', 'Stop test') : confirmModal('Leave this quest?', 'Your answers in this quest will not be saved.', 'quit', 'Leave');
     },
-    testDiscard: () => { modal = null; if (Q && Q.test && Q.test.onDiscard) Q.test.onDiscard(); Q = null; go('home'); },
+    testPause: () => { if (Q && Q.module) { clearInterval(modTimer); if (Q.module.onPause) Q.module.onPause(moduleState()); } Q = null; go('home'); },
+    testDiscard: () => { modal = null; clearInterval(modTimer); const d = Q && ((Q.module && Q.module.onDiscard) || (Q.test && Q.test.onDiscard)); if (d) d(); Q = null; go('home'); },
     quit: () => { if (Q.mode === 'test') { Q = null; go('home'); return; } const back = Q.mode === 'skill' ? ['subject', { s: Q.s }] : ['home', {}]; Q = null; go(...back); },
 
     choose: (ds) => { if (Q.st.done) return; SFX.play('tap'); Q.st.chosen = ds.v; if (Q.mode === 'test') render(); else check(); },
