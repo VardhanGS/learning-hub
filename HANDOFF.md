@@ -759,6 +759,39 @@ Design (follow it on the Mac):
   - validate: the 6 MAP apps and SAT pass. maptest (all 6 MAP apps) and sattest pass.
 - NOT tested: a real Firestore round trip between two devices (the merge was only unit-tested), and a real iPad.
 
+## SAT practice test: pause and resume (2026-11-22)
+- User asked: "add pause and resume to SAT practice tests too". This covers full tests and single-section tests.
+  Timed drills (10 questions) still have no pause.
+- Saved on THIS DEVICE ONLY (localStorage `<PFX>satPaused_<playerId>`), not in the class progress. A full test's
+  saved state (questions with passages and figures, plus the answers of finished modules) is up to about 200,000
+  characters (measured), and the class copy of a player's progress must stay under 400,000. The app and the pause box
+  say "on this device".
+- Inside a module:
+  - The state is saved every 10 s and whenever the app is hidden: position, answers (chosen/typed/eliminated),
+    🚩 marks, time left, and the hidden-clock setting.
+  - ✕ opens the same "Take a break?" box as MAP, adding "The clock stops while you are away."
+  - Resume puts the child back on the same question with the same answers and the same time left.
+- Between modules (Module 1 done, or the break before Math), the state is saved too, and Resume returns to that
+  screen.
+- Starting a new test throws a paused one away (the intro warns first). The result records `sessions`, and the
+  report says "over N sittings". Time on breaks is never counted.
+- A paused test older than a progress reset is ignored.
+- Engine (core/app.js): `startModule(m)` accepts `m.pausable`, `m.resume`, `m.onSave(state)`, `m.onPause(state)`,
+  and `m.onDiscard()`. There is a new action `testPause` (for MAP it is the same as quit). `testDiscard` also stops
+  the module timer. Puzzle Peak contests and SAT drills are unchanged.
+- Tests (2026-11-22, in the browser on SAT Prep):
+  - R&W only: answer 5, flag #3, move to #8, use 5 min, pause, reload. Resume gave the same question, flag, and
+    answers, and the clock had stopped (1620 s before and after a 4 s reload).
+  - Finished Module 1, left at "Module 1 done", reloaded, resumed there, finished Module 2: 54 answers, 3 sittings,
+    300 s counted, and the paused state was cleared.
+  - Full test: resume at the break; resume inside Math Module 1.
+  - Throw away; a new test replacing a paused one; drills still show the old stop box.
+  - satrun.js full test: 0 failures.
+  - validate satprep, sattest, and contesttest (contest2, contest8) pass.
+  - Phone screenshots of the pause box and the home card.
+- NOT tested: a real iPad or iPhone (in particular, that iOS fires visibilitychange when the home-screen app is
+  closed).
+
 ## PENDING — next steps, in order
 
 1. DONE 2026-10-25: MAP Math 2 and the Math Quest 2 update are published and verified live (the user allowed Claude

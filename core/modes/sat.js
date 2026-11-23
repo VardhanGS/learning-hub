@@ -14,6 +14,19 @@
   let pool = null;
   const getPool = () => (pool = pool || SatCore.buildPool(SATBANK.levels, 4, U.qkey));
   let run = null, lastResult = null, reviewOnlyWrong = true;
+  // A practice test in progress (full or one section, not drills) is saved on this device after each module and every
+  // few seconds inside a module, so it can be paused and finished later. It is NOT synced with the class: a full test's
+  // questions and answers are too large for the class copy of the progress (limit 400,000 characters).
+  const pkey = () => `${api.PFX}satPaused_${api.me() ? api.me().id : ''}`;
+  const paused = () => { const x = api.me() && api.store.get(pkey(), null); return x && x.order && (x.at || 0) > ((P() && P().resetAt) || 0) ? x : null; };
+  function snapshot(mod) {
+    if (!run || run.kind === 'drill') return;
+    api.store.set(pkey(), { id: run.id, at: Date.now(), kind: run.kind, order: run.order, si: run.si, used: [...run.used], sections: run.sections, secs: run.secs, cur: run.cur, between: run.between || null, mod: mod || null, sessions: run.sessions });
+  }
+  const clearPaused = () => api.store.del(pkey());
+  const pausedText = (x) => { const c = x.cur, done = Object.values(x.sections).reduce((t, sec) => t + (sec.m1 ? sec.m1.length : 0) + (sec.m2 ? sec.m2.length : 0), 0)
+    + (x.mod ? x.mod.sts.filter((st) => st && (st.chosen != null || st.typed)).length : 0);
+    return `${x.kind === 'full' ? 'Full test · ' : ''}${x.between ? (x.between.brk ? 'at the break' : `before ${SECTIONS[c.sec].short} Module 2`) : `in ${SECTIONS[c.sec].short} Module ${c.stage}${x.mod ? `, ${Math.floor(x.mod.left / 60)} min left` : ''}`} · ${done} answered`; };
 
   // ---------- home ----------
   function home() {
@@ -22,7 +35,8 @@
       <div class="row-between"><h2>📝 SAT-style practice test</h2><span class="tag-unofficial">Unofficial</span></div>
       <p class="muted">Reading and Writing (${SECTIONS.rw.n * 2} questions, ${SECTIONS.rw.secs * 2 / 60} min) and Math (${SECTIONS.math.n * 2} questions, ${SECTIONS.math.secs * 2 / 60} min), two timed modules each, like the digital SAT.</p>
       ${t ? `<p>Last test (${new Date(t.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}): estimated <b>${t.total ? `${t.total.lo}–${t.total.hi}` : Object.values(t.sections).map((x) => `${x.lo}–${x.hi}`).join(' · ')}</b>${t.total ? '' : ` (${Object.keys(t.sections).map((k) => SECTIONS[k].short).join(', ')})`}</p>` : ''}
-      <div class="row"><button class="btn primary big" data-act="satIntro">Start a practice test</button>${tests().length ? '<button class="btn" data-act="nav" data-to="satHistory">My scores</button>' : ''}</div>
+      ${paused() ? `<p class="map-paused">⏸️ <b>Test paused</b> (${new Date(paused().at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}): ${esc(pausedText(paused()))}.</p>` : ''}
+      <div class="row">${paused() ? '<button class="btn primary big" data-act="satResume">▶️ Resume my test</button><button class="btn" data-act="satIntro">New test</button>' : '<button class="btn primary big" data-act="satIntro">Start a practice test</button>'}${tests().length ? '<button class="btn" data-act="nav" data-to="satHistory">My scores</button>' : ''}</div>
       <p class="fine">Below: practice every skill untimed, three levels each. Or try a <button class="link" data-act="nav" data-to="satDrills">timed drill</button>.</p>
     </section>`;
   }
@@ -37,8 +51,10 @@
         <li>↔️ <b>Inside a module you can move around.</b> Skip, go back, change answers, and mark questions for review until time runs out or you submit.</li>
         <li>✅ <b>Answer every question.</b> A blank is never right, so it is better to make your best guess.</li>
         <li>🧮 <b>Math tools:</b> a calculator and a reference sheet of formulas are open for all of Math. (The real test has a built-in Desmos graphing calculator; this app has a simple calculator.)</li>
+        <li>⏸️ <b>Need a break?</b> Tap ✕ to pause. The clock stops, and you can finish later on this device. (The real SAT does not let you pause inside a module.)</li>
         <li>✍️ <b>Typed math answers:</b> up to 6 characters, including a minus sign. Fractions (3/4) and decimals (0.75) are both fine.</li>
       </ul>
+      ${paused() ? `<p class="warn">You have a paused test (${esc(pausedText(paused()))}). Starting a new test throws the paused one away.</p>` : ''}
       <span class="lbl">What do you want to take?</span>
       <div class="stack">
         <button class="btn primary big" data-act="satStart" data-kind="full">Full test · about 2 h 14 min</button>
@@ -67,9 +83,18 @@
     rev: { q: res.qs[i].q, passage: res.qs[i].passage ? res.qs[i].passage.text : '', your: res.answered[i] ? yourAnswer(res.qs[i], res.sts[i]) : '', right: api.answerText(res.qs[i]), why: res.qs[i].why || '', fig: res.qs[i].fig || '', wrongWhy: !res.oks[i] && res.answered[i] && res.qs[i].miss ? (res.qs[i].miss[yourAnswer(res.qs[i], res.sts[i])] || '') : '' } }));
   function yourAnswer(q, st) { if (q.t === 'mc') return st.chosen; if (q.t === 'num') return st.typed; return ''; }
   function begin(kind) {
+    clearPaused();
     const order = kind === 'full' ? ['rw', 'math'] : [kind];
-    run = { kind, order, si: 0, used: new Set(), sections: {}, secs: 0, started: Date.now() };
+    run = { id: Math.random().toString(36).slice(2, 10), kind, order, si: 0, used: new Set(), sections: {}, secs: 0, started: Date.now(), sessions: 1 };
     startSection();
+  }
+  function resume() {
+    const x = paused();
+    if (!x) { api.render(); return; }
+    run = { ...x, used: new Set(x.used), sessions: (x.sessions || 1) + 1 };
+    if (x.between || !x.mod) { run.between = x.between; snapshot(null); api.go('satBetween'); return; }
+    const C = SECTIONS[run.cur.sec];
+    launch(run.cur.items, `${C.name} · Module ${run.cur.stage}`, C, x.mod);
   }
   function startSection() {
     const sec = run.order[run.si], C = SECTIONS[sec];
@@ -77,8 +102,10 @@
     run.cur = { sec, items, stage: 1 };
     launch(items, `${C.name} · Module 1`, C);
   }
-  function launch(items, title, C) {
-    api.startModule({ title, short: `${C.short} · M${/Module 2/.test(title) ? 2 : 1}`, qs: items.map((it) => it.q), secs: C.secs, calc: C.calc, reference: C.calc ? S.reference : null, onDone: (res) => moduleDone(res) });
+  function launch(items, title, C, resumeState = null) {
+    api.startModule({ title, short: `${C.short} · M${/Module 2/.test(title) ? 2 : 1}`, qs: items.map((it) => it.q), secs: C.secs, calc: C.calc, reference: C.calc ? S.reference : null, onDone: (res) => moduleDone(res),
+      pausable: true, resume: resumeState, onSave: (st) => snapshot(st), onPause: (st) => { snapshot(st); run = null; }, onDiscard: () => { clearPaused(); run = null; } });
+    snapshot(resumeState || { i: 0, left: C.secs, marks: [], sts: [], hideTimer: false, warned: false }); // a module just started
   }
   function moduleDone(res) {
     const c = run.cur, C = SECTIONS[c.sec], ans = answersOf(res, c.items);
@@ -89,14 +116,16 @@
       const items = SatCore.buildModule(getPool(), run.used, C.spec, band, { grouped: C.grouped });
       run.cur = { sec: c.sec, items, stage: 2 };
       run.between = { sec: c.sec, timeUp: res.timeUp };
+      snapshot(null);
       return 'satBetween';
     }
     run.sections[c.sec].m2 = ans;
     run.si++;
-    if (run.si < run.order.length) { run.between = { sec: c.sec, brk: true, timeUp: res.timeUp }; return 'satBetween'; }
+    if (run.si < run.order.length) { run.between = { sec: c.sec, brk: true, timeUp: res.timeUp }; snapshot(null); return 'satBetween'; }
     return finish();
   }
   function between() {
+    if (!run || !run.between) return home();
     const b = run.between, C = SECTIONS[b.sec];
     if (b.brk) return `<div class="narrow"><section class="card stack"><h1 class="page-h">☕ Break time</h1>
       <p>${b.timeUp ? 'Time is up for that module. ' : ''}You finished ${esc(C.name)}. On the real test, the app tells you when to take a short break before Math.</p>
@@ -122,8 +151,9 @@
     }
     const ks = Object.keys(sections);
     const total = ks.length === 2 ? { score: sections.rw.score + sections.math.score, lo: sections.rw.lo + sections.math.lo, hi: sections.rw.hi + sections.math.hi } : null;
-    const result = { id: Math.random().toString(36).slice(2, 10), kind: 'sat', type: run.kind, at: Date.now(), sections, total, domains, secs: run.secs, review };
+    const result = { id: run.id || Math.random().toString(36).slice(2, 10), kind: 'sat', type: run.kind, at: Date.now(), sections, total, domains, secs: run.secs, review, sessions: run.sessions || 1 };
     saveResult(result);
+    clearPaused();
     api.touchDay((d) => { d.rounds++; d.q += review.length; d.correct += review.filter((r) => r.ok).length; });
     run = null;
     return 'satReport';
@@ -180,7 +210,7 @@
     const drill = r.type === 'drill';
     return `<section class="card stack report">
       <div class="row-between"><h1 class="page-h">${drill ? 'Drill results' : 'Practice test results'}</h1><span class="tag-unofficial">Unofficial estimate</span></div>
-      <p class="muted">${new Date(r.at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} · time used ${fmtMin(r.secs)}</p>
+      <p class="muted">${new Date(r.at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} · time used ${fmtMin(r.secs)}${r.sessions > 1 ? ` · over ${r.sessions} sittings` : ''}</p>
       ${r.total ? `<div class="big-band"><span class="band-num">${r.total.lo}–${r.total.hi}</span><span class="muted">estimated total score range (400–1600)</span></div>${scoreBar(r.total, 400, 1600)}` : ''}
       ${Object.entries(r.sections).map(([k, s]) => `<h2>${esc(SECTIONS[k].name)}</h2><div class="big-band small"><span class="band-num">${s.lo}–${s.hi}</span><span class="muted">estimated section range (200–800) · ${s.correct} of ${s.n} right · module 2 was ${s.band === 'hard' ? 'the harder' : 'the easier'} one</span></div>${scoreBar(s)}`).join('')}
       ${drill ? `<div class="big-band"><span class="band-num">${Object.values(r.domains)[0].right} of ${Object.values(r.domains)[0].n}</span><span class="muted">right in ${esc(GOAL[r.goal].name)}</span></div>` : ''}
@@ -245,6 +275,7 @@
       satStart: (ds) => begin(ds.kind),
       satPrint: (ds) => printTest(ds.kind),
       satNext: () => next(),
+      satResume: () => resume(),
       satDrill: (ds) => startDrill(ds.g),
       satRevMode: (ds) => { reviewOnlyWrong = ds.w === '1'; api.render(); },
       satPractice: (ds) => { const [k, l] = ds.w.split('.'); const s = api.SUBJ().find((x) => x.skills.some((y) => y.id === k)); if (s) api.startRound({ mode: 'skill', s: s.id, k, l: +l }); },
