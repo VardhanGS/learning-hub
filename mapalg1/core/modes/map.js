@@ -13,8 +13,24 @@
   const DESC_CLASS = { Low: 'd-low', LoAvg: 'd-loavg', Avg: 'd-avg', HiAvg: 'd-hiavg', High: 'd-high' };
   const chip = (d) => (d ? `<span class="desc ${DESC_CLASS[d]}">${MapCore.DESC_LONG[d]}</span>` : '');
   let term = MapCore.termOf();
-  let run = null; // the test in progress: {pool, used, answers, est, prior, term, started}
+  let run = null; // the test in progress: {id, pool, used, answers, est, prior, term, elapsed0, seg, sessions, cur}
   let lastResult = null;
+  // A test in progress is saved in the player's progress after every answer (P.mapPaused), so it can be finished
+  // later, like the real MAP test, which a school can spread over more than one sitting. It syncs with the class
+  // like the rest of the progress (cloud.js keeps the newest copy and drops it once the test is finished or thrown away).
+  const paused = () => { const x = P() && P().mapPaused; return x && x.answers ? x : null; };
+  const secsNow = () => Math.round(run.elapsed0 + (Date.now() - run.seg) / 1000);
+  function snapshot(Q) {
+    const at = Date.now();
+    api.setP((p) => { p.mapPaused = { id: run.id, term: run.term, at, answers: run.answers, used: [...run.used], cur: run.cur || null, elapsed: secsNow(), sessions: run.sessions, slowdowns: (Q && Q.slowdowns) || 0 }; });
+    api.save();
+  }
+  function discard() {
+    const x = paused();
+    if (x) api.setP((p) => { p.mapPaused = null; p.gone = [...(p.gone || []), x.id].slice(-400); });
+    api.save();
+    run = null;
+  }
   // Who the student is compared with: a grade (Math 2–5, Reading) or everyone who took a course test (Algebra 1).
   const GROUP = M.group || `grade ${M.grade}`, GROUP_SHORT = M.groupShort || 'vs grade', AVG = M.avgLabel || 'grade avg';
   const [BLO, BHI] = M.bandRange || [140, 240];
@@ -25,8 +41,9 @@
     return `<section class="card map-card">
       <div class="row-between"><h2>📈 MAP-style practice test</h2><span class="tag-unofficial">Unofficial</span></div>
       <p class="muted">${M.items} questions that adapt to you, like the ${esc(M.test)} test. Take your time: there is no time limit.</p>
+      ${paused() ? `<p class="map-paused">⏸️ <b>Test paused</b> after ${paused().answers.length} of ${M.items} questions (${MapCore.TERM_NAME[paused().term]}, ${new Date(paused().at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}). Pick up where you left off.</p>` : ''}
       ${t ? `<p>Last test (${MapCore.TERM_NAME[t.term]}, ${new Date(t.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}): estimated <b>${t.lo}–${t.hi}</b> ${chip(t.desc)}</p>` : ''}
-      <div class="row"><button class="btn primary big" data-act="mapIntro">Start a practice test</button>${tests().length ? '<button class="btn" data-act="nav" data-to="mapHistory">My growth</button>' : ''}</div>
+      <div class="row">${paused() ? '<button class="btn primary big" data-act="mapResume">▶️ Resume my test</button><button class="btn" data-act="mapIntro">New test</button>' : '<button class="btn primary big" data-act="mapIntro">Start a practice test</button>'}${tests().length ? '<button class="btn" data-act="nav" data-to="mapHistory">My growth</button>' : ''}</div>
       <p class="fine">Below: <b>Goal Area Practice</b> — the same three goal areas as the test, three levels each.</p>
     </section>`;
   }
@@ -40,12 +57,14 @@
         <li>📝 <b>${M.items} questions.</b> They get harder when you are right and easier when you miss, so everyone gets some hard ones. That is normal!</li>
         <li>🔒 <b>No going back.</b> You can change your answer until you tap Next. Then it is locked, just like the real test.</li>
         <li>🐢 <b>No time limit.</b> Read each question carefully. Use scratch paper if it helps.</li>
+        <li>⏸️ <b>Need a break?</b> Tap ✕ to pause. Your answers are saved, and you can finish another day.</li>
         <li>🔇 <b>No hints and no sounds</b> during the test. You will see your results at the end.</li>
         <li>🧮 Some questions have a calculator button.</li>
       </ul>
       <span class="lbl">Which test season is this?</span>
       <div class="seg">${['fall', 'winter', 'spring'].map((t) => `<button class="${term === t ? 'on' : ''}" data-act="mapTerm" data-t="${t}">${MapCore.TERM_NAME[t]}</button>`).join('')}</div>
       <label class="toggle"><input type="checkbox" data-set="testAudio" ${audio ? 'checked' : ''}><span>${esc(M.audioNote || 'Grown-ups: allow read-aloud during the test (only if the school gives your child text-to-speech; MAP Growth 2–5 has no read-aloud otherwise)')}</span></label>
+      ${paused() ? `<p class="warn">You have a paused test (${paused().answers.length} of ${M.items} done). Beginning a new test throws the paused one away.</p>` : ''}
       <button class="btn primary big" data-act="mapStart">Begin the test</button>
       <button class="btn small" data-act="mapPrint">🖨️ Print a paper version (with an answer key)</button>
       <button class="btn ghost" data-act="nav" data-to="home">Not now</button>
@@ -68,16 +87,24 @@
       sections: [{ items: picked.map((x) => ({ q: x.q })) }] });
   }
 
-  function begin() {
-    const norm = M.norms[term];
+  // saved: a paused test to pick up (P.mapPaused), or nothing for a new test.
+  function begin(saved) {
+    if (!saved && paused()) discard();
+    const t0 = saved ? saved.term : term, norm = M.norms[t0];
     const prior = { mean: norm.mean, sd: 20 };
-    run = { pool: MapCore.buildPool(MAPBANK.levels, 3, U.qkey), used: new Set(), answers: [], est: prior.mean, prior, term, started: Date.now() };
+    run = { id: saved ? saved.id : Math.random().toString(36).slice(2, 10), pool: MapCore.buildPool(MAPBANK.levels, 3, U.qkey), used: new Set(saved ? saved.used : []),
+      answers: saved ? [...saved.answers] : [], prior, term: t0, elapsed0: saved ? saved.elapsed || 0 : 0, seg: Date.now(), sessions: saved ? (saved.sessions || 1) + 1 : 1 };
+    run.est = run.answers.length ? MapCore.estimate(run.answers, prior.mean, prior.sd).theta : prior.mean;
+    // On resume, the question that was on screen comes back (it was saved whole), so pausing never skips a question.
+    if (saved && saved.cur) { run.cur = saved.cur; run.used.add(saved.cur.key); }
     api.startTest({
-      title: `MAP-style practice · ${M.test}`, total: M.items,
-      next: () => {
+      title: `MAP-style practice · ${M.test}`, total: M.items, pausable: true, onDiscard: discard,
+      resume: saved ? { done: run.answers.length, slowdowns: saved.slowdowns || 0, first: saved.cur ? saved.cur.q : null } : null,
+      next: (Q) => {
         const it = MapCore.pickNext(run.pool, run.used, run.answers, run.est, GOALS.map((g) => g.id), MAPBANK.MIN_FRESH);
         if (!it) return null;
         run.used.add(it.key); run.cur = it;
+        snapshot(Q);
         return it.q;
       },
       onAnswer: (q, ok) => {
@@ -87,12 +114,12 @@
       },
       finish: (Q) => {
         const rep = MapCore.report(run.answers, run.prior, M.norms[run.term], GOALS.map((g) => g.id));
-        const secs = Math.round((Date.now() - run.started) / 1000);
+        const secs = secsNow();
         const missedWhere = {};
         run.answers.forEach((a) => { if (!a.ok) missedWhere[a.where] = (missedWhere[a.where] || 0) + 1; });
-        const result = { id: Math.random().toString(36).slice(2, 10), kind: 'map', at: Date.now(), term: run.term, grade: M.grade, ...rep, secs,
+        const result = { id: run.id, kind: 'map', sessions: run.sessions, at: Date.now(), term: run.term, grade: M.grade, ...rep, secs,
           fresh: run.answers.filter((a) => a.fresh).length, missedWhere, nearWhere: nearSkills(rep.rit), slowdowns: Q.slowdowns || 0 };
-        api.setP((p) => { p.tests = [...(p.tests || []), result]; });
+        api.setP((p) => { p.tests = [...(p.tests || []), result]; p.mapPaused = null; });
         api.touchDay((d) => { d.rounds++; d.q += rep.n; d.correct += rep.correct; });
         api.save();
         run = null;
@@ -100,6 +127,7 @@
         return 'mapReport';
       },
     });
+    if (saved && run) snapshot({ slowdowns: saved.slowdowns }); // record the new sitting
   }
 
   // Practice levels whose questions sit just above the estimate (the "zone" to practice next).
@@ -159,7 +187,7 @@
       <h2>Practice next</h2>
       <ul class="plain">${nextSteps(r) || `<li class="muted">Great work! Keep exploring the ${esc(api.LEVEL_NAMES[2].long)} levels.</li>`}</ul>
       <details class="fine"><summary>For grown-ups: how this is worked out</summary>
-        <p>Time taken: ${fmtMin(r.secs)} (not shown during the test). ${r.fresh} of ${r.n} questions came from this app's own MAP-style skills.</p>
+        <p>Time taken: ${fmtMin(r.secs)} (not shown during the test)${r.sessions > 1 ? `, over ${r.sessions} sittings (time on breaks is not counted)` : ''}. ${r.fresh} of ${r.n} questions came from this app's own MAP-style skills.</p>
         ${r.slowdowns ? `<p>🦥 Slow-down reminders: ${r.slowdowns} (answers given in under 3 seconds, twice in a row). Very fast answers can make the estimate too low; like the real MAP test, the reminder asks the student to take their time.</p>` : ''}
         <p>The band is an estimate from an adaptive practice test, on a RIT-like scale: each question has an estimated difficulty, and the test picks harder or easier questions after each answer. The band adds extra room because the difficulties are estimates. Percentiles are approximate, worked out from ${M.norms.fall.table ? 'the published percentile tables' : 'the published means and standard deviations'} in ${esc(M.normsSource)}.${M.normsNote ? ' ' + esc(M.normsNote) : ''} Goal-area ratings use NWEA's percentile bands (Low under 21, LoAvg 21–40, Avg 41–60, HiAvg 61–80, High over 80) but are based on far fewer questions, so treat them as a rough guide.</p>
         <p>${esc(APP.disclaimer)}</p></details>
@@ -203,14 +231,17 @@
 
   // ---------- dashboard (grown-ups) ----------
   function dashboard(rows) {
-    const withTests = rows.filter((r) => (r.st.prog.data.tests || []).some((t) => t.kind === 'map'));
+    const withTests = rows.filter((r) => (r.st.prog.data.tests || []).some((t) => t.kind === 'map') || (r.st.prog.data.mapPaused || {}).answers);
     if (!withTests.length) return '';
     return `<h2 class="sec">MAP-style practice tests</h2><section class="card dash-wrap"><div class="dash-scroll"><table class="dash">
-      <thead><tr><th>Student</th><th>Latest</th><th>Season</th><th>Band</th><th>${esc(GROUP_SHORT)}</th>${GOALS.map((g) => `<th>${esc(g.name)}</th>`).join('')}<th>Growth</th><th>Time</th></tr></thead>
+      <thead><tr><th>Student</th><th>Latest</th><th>Season</th><th>Band</th><th>${esc(GROUP_SHORT)}</th>${GOALS.map((g) => `<th>${esc(g.name)}</th>`).join('')}<th>Growth</th><th>Time</th><th>Paused test</th></tr></thead>
       <tbody>${withTests.map(({ st }) => {
         const ts = (st.prog.data.tests || []).filter((t) => t.kind === 'map').sort((a, b) => a.at - b.at), t = ts[ts.length - 1], first = ts[0];
+        const mp = (st.prog.data.mapPaused || {}).answers ? st.prog.data.mapPaused : null;
+        const pausedCell = `<td>${mp ? `⏸️ ${mp.answers.length} of ${M.items} · ${new Date(mp.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : '–'}</td>`;
+        if (!t) return `<tr><td><b>${esc(st.name)}</b></td><td colspan="${6 + GOALS.length}" class="muted">No finished test yet</td>${pausedCell}</tr>`;
         return `<tr><td><b>${esc(st.name)}</b></td><td>${new Date(t.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td><td>${MapCore.TERM_NAME[t.term]}</td><td class="num"><b>${t.lo}–${t.hi}</b></td><td>${chip(t.desc)}</td>
-          ${GOALS.map((g) => `<td>${t.goals[g.id] ? chip(t.goals[g.id].desc) : '–'}</td>`).join('')}<td class="num">${ts.length > 1 ? `${t.rit - first.rit >= 0 ? '+' : ''}${t.rit - first.rit}` : '–'}</td><td class="num">${fmtMin(t.secs)}</td></tr>`;
+          ${GOALS.map((g) => `<td>${t.goals[g.id] ? chip(t.goals[g.id].desc) : '–'}</td>`).join('')}<td class="num">${ts.length > 1 ? `${t.rit - first.rit >= 0 ? '+' : ''}${t.rit - first.rit}` : '–'}</td><td class="num">${fmtMin(t.secs)}</td>${pausedCell}</tr>`;
       }).join('')}</tbody></table></div></section><p class="fine">Unofficial practice estimates, not RIT scores.</p>`;
   }
   function studentView() { return tests().length ? `<section class="card"><h2>MAP-style practice tests</h2>${growthChart(tests())}</section>` : ''; }
@@ -222,6 +253,7 @@
       mapIntro: () => api.go('mapIntro'),
       mapTerm: (ds) => { term = ds.t; api.render(); },
       mapStart: () => begin(),
+      mapResume: () => { const x = paused(); if (x) begin(x); else api.render(); },
       mapPrint: () => printTest(),
     },
   };

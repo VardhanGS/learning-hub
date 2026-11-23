@@ -62,6 +62,7 @@ h3 { font-size: 1.05rem; margin-top: 6px; }
 p { margin: 0; }
 .muted { color: var(--muted); }
 .fine { color: var(--muted); font-size: 0.85rem; }
+.warn, .map-paused { padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--gold) 18%, var(--surface)); border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--line)); }
 .center { text-align: center; }
 .lead { color: var(--muted); max-width: 60ch; }
 

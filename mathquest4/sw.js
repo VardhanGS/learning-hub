@@ -2,7 +2,7 @@
 // Every app on vardhangs.github.io shares one Cache Storage, so this worker only ever deletes caches whose
 // names start with its own app id.
 const APP_ID = "mathquest4";
-const CACHE = "mathquest4-748f3b37c2";
+const CACHE = "mathquest4-c04f47944d";
 const ASSETS = [
   "./",
   "./index.html",

@@ -421,9 +421,13 @@
   // Like the real test: one try per question, no feedback, the answer locks when you press Next, no sounds,
   // and no read-aloud unless a grown-up turns it on (MAP Growth 2–5 has text-to-speech only when a school assigns it).
   // t = {title, total, next(Q) -> question, onAnswer(q, ok, Q), finish(Q) -> screen name}
+  // A test can be paused and picked up later (t.pausable, t.onDiscard()): t.resume = {done, slowdowns, first} starts
+  // at question done + 1, showing `first` (the question that was on screen) when there is one.
   function startTest(t) {
-    Q = { mode: 'test', test: t, qs: [], i: 0, points: 0, xp: 0, log: [], st: freshSt(), started: Date.now(), qStarted: Date.now() };
-    const q = t.next(Q);
+    const r = t.resume;
+    Q = { mode: 'test', test: t, qs: r ? Array(r.done).fill(null) : [], i: r ? r.done : 0, points: 0, xp: 0, log: r ? Array.from({ length: r.done }, () => ({ ok: null })) : [],
+      st: freshSt(), started: Date.now(), qStarted: Date.now(), slowdowns: r ? r.slowdowns || 0 : 0 };
+    const q = r && r.first ? r.first : t.next(Q);
     if (!q) { go('home'); return; }
     Q.qs.push(prep(q));
     go('quiz');
@@ -2096,7 +2100,14 @@
     mix: () => startRound({ mode: 'mix' }),
     review: () => { if (P.missed.length) startRound({ mode: 'review' }); },
     again: () => startRound({ mode: Q.mode, s: Q.s, k: Q.k, l: Q.l, noExample: true }),
-    askQuit: () => (Q.mode === 'test' ? confirmModal('Stop the practice test?', 'This test will not be saved. You can start a new one any time.', 'quit', 'Stop test') : confirmModal('Leave this quest?', 'Your answers in this quest will not be saved.', 'quit', 'Leave')),
+    askQuit: () => {
+      if (Q.mode === 'test' && Q.test.pausable) {
+        modal = `<h2>Take a break?</h2><p>Your answers are saved. You can finish this test later${me() && me().cloud ? ', on this device or another one in your class' : ' on this device'}. Or throw it away and start fresh another time.</p><div class="row end wrap"><button class="btn ghost" data-act="closeModal">Keep going</button><button class="btn danger" data-act="testDiscard">Throw it away</button><button class="btn primary" data-act="quit">⏸️ Pause, finish later</button></div>`;
+        render(); return;
+      }
+      return Q.mode === 'test' ? confirmModal('Stop the practice test?', 'This test will not be saved. You can start a new one any time.', 'quit', 'Stop test') : confirmModal('Leave this quest?', 'Your answers in this quest will not be saved.', 'quit', 'Leave');
+    },
+    testDiscard: () => { modal = null; if (Q && Q.test && Q.test.onDiscard) Q.test.onDiscard(); Q = null; go('home'); },
     quit: () => { if (Q.mode === 'test') { Q = null; go('home'); return; } const back = Q.mode === 'skill' ? ['subject', { s: Q.s }] : ['home', {}]; Q = null; go(...back); },
 
     choose: (ds) => { if (Q.st.done) return; SFX.play('tap'); Q.st.chosen = ds.v; if (Q.mode === 'test') render(); else check(); },

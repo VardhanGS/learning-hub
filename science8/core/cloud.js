@@ -143,6 +143,11 @@ const Cloud = (() => {
     const gone = new Set(m.gone);
     m.missed = unionById(a.missed, b.missed, gone, 40);
     m.tests = unionById(a.tests, b.tests, gone, 200); // MAP / SAT practice test results
+    // A paused MAP-style practice test: the newest copy wins. It is dropped once that test is finished (its result,
+    // with the same id, is in tests) or thrown away (its id is in gone), so an old copy on another device cannot return.
+    const pa = a.mapPaused, pb = b.mapPaused;
+    const mp = !pa ? pb : !pb ? pa : (pa.at || 0) >= (pb.at || 0) ? pa : pb;
+    m.mapPaused = mp && !gone.has(mp.id) && !m.tests.some((t) => t.id === mp.id) ? mp : null;
     // Code Quest: the newest copy of each project wins, deleted projects stay deleted, and level stars never go down.
     if (a.code || b.code) {
       const ca = a.code || {}, cb = b.code || {}, byId = {};
